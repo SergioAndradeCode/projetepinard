@@ -1,0 +1,16 @@
+export const EXCEL_THEME = {
+  primary: '1E4A8C',
+  secondary: '2E75B6',
+  accent: 'EBF2FA',
+  success: '2E7D32',
+  warning: 'BF5A00',
+  danger: 'B71C1C',
+  white: 'FFFFFF',
+  lightGray: 'F8FAFC',
+  borderColor: 'E2E8F0',
+  textDark: '1A1A2E',
+  textMuted: '6B7280',
+  successLight: 'C8E6C9',
+  warningLight: 'FFE0B2',
+  dangerLight: 'FFCDD2',
+}
