@@ -68,7 +68,9 @@ export function SubscriptionProvider({ children, organizationId }: SubscriptionP
 
     const now = new Date()
     const trialEndsAt = data.trial_ends_at ? new Date(data.trial_ends_at) : null
-    const isTrialing = data.subscription_status === 'trialing' && trialEndsAt !== null && trialEndsAt > now
+    // trial_ends_at peut être null pour les orgs créées avant la migration 003
+    // → null signifie "essai en cours, sans date fixée" (on le traite comme actif)
+    const isTrialing = data.subscription_status === 'trialing' && (trialEndsAt === null || trialEndsAt > now)
     const isActive = data.subscription_status === 'active' || isTrialing
     const isExpired =
       data.subscription_status === 'canceled' ||
@@ -94,7 +96,8 @@ export function SubscriptionProvider({ children, organizationId }: SubscriptionP
   return (
     <SubscriptionContext.Provider value={{
       ...state,
-      hasFeature: (feature) => state.isActive && planHasFeature(state.planId, feature),
+      // Accès binaire : abonnement actif = toutes les fonctionnalités disponibles
+      hasFeature: (_feature) => state.isActive,
       canAddEstablishment: (count) => state.isActive && canAddEstablishment(state.planId, count),
       canAddUser: (count) => state.isActive && canAddUser(state.planId, count),
       maxEstablishments: plan?.maxEstablishments ?? null,

@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Loader2, Info, Building2, Calculator } from 'lucide-react'
+import { Loader2, Info, Building2, Calculator, Trash2, AlertTriangle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,7 +34,10 @@ export default function ParametresPage() {
   const [savingOrg, setSavingOrg] = useState(false)
   const [savingOETH, setSavingOETH] = useState(false)
   const [orgId, setOrgId] = useState<string | null>(null)
+  const [deletingAccount, setDeletingAccount] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const supabase = useMemo(() => createClient(), [])
+  const router = useRouter()
   const anneeActuelle = new Date().getFullYear()
 
   const orgForm = useForm<z.infer<typeof orgSchema>>({ resolver: zodResolver(orgSchema) })
@@ -91,6 +95,20 @@ export default function ParametresPage() {
     if (error) toast.error('Erreur lors de la sauvegarde')
     else toast.success('Organisation mise à jour')
     setSavingOrg(false)
+  }
+
+  const deleteAccount = async () => {
+    setDeletingAccount(true)
+    try {
+      const res = await fetch('/api/delete-account', { method: 'POST' })
+      if (!res.ok) throw new Error()
+      await supabase.auth.signOut()
+      router.push('/login?deleted=1')
+    } catch {
+      toast.error('Erreur lors de la suppression. Contactez talenthsupport@gmail.com')
+      setDeletingAccount(false)
+      setShowDeleteConfirm(false)
+    }
   }
 
   const saveOETH = async (data: z.infer<typeof oethSchema>) => {
@@ -279,6 +297,59 @@ export default function ParametresPage() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Zone de danger — suppression de compte */}
+      <div className="border border-red-200 rounded-2xl p-6 bg-red-50/40">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-[#B71C1C]" />
+          </div>
+          <div>
+            <p className="font-semibold text-[#1A1A2E]">Supprimer mon compte</p>
+            <p className="text-sm text-[#6B7280] mt-0.5">
+              Cette action est <strong>irréversible</strong>. Toutes vos données (salariés BOETH, budget, paramètres)
+              seront définitivement supprimées. Exportez vos données avant de continuer.
+            </p>
+          </div>
+        </div>
+
+        {!showDeleteConfirm ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="border-red-200 text-[#B71C1C] hover:bg-red-100"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            <Trash2 className="w-4 h-4" />
+            Supprimer mon compte
+          </Button>
+        ) : (
+          <div className="bg-white border border-red-200 rounded-xl p-4 space-y-3">
+            <p className="text-sm font-semibold text-[#B71C1C]">
+              Êtes-vous certain de vouloir supprimer définitivement votre compte et toutes vos données ?
+            </p>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                disabled={deletingAccount}
+                onClick={deleteAccount}
+                className="bg-[#B71C1C] hover:bg-red-800 text-white"
+              >
+                {deletingAccount && <Loader2 className="w-4 h-4 animate-spin" />}
+                Oui, supprimer définitivement
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={deletingAccount}
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Annuler
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
 
     </div>
   )

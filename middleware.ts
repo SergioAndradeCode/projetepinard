@@ -98,13 +98,36 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/onboarding', request.url))
       }
 
+      // Vérification abonnement : si expiré, seuls /settings/billing et /parametres sont accessibles
+      const allowedWhenExpired = ['/settings/billing', '/parametres']
+      const isAllowedWhenExpired = allowedWhenExpired.some(r => pathname.startsWith(r))
+
+      if (!isAllowedWhenExpired) {
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('subscription_status, trial_ends_at')
+          .eq('id', orgId)
+          .single()
+
+        if (org) {
+          const now = new Date()
+          const trialEndsAt = org.trial_ends_at ? new Date(org.trial_ends_at) : null
+          const isTrialing = org.subscription_status === 'trialing' && (trialEndsAt === null || trialEndsAt > now)
+          const isActive = org.subscription_status === 'active' || isTrialing
+
+          if (!isActive) {
+            return NextResponse.redirect(new URL('/settings/billing', request.url))
+          }
+        }
+      }
+
       // Routes admin uniquement
       if (adminOnlyRoutes.some(r => pathname.startsWith(r)) && role !== 'admin') {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
 
-      // Routes admin + charge_site
-      if (adminOrChargeRoutes.some(r => pathname.startsWith(r)) && role === 'lecteur') {
+      // Routes admin + charge_site (sauf si accès autorisé même expiré)
+      if (adminOrChargeRoutes.some(r => pathname.startsWith(r)) && role === 'lecteur' && !isAllowedWhenExpired) {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
     } catch {
