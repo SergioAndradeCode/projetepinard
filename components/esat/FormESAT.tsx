@@ -139,6 +139,9 @@ export function FormESAT({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
 
+          {/* Champ caché pour que react-hook-form suive establishment_id même sans <input> visible */}
+          <input type="hidden" {...register('establishment_id')} />
+
           {/* Établissement — obligatoire */}
           <div className="space-y-1.5">
             <Label>
