@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Plus, Download, Wallet, TrendingDown, Calendar, Pencil, Trash2, Loader2, AlertCircle, ArrowRight } from 'lucide-react'
+import { Plus, Download, Wallet, TrendingDown, Calendar, Pencil, Trash2, Loader2, AlertCircle, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { triggerExport } from '@/lib/excel/download'
 import { createClient } from '@/lib/supabase/client'
 import { useEstablishment } from '@/contexts/EstablishmentContext'
@@ -58,7 +58,9 @@ type DepenseConsolidee = BudgetExpense & { source: 'manuel' | 'esat' }
 
 export default function BudgetPage() {
   const supabase = useMemo(() => createClient(), [])
-  const annee = new Date().getFullYear()
+  const anneeCourante = new Date().getFullYear()
+  const [anneeSelectionnee, setAnneeSelectionnee] = useState(anneeCourante)
+  const anneesDisponibles = Array.from({ length: 4 }, (_, i) => anneeCourante - 2 + i)
   const { selectedEstablishmentId } = useEstablishment()
 
   const [orgId, setOrgId] = useState<string | null>(null)
@@ -114,15 +116,19 @@ export default function BudgetPage() {
 
     let depQuery = supabase
       .from('budget_expenses').select('*').eq('organization_id', profile.organization_id)
+      .gte('date_depense', `${anneeSelectionnee}-01-01`)
+      .lte('date_depense', `${anneeSelectionnee}-12-31`)
       .order('date_depense', { ascending: false })
     if (scopedId) depQuery = depQuery.eq('establishment_id', scopedId)
 
     let esatQuery = supabase
       .from('esat_purchases').select('*').eq('organization_id', profile.organization_id)
+      .gte('date_facture', `${anneeSelectionnee}-01-01`)
+      .lte('date_facture', `${anneeSelectionnee}-12-31`)
     if (scopedId) esatQuery = esatQuery.eq('establishment_id', scopedId)
 
     let allocQuery = supabase
-      .from('budget_allocations').select('*').eq('organization_id', profile.organization_id).eq('annee', annee)
+      .from('budget_allocations').select('*').eq('organization_id', profile.organization_id).eq('annee', anneeSelectionnee)
     if (scopedId) allocQuery = allocQuery.eq('establishment_id', scopedId)
 
     const [sitesRes, allocRes, depRes, esatRes, boethRes] = await Promise.all([
@@ -148,7 +154,7 @@ export default function BudgetPage() {
     setAchatsESAT(esatRes.data ?? [])
     setSalariesBoeth((boethRes.data ?? []) as RQTHEmployee[])
     setLoading(false)
-  }, [supabase, annee])
+  }, [supabase, anneeSelectionnee])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -201,7 +207,7 @@ export default function BudgetPage() {
   const depensesMois = depensesContextuelles
     .filter(d =>
       new Date(d.date_depense).getMonth() === moisActuel &&
-      new Date(d.date_depense).getFullYear() === annee
+      new Date(d.date_depense).getFullYear() === anneeSelectionnee
     )
     .reduce((s, d) => s + d.montant, 0)
 
@@ -216,10 +222,7 @@ export default function BudgetPage() {
   const parMois = MOIS.map((mois, i) => ({
     mois,
     Dépenses: depensesContextuelles
-      .filter(d =>
-        new Date(d.date_depense).getMonth() === i &&
-        new Date(d.date_depense).getFullYear() === annee
-      )
+      .filter(d => new Date(d.date_depense).getMonth() === i)
       .reduce((s, d) => s + d.montant, 0),
     'Budget mensuel': budgetRef > 0 ? Math.round(budgetRef / 12) : 0,
   }))
@@ -239,7 +242,7 @@ export default function BudgetPage() {
     const montant = parseFloat(editAllocValue)
     if (isNaN(montant) || montant < 0) { toast.error('Montant invalide'); setSavingAlloc(false); return }
     const existing = allocations.find(a => a.establishment_id === editAllocModal.siteId)
-    const payload = { organization_id: orgId, establishment_id: editAllocModal.siteId, annee, montant_total: montant }
+    const payload = { organization_id: orgId, establishment_id: editAllocModal.siteId, annee: anneeSelectionnee, montant_total: montant }
     const { error } = existing
       ? await supabase.from('budget_allocations').update({ montant_total: montant }).eq('id', existing.id)
       : await supabase.from('budget_allocations').insert(payload)
@@ -313,8 +316,8 @@ export default function BudgetPage() {
     try {
       await triggerExport({
         type: 'budget',
-        data: { orgName: '', year: annee, etablissements, allocations, expenses: depenses },
-        filename: `Talenth_Budget_${annee}.xlsx`,
+        data: { orgName: '', year: anneeSelectionnee, etablissements, allocations, expenses: depenses },
+        filename: `Talenth_Budget_${anneeSelectionnee}.xlsx`,
       })
     } catch {
       toast.error("Erreur lors de l'export")
@@ -355,6 +358,44 @@ export default function BudgetPage() {
 
   return (
     <div className="space-y-6 w-full">
+
+      {/* ── Sélecteur d'année ─────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-[#1A1A2E]">Budget</h1>
+          <p className="text-sm text-[#6B7280] mt-0.5">Suivi des dépenses OETH — exercice {anneeSelectionnee}</p>
+        </div>
+        <div className="flex items-center gap-1 bg-white border border-[#E2E8F0] rounded-xl p-1 shadow-sm">
+          <button
+            onClick={() => setAnneeSelectionnee(a => Math.max(a - 1, anneeCourante - 5))}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#1A1A2E] transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          {anneesDisponibles.map(a => (
+            <button
+              key={a}
+              onClick={() => setAnneeSelectionnee(a)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                a === anneeSelectionnee
+                  ? 'bg-[#1E4A8C] text-white shadow-sm'
+                  : 'text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#1A1A2E]'
+              }`}
+            >
+              {a}
+              {a === anneeCourante && a !== anneeSelectionnee && (
+                <span className="ml-1 text-[9px] text-[#9CA3AF]">●</span>
+              )}
+            </button>
+          ))}
+          <button
+            onClick={() => setAnneeSelectionnee(a => Math.min(a + 1, anneeCourante + 2))}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#1A1A2E] transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
 
       {/* ── Cartes résumé ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -413,7 +454,9 @@ export default function BudgetPage() {
               <p className="text-sm font-medium text-[#6B7280]">Dépenses ce mois</p>
             </div>
             <p className="text-2xl font-bold text-[#1A1A2E]">{formatEuros(depensesMois)}</p>
-            <p className="text-xs text-[#6B7280] mt-0.5">{MOIS[moisActuel]} {annee}</p>
+            <p className="text-xs text-[#6B7280] mt-0.5">
+              {anneeSelectionnee === anneeCourante ? `${MOIS[moisActuel]} ${anneeSelectionnee}` : `Exercice ${anneeSelectionnee}`}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -423,7 +466,7 @@ export default function BudgetPage() {
         <Card>
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-[16px]">Répartition du budget {annee}</CardTitle>
+              <CardTitle className="text-[16px]">Répartition du budget {anneeSelectionnee}</CardTitle>
               <Button
                 variant="outline" size="sm" className="text-xs h-8"
                 onClick={() => {
@@ -493,6 +536,7 @@ export default function BudgetPage() {
               <tbody className="divide-y divide-[#E2E8F0]">
                 {etablissements.map(site => {
                   const alloc = allocations.find(a => a.establishment_id === site.id)?.montant_total ?? 0
+                  // Inclut les dépenses manuelles ET les achats ESAT/EA pour ce site
                   const dep = toutesDepenses.filter(d => d.establishment_id === site.id).reduce((s, d) => s + d.montant, 0)
                   const taux = calculerTauxBudget(dep, alloc)
                   return (
@@ -540,6 +584,14 @@ export default function BudgetPage() {
                   )
                 })}
               </tbody>
+              <tfoot>
+                <tr className="bg-[#F8FAFC] border-t-2 border-[#E2E8F0]">
+                  <td className="px-4 py-3 text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Total dépensé</td>
+                  <td className="px-4 py-3 text-sm font-semibold text-[#1A1A2E]">{formatEuros(globalEnvelope)}</td>
+                  <td className="px-4 py-3 text-sm font-bold text-[#1A1A2E]">{formatEuros(toutesDepenses.reduce((s, d) => s + d.montant, 0))}</td>
+                  <td colSpan={3} />
+                </tr>
+              </tfoot>
             </table>
           </CardContent>
         </Card>
@@ -592,7 +644,7 @@ export default function BudgetPage() {
         {/* Évolution mensuelle */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-[16px]">Évolution mensuelle {annee}</CardTitle>
+            <CardTitle className="text-[16px]">Évolution mensuelle {anneeSelectionnee}</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <ResponsiveContainer width="100%" height={300} minWidth={0}>
@@ -758,7 +810,7 @@ export default function BudgetPage() {
           <DialogHeader>
             <DialogTitle>
               {editAllocModal?.siteId === null
-                ? `Enveloppe budgétaire ${annee}`
+                ? `Enveloppe budgétaire ${anneeSelectionnee}`
                 : `Budget — ${editAllocModal?.name}`}
             </DialogTitle>
           </DialogHeader>
