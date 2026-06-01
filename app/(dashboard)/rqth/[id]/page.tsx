@@ -7,7 +7,7 @@ import {
   ArrowLeft, Pencil, Trash2, Plus, Loader2, Heart,
   FileText, Upload, Download, FolderOpen, AlertCircle,
   UserCheck, Calendar, Briefcase, Building2, Clock,
-  CheckCircle2, XCircle,
+  CheckCircle2, XCircle, Wallet,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/contexts/ProfileContext'
@@ -23,11 +23,12 @@ import {
 } from '@/components/ui/select'
 import { cn, formatDate } from '@/lib/utils'
 import { getStatutRQTH } from '@/lib/oeth/calculs'
-import type { RQTHEmployee, MaintienEmploi, RQTHDocument, TypeDocument } from '@/types'
+import type { RQTHEmployee, MaintienEmploi, RQTHDocument, TypeDocument, BudgetExpense } from '@/types'
 import {
   LABEL_RECONNAISSANCE, LABEL_TYPE_SITUATION, LABEL_STATUT_MAINTIEN,
-  LABEL_TYPE_DOCUMENT, AMENAGEMENTS_OPTIONS,
+  LABEL_TYPE_DOCUMENT, AMENAGEMENTS_OPTIONS, BUDGET_CATEGORIES_LABELS,
 } from '@/types'
+import { formatEuros } from '@/lib/utils'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -71,11 +72,12 @@ export default function ProfilRQTHPage() {
   const isReadonly = profile?.role === 'lecteur'
 
   // ── State principal ──────────────────────────────────────────────────────
-  const [employee, setEmployee]     = useState<RQTHEmployee | null>(null)
-  const [situations, setSituations] = useState<MaintienEmploi[]>([])
-  const [documents, setDocuments]   = useState<RQTHDocument[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [notFound, setNotFound]     = useState(false)
+  const [employee, setEmployee]         = useState<RQTHEmployee | null>(null)
+  const [situations, setSituations]     = useState<MaintienEmploi[]>([])
+  const [documents, setDocuments]       = useState<RQTHDocument[]>([])
+  const [depensesLiees, setDepensesLiees] = useState<BudgetExpense[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [notFound, setNotFound]         = useState(false)
 
   // ── Modals ───────────────────────────────────────────────────────────────
   const [editEmployeeOpen, setEditEmployeeOpen]       = useState(false)
@@ -128,12 +130,21 @@ export default function ProfilRQTHPage() {
     setDocuments(data ?? [])
   }, [id, supabase])
 
+  const loadDepenses = useCallback(async () => {
+    const { data } = await supabase
+      .from('budget_expenses')
+      .select('*')
+      .eq('rqth_employee_id', id)
+      .order('date_depense', { ascending: false })
+    setDepensesLiees((data ?? []) as BudgetExpense[])
+  }, [id, supabase])
+
   useEffect(() => {
     if (!id) return
     setLoading(true)
-    Promise.all([loadEmployee(), loadSituations(), loadDocuments()])
+    Promise.all([loadEmployee(), loadSituations(), loadDocuments(), loadDepenses()])
       .finally(() => setLoading(false))
-  }, [id, loadEmployee, loadSituations, loadDocuments])
+  }, [id, loadEmployee, loadSituations, loadDocuments, loadDepenses])
 
   // ── Suppression salarié ───────────────────────────────────────────────────
   const handleDeleteEmployee = async () => {
@@ -591,6 +602,58 @@ export default function ProfilRQTHPage() {
                 onEdit={() => { setEditSituation(sit); setFormMaintienOpen(true) }}
                 onDelete={() => setDeleteSituationId(sit.id)}
               />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Équipements & aménagements liés ──────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
+              <Wallet className="w-4.5 h-4.5 text-purple-700" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#1A1A2E]">Équipements & aménagements</p>
+              <p className="text-xs text-[#6B7280]">Dépenses budget associées à ce collaborateur</p>
+            </div>
+          </div>
+          {depensesLiees.length > 0 && (
+            <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full">
+              {formatEuros(depensesLiees.reduce((s, d) => s + d.montant, 0))} total
+            </span>
+          )}
+        </div>
+
+        {depensesLiees.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-[#E2E8F0] rounded-xl">
+            <Wallet className="w-7 h-7 text-[#CBD5E1] mb-2" />
+            <p className="text-sm text-[#6B7280]">Aucune dépense associée</p>
+            <p className="text-xs text-[#9CA3AF] mt-1">
+              Associez une dépense à ce collaborateur depuis l&apos;onglet Budget
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-[#F1F5F9]">
+            {depensesLiees.map(d => (
+              <div key={d.id} className="py-3 flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[#1A1A2E] truncate">{d.description}</p>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-[10px] bg-[#EBF2FA] text-[#1E4A8C] px-2 py-0.5 rounded-full">
+                      {BUDGET_CATEGORIES_LABELS[d.categorie]}
+                    </span>
+                    <span className="text-xs text-[#9CA3AF]">{formatDate(d.date_depense)}</span>
+                    {d.facture_ref && (
+                      <span className="text-xs text-[#9CA3AF]">· {d.facture_ref}</span>
+                    )}
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-[#1A1A2E] whitespace-nowrap shrink-0">
+                  {formatEuros(d.montant)}
+                </span>
+              </div>
             ))}
           </div>
         )}

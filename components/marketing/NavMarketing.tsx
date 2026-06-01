@@ -26,6 +26,7 @@ export function NavMarketing() {
             alt="Talenth"
             width={140}
             height={34}
+            style={{ width: 140, height: 'auto' }}
             priority
           />
         </Link>

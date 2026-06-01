@@ -2,7 +2,7 @@ import { GuideOETH } from '@/components/guide/GuideOETH'
 
 export default function GuidePage() {
   return (
-    <div className="max-w-4xl">
+    <div className="w-full max-w-5xl">
       <GuideOETH />
     </div>
   )

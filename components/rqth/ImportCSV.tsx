@@ -24,7 +24,7 @@ interface LigneCSV {
   est_permanent: string
   taux_temps_travail: string
   date_naissance: string
-  code_interne: string
+  matricule: string
   _valide: boolean
   _erreurs: string[]
 }
@@ -58,7 +58,7 @@ const TYPES_VALIDES: Record<string, TypeReconnaissance> = {
   'carte_mobilite_invalidite':                   'carte_mobilite_invalidite',
 }
 
-const CSV_TEMPLATE = `prenom,nom,type_reconnaissance,date_debut,date_fin,est_permanent,taux_temps_travail,date_naissance,code_interne
+const CSV_TEMPLATE = `prenom,nom,type_reconnaissance,date_debut,date_fin,est_permanent,taux_temps_travail,date_naissance,matricule
 Marie,Dupont,RQTH,2023-01-15,2026-01-14,false,100,1985-06-20,EMP001
 Jean,Martin,AAH,2022-06-01,,true,80,1970-03-12,EMP002
 `
@@ -73,15 +73,67 @@ function parseDate(val: string): string | null {
   return null
 }
 
+// Normalise un en-tête de colonne vers sa clé interne
+const HEADER_MAP: Record<string, string> = {
+  // prenom
+  'prenom': 'prenom', 'prénom': 'prenom', 'first name': 'prenom', 'firstname': 'prenom', 'given name': 'prenom',
+  // nom
+  'nom': 'nom', 'last name': 'nom', 'lastname': 'nom', 'family name': 'nom', 'nom de famille': 'nom',
+  // type_reconnaissance
+  'type_reconnaissance': 'type_reconnaissance', 'type de reconnaissance': 'type_reconnaissance',
+  'type reconnaissance': 'type_reconnaissance', 'type': 'type_reconnaissance', 'reconnaissance': 'type_reconnaissance',
+  'statut': 'type_reconnaissance', 'handicap': 'type_reconnaissance',
+  // date_debut
+  'date_debut': 'date_debut', 'date début': 'date_debut', 'date de début': 'date_debut',
+  'date debut': 'date_debut', 'début': 'date_debut', 'debut': 'date_debut', 'start date': 'date_debut',
+  // date_fin
+  'date_fin': 'date_fin', 'date fin': 'date_fin', 'date de fin': 'date_fin',
+  'fin': 'date_fin', 'end date': 'date_fin',
+  // est_permanent
+  'est_permanent': 'est_permanent', 'permanent': 'est_permanent', 'illimité': 'est_permanent',
+  // taux_temps_travail
+  'taux_temps_travail': 'taux_temps_travail', 'taux temps travail': 'taux_temps_travail',
+  'taux': 'taux_temps_travail', 'temps travail': 'taux_temps_travail', 'etp': 'taux_temps_travail',
+  // date_naissance
+  'date_naissance': 'date_naissance', 'date naissance': 'date_naissance',
+  'date de naissance': 'date_naissance', 'naissance': 'date_naissance', 'birth date': 'date_naissance',
+  // matricule
+  'matricule': 'matricule', 'code_interne': 'matricule', 'code interne': 'matricule',
+  'id': 'matricule', 'identifiant': 'matricule',
+}
+
+function normalizeHeader(h: string): string {
+  const key = h.trim().toLowerCase().replace(/"/g, '').replace(/\r/g, '')
+  return HEADER_MAP[key] ?? key
+}
+
 function parseCSV(text: string): LigneCSV[] {
-  const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean)
+  // Supprimer le BOM UTF-8 éventuel (export Excel Windows)
+  const clean = text.replace(/^﻿/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  const lines = clean.trim().split('\n').map(l => l.trim()).filter(Boolean)
   if (lines.length < 2) return []
 
-  const sep = lines[0].includes(';') ? ';' : ','
-  const headers = lines[0].split(sep).map(h => h.trim().toLowerCase().replace(/"/g, ''))
+  // Détection automatique du séparateur : tabulation, point-virgule ou virgule
+  const firstLine = lines[0]
+  const sep = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ','
+  const headers = lines[0].split(sep).map(normalizeHeader)
+
+  // Vérifier que les colonnes obligatoires sont présentes
+  const required = ['prenom', 'nom', 'type_reconnaissance', 'date_debut']
+  const missing = required.filter(r => !headers.includes(r))
+  if (missing.length === required.length) {
+    // Aucune colonne reconnue → retourner une ligne d'erreur explicite
+    return [{
+      prenom: '', nom: '', type_reconnaissance: '', date_debut: '',
+      date_fin: '', est_permanent: 'false', taux_temps_travail: '100',
+      date_naissance: '', matricule: '',
+      _valide: false,
+      _erreurs: [`Colonnes non reconnues. En-têtes détectés : "${headers.join('", "')}". Utilisez le modèle CSV fourni.`],
+    }]
+  }
 
   return lines.slice(1).map(line => {
-    const cells = line.split(sep).map(c => c.trim().replace(/"/g, ''))
+    const cells = line.split(sep).map(c => c.trim().replace(/"/g, '').replace(/\r/g, ''))
     const row: Record<string, string> = {}
     headers.forEach((h, i) => { row[h] = cells[i] ?? '' })
 
@@ -102,7 +154,7 @@ function parseCSV(text: string): LigneCSV[] {
       est_permanent: row['est_permanent'] ?? 'false',
       taux_temps_travail: row['taux_temps_travail'] ?? '100',
       date_naissance: row['date_naissance'] ?? '',
-      code_interne: row['code_interne'] ?? '',
+      matricule: row['matricule'] ?? '',
       _valide: erreurs.length === 0,
       _erreurs: erreurs,
     }
@@ -120,6 +172,15 @@ export function ImportCSV({ open, onClose, onSuccess, organizationId }: ImportCS
   const lignesErreur = lignes.filter(l => !l._valide)
 
   const handleFile = useCallback((file: File) => {
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    if (ext === 'numbers') {
+      toast.error('Format Numbers non supporté. Dans Numbers : Fichier → Exporter vers → CSV, puis uploadez le .csv')
+      return
+    }
+    if (ext === 'xlsx' || ext === 'xls') {
+      toast.error('Format Excel non supporté. Dans Excel : Fichier → Enregistrer sous → CSV UTF-8, puis uploadez le .csv')
+      return
+    }
     const reader = new FileReader()
     reader.onload = (e) => {
       const text = e.target?.result as string
@@ -149,7 +210,7 @@ export function ImportCSV({ open, onClose, onSuccess, organizationId }: ImportCS
         est_permanent: l.est_permanent.toLowerCase() === 'true' || l.est_permanent === '1' || !parseDate(l.date_fin),
         taux_temps_travail: Math.min(100, Math.max(0, parseFloat(l.taux_temps_travail) || 100)),
         date_naissance: parseDate(l.date_naissance) ?? null,
-        code_interne: l.code_interne.trim() || null,
+        matricule: l.matricule.trim() || null,
       }))
 
       const { error } = await supabase.from('rqth_employees').insert(payload)
@@ -201,7 +262,7 @@ export function ImportCSV({ open, onClose, onSuccess, organizationId }: ImportCS
               <Upload className="w-8 h-8 text-[#6B7280] mx-auto mb-3" />
               <p className="text-sm font-medium text-[#1A1A2E]">Glissez votre fichier CSV ici</p>
               <p className="text-xs text-[#6B7280] mt-1">ou cliquez pour parcourir</p>
-              <p className="text-xs text-[#9CA3AF] mt-3">Format CSV avec séparateur virgule ou point-virgule · Encodage UTF-8</p>
+              <p className="text-xs text-[#9CA3AF] mt-3">Format CSV uniquement · Pas de .numbers ni .xlsx · Séparateur virgule ou point-virgule</p>
               <input
                 ref={inputRef}
                 type="file"

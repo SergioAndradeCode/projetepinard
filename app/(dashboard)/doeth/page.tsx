@@ -217,7 +217,7 @@ export default function DoethPage() {
     }
   }
 
-  if (loading) return <div className="space-y-4 max-w-3xl"><Skeleton className="h-16 w-full" /><Skeleton className="h-64 w-full" /></div>
+  if (loading) return <div className="space-y-4 w-full max-w-4xl"><Skeleton className="h-16 w-full" /><Skeleton className="h-64 w-full" /></div>
 
   if (dbError) return (
     <div className="max-w-2xl">
@@ -236,7 +236,7 @@ export default function DoethPage() {
   )
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="w-full max-w-4xl space-y-6">
 
       {/* Barre de progression */}
       <div className="flex items-center gap-1">

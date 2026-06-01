@@ -91,13 +91,17 @@ export default function OnboardingPage() {
       const smicRef = getSmicRef(annee)
       const coeffContrib = getCoefficientContribution(data.effectif_assujettissement)
 
-      // 1. Créer l'organisation
+      // 1. Créer l'organisation avec la période d'essai
+      const trialEndsAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString()
       const { data: org, error: orgError } = await supabase
         .from('organizations')
         .insert({
           name: step1Data.orgName,
           type: step1Data.orgType,
           siret: step1Data.siret || null,
+          plan_id: 'essentiel',
+          subscription_status: 'trialing',
+          trial_ends_at: trialEndsAt,
         })
         .select()
         .single()

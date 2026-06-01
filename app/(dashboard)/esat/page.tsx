@@ -79,7 +79,7 @@ export default function ESATPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Bloc pédagogique */}
       <div className="bg-[#EBF2FA] rounded-xl border border-[#1E4A8C]/20 overflow-hidden">
         <button
@@ -156,7 +156,7 @@ export default function ESATPage() {
       </div>
 
       {/* Tableau */}
-      <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
+      <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
         <TableauESAT
           achats={filtered}
           organizationId={profile?.organization_id ?? ''}

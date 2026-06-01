@@ -58,7 +58,7 @@ export function TableauESAT({ achats, organizationId, smicHoraire = SMIC_REF_COU
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl border border-[#E2E8F0]">
+      <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">

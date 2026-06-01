@@ -22,19 +22,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatEuros, formatDate } from '@/lib/utils'
 import { calculerTauxBudget } from '@/lib/oeth/calculs'
-import type { Establishment, BudgetAllocation, BudgetExpense, BudgetCategorie, ESATPurchase } from '@/types'
+import type { Establishment, BudgetAllocation, BudgetExpense, BudgetCategorie, ESATPurchase, RQTHEmployee } from '@/types'
 import { BUDGET_CATEGORIES_LABELS } from '@/types'
 
-const COULEURS = ['#1E4A8C', '#2E75B6', '#3B9CD9', '#2E7D32', '#BF5A00', '#6B7280']
+const COULEURS = ['#1E4A8C', '#2E75B6', '#3B9CD9', '#2E7D32', '#BF5A00', '#7C3AED', '#6B7280']
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
+const RADIAN = Math.PI / 180
+const renderPieLabel = ({
+  cx, cy, midAngle, innerRadius, outerRadius, percent,
+}: { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number }) => {
+  if (percent < 0.05) return null
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.58
+  const x = cx + radius * Math.cos(-midAngle * RADIAN)
+  const y = cy + radius * Math.sin(-midAngle * RADIAN)
+  return (
+    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central"
+      style={{ fontSize: 11, fontWeight: 700, pointerEvents: 'none' }}>
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  )
+}
 
 const depenseSchema = z.object({
   establishment_id: z.string().min(1, 'Établissement requis'),
-  categorie: z.enum(['esat_ea', 'sensibilisation', 'communication', 'formation', 'prestations_externes', 'autres']),
+  categorie: z.enum(['esat_ea', 'maintien_emploi', 'sensibilisation', 'communication', 'formation', 'prestations_externes', 'autres']),
   description: z.string().min(1, 'Description requise'),
   montant: z.number().positive('Montant > 0'),
   date_depense: z.string().min(1, 'Date requise'),
   facture_ref: z.string().nullable(),
+  rqth_employee_id: z.string().nullable().optional(),
 })
 type DepenseForm = z.infer<typeof depenseSchema>
 
@@ -68,6 +84,7 @@ export default function BudgetPage() {
   const [savingDepense, setSavingDepense] = useState(false)
   const [filtreCategorie, setFiltreCategorie] = useState<string>('tous')
   const [exporting, setExporting] = useState(false)
+  const [salariesBoeth, setSalariesBoeth] = useState<RQTHEmployee[]>([])
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<DepenseForm>({
     resolver: zodResolver(depenseSchema),
@@ -108,12 +125,15 @@ export default function BudgetPage() {
       .from('budget_allocations').select('*').eq('organization_id', profile.organization_id).eq('annee', annee)
     if (scopedId) allocQuery = allocQuery.eq('establishment_id', scopedId)
 
-    const [sitesRes, allocRes, depRes, esatRes] = await Promise.all([
+    const [sitesRes, allocRes, depRes, esatRes, boethRes] = await Promise.all([
       supabase.from('establishments').select('*').eq('organization_id', profile.organization_id)
         .order('is_headquarters', { ascending: false }).order('name'),
       allocQuery,
       depQuery,
       esatQuery,
+      supabase.from('rqth_employees').select('id, prenom, nom, matricule, service')
+        .eq('organization_id', profile.organization_id)
+        .order('nom').order('prenom'),
     ])
 
     if (sitesRes.status === 404 || allocRes.status === 404 || depRes.status === 404) {
@@ -126,6 +146,7 @@ export default function BudgetPage() {
     setAllocations(allocRes.data ?? [])
     setDepenses(depRes.data ?? [])
     setAchatsESAT(esatRes.data ?? [])
+    setSalariesBoeth((boethRes.data ?? []) as RQTHEmployee[])
     setLoading(false)
   }, [supabase, annee])
 
@@ -237,6 +258,7 @@ export default function BudgetPage() {
       montant: undefined,
       establishment_id: defaultEtab,
       facture_ref: null,
+      rqth_employee_id: null,
     })
     setShowAddDepense(true)
   }
@@ -244,7 +266,12 @@ export default function BudgetPage() {
   const onSubmitDepense = async (data: DepenseForm) => {
     if (!orgId) return
     setSavingDepense(true)
-    const payload = { ...data, facture_ref: data.facture_ref || null, organization_id: orgId }
+    const payload = {
+      ...data,
+      facture_ref: data.facture_ref || null,
+      rqth_employee_id: data.rqth_employee_id || null,
+      organization_id: orgId,
+    }
     const { error } = editDepense
       ? await supabase.from('budget_expenses').update(payload).eq('id', editDepense.id)
       : await supabase.from('budget_expenses').insert(payload)
@@ -268,6 +295,7 @@ export default function BudgetPage() {
       date_depense: d.date_depense,
       facture_ref: d.facture_ref,
       establishment_id: d.establishment_id ?? '',
+      rqth_employee_id: d.rqth_employee_id ?? null,
     })
     setShowAddDepense(true)
   }
@@ -298,9 +326,12 @@ export default function BudgetPage() {
   // ── Rendu ─────────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="space-y-4 max-w-6xl">
+      <div className="space-y-4 w-full">
         <div className="grid grid-cols-3 gap-4">
           <Skeleton className="h-32" /><Skeleton className="h-32" /><Skeleton className="h-32" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-80" /><Skeleton className="h-80" />
         </div>
         <Skeleton className="h-64 w-full" />
       </div>
@@ -323,7 +354,7 @@ export default function BudgetPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6 w-full">
 
       {/* ── Cartes résumé ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -516,59 +547,84 @@ export default function BudgetPage() {
 
       {/* ── Graphiques ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Répartition par catégorie */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-[16px]">Répartition par catégorie</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             {parCategorie.length === 0 ? (
-              <div className="flex items-center justify-center h-[220px] text-sm text-[#6B7280]">Aucune dépense enregistrée</div>
+              <div className="flex items-center justify-center h-[300px] text-sm text-[#6B7280]">Aucune dépense enregistrée</div>
             ) : (
-              <div>
-                <ResponsiveContainer width="100%" height={220} minWidth={0}>
-                  <PieChart>
-                    <Pie
-                      data={parCategorie}
-                      dataKey="value"
-                      cx="50%" cy="50%"
-                      outerRadius={75} innerRadius={35}
-                      paddingAngle={2}
-                      label={({ percent }: { percent?: number }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
-                      labelLine={false}
-                    >
-                      {parCategorie.map((_, i) => <Cell key={i} fill={COULEURS[i % COULEURS.length]} />)}
-                    </Pie>
-                    <Tooltip formatter={(v) => [formatEuros(Number(v)), '']} />
-                    <Legend iconSize={10} formatter={(v) => <span className="text-xs text-[#6B7280]">{v}</span>} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              <ResponsiveContainer width="100%" height={300} minWidth={0}>
+                <PieChart>
+                  <Pie
+                    data={parCategorie}
+                    dataKey="value"
+                    cx="50%" cy="45%"
+                    outerRadius={95} innerRadius={45}
+                    paddingAngle={3}
+                    label={renderPieLabel}
+                    labelLine={false}
+                  >
+                    {parCategorie.map((_, i) => (
+                      <Cell key={i} fill={COULEURS[i % COULEURS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(v, name) => [formatEuros(Number(v)), name]}
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E2E8F0' }}
+                  />
+                  <Legend
+                    iconSize={9}
+                    iconType="circle"
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    wrapperStyle={{ paddingTop: 12, fontSize: 11, lineHeight: '20px' }}
+                    formatter={(v) => <span style={{ color: '#6B7280' }}>{v}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
 
+        {/* Évolution mensuelle */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-[16px]">Évolution mensuelle {annee}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div>
-              <ResponsiveContainer width="100%" height={220} minWidth={0}>
-                <BarChart data={parMois} margin={{ left: -15, right: 4 }} barSize={8}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
-                  <XAxis dataKey="mois" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis
-                    tick={{ fontSize: 10 }}
-                    tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
-                    axisLine={false} tickLine={false}
-                  />
-                  <Tooltip formatter={(v) => [formatEuros(Number(v)), '']} />
-                  <Legend iconSize={10} formatter={(v) => <span className="text-xs text-[#6B7280]">{v}</span>} />
-                  <Bar dataKey="Dépenses" fill="#1E4A8C" radius={[3, 3, 0, 0]} />
-                  {budgetRef > 0 && <Bar dataKey="Budget mensuel" fill="#E2E8F0" radius={[3, 3, 0, 0]} />}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          <CardContent className="pt-2">
+            <ResponsiveContainer width="100%" height={300} minWidth={0}>
+              <BarChart data={parMois} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barSize={10}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                <XAxis
+                  dataKey="mois"
+                  tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                  axisLine={false} tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                  tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k€` : `${v}€`}
+                  axisLine={false} tickLine={false}
+                  width={48}
+                />
+                <Tooltip
+                  formatter={(v) => [formatEuros(Number(v)), '']}
+                  contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #E2E8F0' }}
+                />
+                <Legend
+                  iconSize={9}
+                  iconType="circle"
+                  wrapperStyle={{ paddingTop: 12, fontSize: 11 }}
+                  formatter={(v) => <span style={{ color: '#6B7280' }}>{v}</span>}
+                />
+                <Bar dataKey="Dépenses" fill="#1E4A8C" radius={[4, 4, 0, 0]} />
+                {budgetRef > 0 && (
+                  <Bar dataKey="Budget mensuel" fill="#CBD5E1" radius={[4, 4, 0, 0]} />
+                )}
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
@@ -613,10 +669,10 @@ export default function BudgetPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                    {['Date', 'Site', 'Catégorie', 'Description', 'Montant', 'Réf. facture', ''].map((h, i) => (
+                    {['Date', 'Site', 'Catégorie', 'Description', 'Bénéficiaire BOETH', 'Montant', 'Réf. facture', ''].map((h, i) => (
                       <th
                         key={i}
-                        className={`px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide ${i >= 4 ? 'text-right' : 'text-left'}`}
+                        className={`px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide ${i >= 5 ? 'text-right' : 'text-left'}`}
                       >
                         {h}
                       </th>
@@ -640,7 +696,17 @@ export default function BudgetPage() {
                           <span className="ml-1 text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full">Auto</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-[#1A1A2E] max-w-[200px] truncate">{d.description}</td>
+                      <td className="px-4 py-3 text-sm text-[#1A1A2E] max-w-[180px] truncate">{d.description}</td>
+                      <td className="px-4 py-3 text-sm text-[#6B7280]">
+                        {d.rqth_employee_id ? (() => {
+                          const emp = salariesBoeth.find(s => s.id === d.rqth_employee_id)
+                          return emp
+                            ? <span className="inline-flex items-center gap-1 text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                {emp.prenom} {emp.nom}
+                              </span>
+                            : <span className="italic text-[#CBD5E1]">—</span>
+                        })() : <span className="italic text-[#CBD5E1]">—</span>}
+                      </td>
                       <td className="px-4 py-3 text-sm font-semibold text-[#1A1A2E] text-right whitespace-nowrap">{formatEuros(d.montant)}</td>
                       <td className="px-4 py-3 text-sm text-[#6B7280] text-right">{d.facture_ref ?? '—'}</td>
                       <td className="px-4 py-3 text-right">
@@ -673,7 +739,7 @@ export default function BudgetPage() {
                 </tbody>
                 <tfoot>
                   <tr className="bg-[#F8FAFC] border-t-2 border-[#E2E8F0]">
-                    <td colSpan={4} className="px-4 py-3 text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Total affiché</td>
+                    <td colSpan={5} className="px-4 py-3 text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Total affiché</td>
                     <td className="px-4 py-3 text-sm font-bold text-[#1A1A2E] text-right">
                       {formatEuros(depensesFiltrees.reduce((s, d) => s + d.montant, 0))}
                     </td>
@@ -810,6 +876,34 @@ export default function BudgetPage() {
               <Label>Réf. facture <span className="text-[#6B7280] font-normal">(optionnel)</span></Label>
               <Input placeholder="ex : FAC-2025-042" {...register('facture_ref')} />
             </div>
+
+            {salariesBoeth.length > 0 && (
+              <div className="space-y-1.5">
+                <Label>
+                  Bénéficiaire BOETH{' '}
+                  <span className="text-[#6B7280] font-normal">(optionnel)</span>
+                </Label>
+                <Select
+                  value={watch('rqth_employee_id') ?? '__none__'}
+                  onValueChange={v => setValue('rqth_employee_id', v === '__none__' ? null : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Associer à un collaborateur…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Aucun —</SelectItem>
+                    {salariesBoeth.map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.prenom} {s.nom}{s.matricule ? ` · #${s.matricule}` : ''}{s.service ? ` — ${s.service}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-[#9CA3AF]">
+                  Permet de tracer le matériel ou aménagement acquis pour ce collaborateur.
+                </p>
+              </div>
+            )}
 
             {montantWatch > 0 && (
               <div className="p-3 bg-[#F8FAFC] rounded-lg flex items-center justify-between">

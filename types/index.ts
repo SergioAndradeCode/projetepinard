@@ -12,6 +12,7 @@ export type TypeEvenement = 'obligation' | 'evenement' | 'alerte_rqth'
 export type Recurrence = 'annuelle' | 'mensuelle'
 export type BudgetCategorie =
   | 'esat_ea'
+  | 'maintien_emploi'
   | 'sensibilisation'
   | 'communication'
   | 'formation'
@@ -133,6 +134,7 @@ export interface BudgetExpense {
   description: string
   date_depense: string
   facture_ref: string | null
+  rqth_employee_id: string | null
   created_at: string
 }
 
@@ -176,6 +178,7 @@ export const LABEL_RECONNAISSANCE: Record<TypeReconnaissance, string> = {
 
 export const BUDGET_CATEGORIES_LABELS: Record<BudgetCategorie, string> = {
   esat_ea: 'Achats ESAT/EA',
+  maintien_emploi: 'Maintien dans l\'emploi',
   sensibilisation: 'Sensibilisation',
   communication: 'Communication',
   formation: 'Formation',
