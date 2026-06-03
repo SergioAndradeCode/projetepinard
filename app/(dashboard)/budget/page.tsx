@@ -131,15 +131,18 @@ export default function BudgetPage() {
       .from('budget_allocations').select('*').eq('organization_id', profile.organization_id).eq('annee', anneeSelectionnee)
     if (scopedId) allocQuery = allocQuery.eq('establishment_id', scopedId)
 
+    let boethQuery = supabase.from('rqth_employees').select('id, prenom, nom, matricule, service')
+      .eq('organization_id', profile.organization_id)
+      .order('nom').order('prenom')
+    if (scopedId) boethQuery = boethQuery.eq('establishment_id', scopedId)
+
     const [sitesRes, allocRes, depRes, esatRes, boethRes] = await Promise.all([
       supabase.from('establishments').select('*').eq('organization_id', profile.organization_id)
         .order('is_headquarters', { ascending: false }).order('name'),
       allocQuery,
       depQuery,
       esatQuery,
-      supabase.from('rqth_employees').select('id, prenom, nom, matricule, service')
-        .eq('organization_id', profile.organization_id)
-        .order('nom').order('prenom'),
+      boethQuery,
     ])
 
     if (sitesRes.status === 404 || allocRes.status === 404 || depRes.status === 404) {
@@ -232,7 +235,8 @@ export default function BudgetPage() {
     filtreCategorie === 'tous' || d.categorie === filtreCategorie
   )
 
-  const canEdit = role === 'admin' || role === 'charge_site'
+  // charge_mission local peut gérer les dépenses de son établissement
+  const canEdit = role === 'admin' || role === 'charge_site' || role === 'charge_mission'
   const isLocked = !!profileEstablishmentId
 
   // ── Actions ──────────────────────────────────────────────────────────────────
@@ -255,7 +259,10 @@ export default function BudgetPage() {
 
   const openAddDepense = () => {
     setEditDepense(null)
-    const defaultEtab = selectedEstablishmentId ?? (etablissements.length === 1 ? etablissements[0].id : '')
+    // Priorité : établissement du profil (local) > contexte global > site unique
+    const defaultEtab = profileEstablishmentId
+      ?? selectedEstablishmentId
+      ?? (etablissements.length === 1 ? etablissements[0].id : '')
     reset({
       categorie: 'sensibilisation',
       montant: undefined,
