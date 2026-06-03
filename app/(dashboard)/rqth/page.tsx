@@ -58,10 +58,16 @@ export default function RQTHPage() {
 
   useEffect(() => { loadData() }, [loadData])
 
+  // Profil national = pas d'établissement lié dans le profil
+  const isNational = !establishmentId
+  const [filtreEtab, setFiltreEtab] = useState<string>('')
+
   const filtered = useMemo(() => {
-    if (!selectedEstablishmentId) return salaries
-    return salaries.filter(s => s.establishment_id === selectedEstablishmentId)
-  }, [salaries, selectedEstablishmentId])
+    let list = salaries
+    if (selectedEstablishmentId) list = list.filter(s => s.establishment_id === selectedEstablishmentId)
+    if (filtreEtab)              list = list.filter(s => s.establishment_id === filtreEtab)
+    return list
+  }, [salaries, selectedEstablishmentId, filtreEtab])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = useMemo(
@@ -127,11 +133,45 @@ export default function RQTHPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
+
+        {/* Filtre Site — profil national uniquement, si plusieurs établissements */}
+        {isNational && etablissements.length > 1 && (
+          <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[#E2E8F0] flex-wrap">
+            <span className="text-sm text-[#6B7280] shrink-0">Site :</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setFiltreEtab('')}
+                className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+                  filtreEtab === ''
+                    ? 'bg-[#1E4A8C] text-white'
+                    : 'bg-[#F1F5F9] text-[#6B7280] hover:bg-[#E2E8F0]'
+                }`}
+              >
+                Tous ({salaries.length})
+              </button>
+              {etablissements.map(e => (
+                <button
+                  key={e.id}
+                  onClick={() => setFiltreEtab(prev => prev === e.id ? '' : e.id)}
+                  className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+                    filtreEtab === e.id
+                      ? 'bg-[#1E4A8C] text-white'
+                      : 'bg-[#F1F5F9] text-[#6B7280] hover:bg-[#E2E8F0]'
+                  }`}
+                >
+                  {e.name}{e.is_headquarters ? ' (Siège)' : ''}&nbsp;({salaries.filter(s => s.establishment_id === e.id).length})
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <TableauRQTH
           salaries={paginated}
           organizationId={profile?.organization_id ?? orgId ?? ''}
           onRefresh={loadData}
           readonly={profile?.role === 'lecteur'}
+          etablissements={isNational ? etablissements : []}
         />
 
         {/* Pagination */}

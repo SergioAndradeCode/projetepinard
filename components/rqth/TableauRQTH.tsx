@@ -11,7 +11,7 @@ import { FormRQTH } from './FormRQTH'
 import { DocumentsRQTH } from './DocumentsRQTH'
 import { formatDate } from '@/lib/utils'
 import { getStatutRQTH } from '@/lib/oeth/calculs'
-import type { RQTHEmployee } from '@/types'
+import type { RQTHEmployee, Establishment } from '@/types'
 import { LABEL_RECONNAISSANCE } from '@/types'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -25,6 +25,8 @@ interface TableauRQTHProps {
   organizationId: string
   onRefresh: () => void
   readonly?: boolean
+  /** Liste des établissements de l'organisation — fournie uniquement pour les profils nationaux */
+  etablissements?: Establishment[]
 }
 
 type Filtre = 'tous' | 'actif' | 'expire_bientot' | 'expire'
@@ -41,7 +43,10 @@ const LABEL_RECONNAISSANCE_COURT: Record<string, string> = {
   rente_at_mp: 'Rente AT/MP',
 }
 
-export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = false }: TableauRQTHProps) {
+export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = false, etablissements = [] }: TableauRQTHProps) {
+  // Affiche la colonne Site uniquement si plusieurs établissements existent (profil national)
+  const showSiteCol = etablissements.length > 1
+  const etabById = Object.fromEntries(etablissements.map(e => [e.id, e]))
   const [editEmployee, setEditEmployee] = useState<RQTHEmployee | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [filtre, setFiltre] = useState<Filtre>('tous')
@@ -134,6 +139,7 @@ export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = fa
           <thead>
             <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
               <th className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Collaborateur</th>
+              {showSiteCol && <th className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Site</th>}
               <th className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Service / Poste</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Reconnaissance</th>
               <th className="text-center px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Temps</th>
@@ -160,6 +166,22 @@ export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = fa
                     )}
                   </button>
                 </td>
+
+                {/* Site — profil national uniquement */}
+                {showSiteCol && (
+                  <td className="px-4 py-3">
+                    {s.establishment_id && etabById[s.establishment_id] ? (
+                      <span className="inline-flex items-center text-xs font-medium px-2 py-1 rounded-full bg-[#EBF2FA] text-[#1E4A8C] whitespace-nowrap">
+                        {etabById[s.establishment_id].name}
+                        {etabById[s.establishment_id].is_headquarters && (
+                          <span className="ml-1 text-[10px] opacity-60">(Siège)</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-[#CBD5E1]">—</span>
+                    )}
+                  </td>
+                )}
 
                 {/* Service / Poste / Bâtiment */}
                 <td className="px-4 py-3">
@@ -261,6 +283,11 @@ export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = fa
               <div>
                 <p className="font-semibold text-[#1A1A2E]">{s.prenom} {s.nom}</p>
                 {s.matricule && <p className="text-xs text-[#6B7280]">#{s.matricule}</p>}
+                {showSiteCol && s.establishment_id && etabById[s.establishment_id] && (
+                  <p className="text-xs text-[#1E4A8C] font-medium mt-0.5">
+                    📍 {etabById[s.establishment_id].name}
+                  </p>
+                )}
                 {(s.service || s.poste || s.batiment) && (
                   <p className="text-xs text-[#6B7280] mt-0.5">
                     {[s.service, s.poste, s.batiment].filter(Boolean).join(' · ')}
