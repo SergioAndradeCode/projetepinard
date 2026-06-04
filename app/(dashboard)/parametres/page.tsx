@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Loader2, Info, Building2, Calculator, Trash2, AlertTriangle } from 'lucide-react'
+import { Loader2, Info, Building2, Calculator, Trash2, AlertTriangle, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +34,7 @@ export default function ParametresPage() {
   const [savingOrg, setSavingOrg] = useState(false)
   const [savingOETH, setSavingOETH] = useState(false)
   const [orgId, setOrgId] = useState<string | null>(null)
+  const [isReadOnly, setIsReadOnly] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const supabase = useMemo(() => createClient(), [])
@@ -65,6 +66,8 @@ export default function ParametresPage() {
     if (!profile?.organization_id) { setLoading(false); return }
 
     setOrgId(profile.organization_id)
+    // Un profil rattaché à un établissement précis = profil local → lecture seule
+    setIsReadOnly(!!profile.establishment_id)
 
     const [{ data: org }, { data: settings }] = await Promise.all([
       supabase.from('organizations').select('*').eq('id', profile.organization_id).single(),
@@ -140,6 +143,18 @@ export default function ParametresPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
+
+      {/* Bannière lecture seule */}
+      {isReadOnly && (
+        <div className="flex items-start gap-3 bg-[#EBF2FA] border border-[#BFDBFE] rounded-xl px-4 py-3.5">
+          <Lock className="w-4 h-4 text-[#1E4A8C] mt-0.5 shrink-0" />
+          <p className="text-sm text-[#1E4A8C]">
+            Ces paramètres sont définis par le responsable national.
+            Vous pouvez les consulter mais pas les modifier.
+          </p>
+        </div>
+      )}
+
       {/* Organisation */}
       <Card>
         <CardHeader>
@@ -154,23 +169,36 @@ export default function ParametresPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={orgForm.handleSubmit(saveOrg)} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Nom de l&apos;entreprise</Label>
-              <Input placeholder="Mon Entreprise SAS" {...orgForm.register('name')} />
-              {orgForm.formState.errors.name && (
-                <p className="text-xs text-[#B71C1C]">{orgForm.formState.errors.name.message}</p>
-              )}
+          {isReadOnly ? (
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wide">Nom de l&apos;entreprise</p>
+                <p className="text-sm font-semibold text-[#1A1A2E]">{orgForm.getValues('name') || '—'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wide">SIRET</p>
+                <p className="text-sm text-[#1A1A2E]">{orgForm.getValues('siret') || '—'}</p>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>SIRET (optionnel)</Label>
-              <Input placeholder="12345678901234" {...orgForm.register('siret')} />
-            </div>
-            <Button type="submit" disabled={savingOrg}>
-              {savingOrg && <Loader2 className="w-4 h-4 animate-spin" />}
-              Sauvegarder
-            </Button>
-          </form>
+          ) : (
+            <form onSubmit={orgForm.handleSubmit(saveOrg)} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Nom de l&apos;entreprise</Label>
+                <Input placeholder="Mon Entreprise SAS" {...orgForm.register('name')} />
+                {orgForm.formState.errors.name && (
+                  <p className="text-xs text-[#B71C1C]">{orgForm.formState.errors.name.message}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>SIRET (optionnel)</Label>
+                <Input placeholder="12345678901234" {...orgForm.register('siret')} />
+              </div>
+              <Button type="submit" disabled={savingOrg}>
+                {savingOrg && <Loader2 className="w-4 h-4 animate-spin" />}
+                Sauvegarder
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
 
@@ -188,113 +216,155 @@ export default function ParametresPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={oethForm.handleSubmit(saveOETH)} className="space-y-6">
+          {isReadOnly ? (
+            <div className="space-y-6">
+              {/* Effectifs en lecture seule */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-[#1A1A2E] border-b border-[#E2E8F0] pb-2">Effectifs</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wide">Effectif brut (ETP)</p>
+                    <p className="text-sm font-semibold text-[#1A1A2E]">{effectifBrut} sal.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wide">Postes ECAP</p>
+                    <p className="text-sm font-semibold text-[#1A1A2E]">{effectifEcap}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
+                  <div>
+                    <p className="text-xs text-[#6B7280]">Effectif d&apos;assujettissement</p>
+                    <p className="text-sm font-semibold text-[#1A1A2E]">{effectifAssujettissement} sal.</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#6B7280]">Quota légal (6%)</p>
+                    <p className="text-sm font-semibold text-[#1A1A2E]">{quotaLegal.toFixed(2)} UB</p>
+                  </div>
+                </div>
+              </div>
+              {/* Paramètres de calcul en lecture seule */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-[#1A1A2E] border-b border-[#E2E8F0] pb-2">Paramètres de calcul</p>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wide">SMIC horaire de référence</p>
+                  <p className="text-sm font-semibold text-[#1A1A2E]">{oethForm.getValues('smic_horaire_ref')?.toFixed(2)} €</p>
+                </div>
+                <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
+                  <p className="text-xs text-[#6B7280]">Coefficient de contribution</p>
+                  <p className="text-sm font-semibold text-[#1A1A2E] mt-0.5">{coefficient} h — {coefficientLabel}</p>
+                  <p className="text-xs text-[#9CA3AF] mt-1">400 h si &lt; 250 sal. · 500 h si 250–749 sal. · 600 h si ≥ 750 sal.</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={oethForm.handleSubmit(saveOETH)} className="space-y-6">
 
-            {/* Section Effectifs */}
-            <div className="space-y-4">
-              <p className="text-sm font-semibold text-[#1A1A2E] border-b border-[#E2E8F0] pb-2">Effectifs</p>
+              {/* Section Effectifs */}
+              <div className="space-y-4">
+                <p className="text-sm font-semibold text-[#1A1A2E] border-b border-[#E2E8F0] pb-2">Effectifs</p>
 
-              <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Label>Effectif brut (ETP annuel moyen) <span className="text-[#B71C1C]">*</span></Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger type="button">
+                            <Info className="w-4 h-4 text-[#6B7280]" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Nombre total de salariés exprimé en équivalent temps plein (ETP), calculé comme la moyenne annuelle des effectifs mensuels. Inclut CDI, CDD, intérimaires proratisés, mais exclut apprentis et stagiaires.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="ex: 150"
+                      {...oethForm.register('effectif_brut', { valueAsNumber: true })}
+                    />
+                    {oethForm.formState.errors.effectif_brut && (
+                      <p className="text-xs text-[#B71C1C]">{oethForm.formState.errors.effectif_brut.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Label>Postes ECAP</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger type="button">
+                            <Info className="w-4 h-4 text-[#6B7280]" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Postes Exigeant des Conditions d&apos;Aptitude Particulières (ex : pilotes, pompiers, forces de sécurité). Ces postes sont exclus par décret du calcul de l&apos;effectif d&apos;assujettissement.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="ex: 0"
+                      {...oethForm.register('effectif_ecap', { valueAsNumber: true })}
+                    />
+                  </div>
+                </div>
+
+                {/* Valeurs calculées en lecture seule */}
+                <div className="grid grid-cols-2 gap-3 p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
+                  <div>
+                    <p className="text-xs text-[#6B7280]">Effectif d&apos;assujettissement</p>
+                    <p className="text-sm font-semibold text-[#1A1A2E]">{effectifAssujettissement} sal.</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#6B7280]">Quota légal (6%)</p>
+                    <p className="text-sm font-semibold text-[#1A1A2E]">{quotaLegal.toFixed(2)} UB</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section Paramètres de calcul */}
+              <div className="space-y-4">
+                <p className="text-sm font-semibold text-[#1A1A2E] border-b border-[#E2E8F0] pb-2">Paramètres de calcul</p>
+
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <Label>Effectif brut (ETP annuel moyen) <span className="text-[#B71C1C]">*</span></Label>
+                    <Label>SMIC horaire de référence (€)</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger type="button">
                           <Info className="w-4 h-4 text-[#6B7280]" />
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p>Nombre total de salariés exprimé en équivalent temps plein (ETP), calculé comme la moyenne annuelle des effectifs mensuels. Inclut CDI, CDD, intérimaires proratisés, mais exclut apprentis et stagiaires.</p>
+                        <TooltipContent>
+                          <p>SMIC horaire brut au 31 décembre de l&apos;année de référence, tel que défini par l&apos;AGEFIPH.</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
                   <Input
                     type="number"
-                    min={1}
-                    placeholder="ex: 150"
-                    {...oethForm.register('effectif_brut', { valueAsNumber: true })}
+                    step="0.01"
+                    {...oethForm.register('smic_horaire_ref', { valueAsNumber: true })}
                   />
-                  {oethForm.formState.errors.effectif_brut && (
-                    <p className="text-xs text-[#B71C1C]">{oethForm.formState.errors.effectif_brut.message}</p>
-                  )}
+                  <p className="text-xs text-[#6B7280]">Valeur officielle pré-remplie pour {anneeActuelle}</p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <Label>Postes ECAP</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger type="button">
-                          <Info className="w-4 h-4 text-[#6B7280]" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p>Postes Exigeant des Conditions d&apos;Aptitude Particulières (ex : pilotes, pompiers, forces de sécurité). Ces postes sont exclus par décret du calcul de l&apos;effectif d&apos;assujettissement.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <Input
-                    type="number"
-                    min={0}
-                    placeholder="ex: 0"
-                    {...oethForm.register('effectif_ecap', { valueAsNumber: true })}
-                  />
+                {/* Coefficient en lecture seule */}
+                <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
+                  <p className="text-xs text-[#6B7280]">Coefficient de contribution (auto-calculé)</p>
+                  <p className="text-sm font-semibold text-[#1A1A2E] mt-0.5">{coefficient} h — {coefficientLabel}</p>
+                  <p className="text-xs text-[#9CA3AF] mt-1">400 h si &lt; 250 sal. · 500 h si 250–749 sal. · 600 h si ≥ 750 sal.</p>
                 </div>
               </div>
 
-              {/* Valeurs calculées en lecture seule */}
-              <div className="grid grid-cols-2 gap-3 p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
-                <div>
-                  <p className="text-xs text-[#6B7280]">Effectif d&apos;assujettissement</p>
-                  <p className="text-sm font-semibold text-[#1A1A2E]">{effectifAssujettissement} sal.</p>
-                </div>
-                <div>
-                  <p className="text-xs text-[#6B7280]">Quota légal (6%)</p>
-                  <p className="text-sm font-semibold text-[#1A1A2E]">{quotaLegal.toFixed(2)} UB</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Section Paramètres de calcul */}
-            <div className="space-y-4">
-              <p className="text-sm font-semibold text-[#1A1A2E] border-b border-[#E2E8F0] pb-2">Paramètres de calcul</p>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <Label>SMIC horaire de référence (€)</Label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger type="button">
-                        <Info className="w-4 h-4 text-[#6B7280]" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>SMIC horaire brut au 31 décembre de l&apos;année de référence, tel que défini par l&apos;AGEFIPH.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...oethForm.register('smic_horaire_ref', { valueAsNumber: true })}
-                />
-                <p className="text-xs text-[#6B7280]">Valeur officielle pré-remplie pour {anneeActuelle}</p>
-              </div>
-
-              {/* Coefficient en lecture seule */}
-              <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
-                <p className="text-xs text-[#6B7280]">Coefficient de contribution (auto-calculé)</p>
-                <p className="text-sm font-semibold text-[#1A1A2E] mt-0.5">{coefficient} h — {coefficientLabel}</p>
-                <p className="text-xs text-[#9CA3AF] mt-1">400 h si &lt; 250 sal. · 500 h si 250–749 sal. · 600 h si ≥ 750 sal.</p>
-              </div>
-            </div>
-
-            <Button type="submit" disabled={savingOETH}>
-              {savingOETH && <Loader2 className="w-4 h-4 animate-spin" />}
-              Recalculer et sauvegarder
-            </Button>
-          </form>
+              <Button type="submit" disabled={savingOETH}>
+                {savingOETH && <Loader2 className="w-4 h-4 animate-spin" />}
+                Recalculer et sauvegarder
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
 
