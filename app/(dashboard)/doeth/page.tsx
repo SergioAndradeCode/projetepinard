@@ -66,7 +66,7 @@ export default function DoethPage() {
   const [loading, setLoading] = useState(true)
   const [dbError, setDbError] = useState(false)
   const [exporting, setExporting] = useState(false)
-  const [oethSettings, setOethSettings] = useState<{ smic_horaire_ref: number } | null>(null)
+  const [oethSettings, setOethSettings] = useState<{ smic_horaire_ref: number; effectif_brut?: number; effectif_ecap?: number; effectif_assujettissement?: number } | null>(null)
   const [stagiaires, setStagiaires] = useState(0)
   // deductionESAT est calculé automatiquement depuis le tableau des achats de l'année
   // deductionESATManuel est le fallback si aucun achat n'est enregistré
@@ -93,7 +93,7 @@ export default function DoethPage() {
       supabase.from('establishments').select('*').eq('organization_id', resolvedOrgId),
       supabase.from('rqth_employees').select('*').eq('organization_id', resolvedOrgId),
       supabase.from('esat_purchases').select('*').eq('organization_id', resolvedOrgId),
-      supabase.from('oeth_settings').select('smic_horaire_ref').eq('organization_id', resolvedOrgId).eq('annee', annee).maybeSingle(),
+      supabase.from('oeth_settings').select('smic_horaire_ref, effectif_brut, effectif_ecap, effectif_assujettissement').eq('organization_id', resolvedOrgId).eq('annee', annee).maybeSingle(),
     ])
     if (sitesRes.status === 404) { setDbError(true); setLoading(false); return }
     setOrgName(orgRes.data?.name ?? '')
@@ -113,8 +113,15 @@ export default function DoethPage() {
 
   // ─── Calculs pour l'année sélectionnée ─────────────────────────────────────
   const smicRef = oethSettings?.smic_horaire_ref ?? getSmicRef(annee)
-  const effectifTotal = etablissements.reduce((s, e) => s + Math.max(0, (e.effectif_brut || e.effectif_assujettissement) - (e.effectif_ecap || 0)), 0)
-  const ecapTotal = etablissements.reduce((s, e) => s + (e.effectif_ecap || 0), 0)
+
+  // Source de vérité : oeth_settings (page Paramètres)
+  // Fallback : somme des établissements si oeth_settings n'est pas renseigné
+  const settingsEffectifBrut = oethSettings?.effectif_brut || oethSettings?.effectif_assujettissement || 0
+  const totalBrutSites = etablissements.reduce((s, e) => s + (e.effectif_brut || e.effectif_assujettissement || 0), 0)
+  const totalEcapSites = etablissements.reduce((s, e) => s + (e.effectif_ecap || 0), 0)
+  const effectifBrutTotal = settingsEffectifBrut > 0 ? settingsEffectifBrut : totalBrutSites
+  const ecapTotal = settingsEffectifBrut > 0 ? (oethSettings?.effectif_ecap || 0) : totalEcapSites
+  const effectifTotal = Math.max(0, effectifBrutTotal - ecapTotal)
   const coefficient = getCoefficientContribution(effectifTotal)
 
   const salariesAnnee = useMemo(() => filtrerSalariesPourAnnee(salaries, annee), [salaries, annee])

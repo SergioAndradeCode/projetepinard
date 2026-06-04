@@ -65,17 +65,18 @@ export default async function DashboardPage() {
   const settings = allSettings.find(s => s.annee === anneeActuelle) ?? null
 
   // ── Consolidation multi-sites ─────────────────────────────────────────────
-  // Priorité : somme des établissements si des données y sont saisies
+  // Source de vérité : oeth_settings (modifiables depuis /parametres)
+  // Fallback : somme des établissements si oeth_settings n'est pas encore renseigné
+  const settingsEffectifBrut = settings?.effectif_brut || settings?.effectif_assujettissement || 0
   const totalBrutSites = sites.reduce((s, e) => s + (e.effectif_brut || 0), 0)
   const totalEcapSites = sites.reduce((s, e) => s + (e.effectif_ecap || 0), 0)
 
-  // Fallback sur oeth_settings si aucun établissement n'a de données d'effectif
-  const effectifBrut = totalBrutSites > 0
-    ? totalBrutSites
-    : (settings?.effectif_brut || settings?.effectif_assujettissement || 0)
-  const effectifEcap = totalBrutSites > 0
-    ? totalEcapSites
-    : (settings?.effectif_ecap || 0)
+  const effectifBrut = settingsEffectifBrut > 0
+    ? settingsEffectifBrut
+    : totalBrutSites
+  const effectifEcap = settingsEffectifBrut > 0
+    ? (settings?.effectif_ecap || 0)
+    : totalEcapSites
 
   if (effectifBrut === 0 && !settings) {
     return <ConfigurerParametres />
