@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Loader2, Info, Building2, Calculator, Trash2, AlertTriangle, Lock } from 'lucide-react'
+import { Loader2, Info, Building2, Calculator, Trash2, AlertTriangle, Lock, Star, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,8 +14,9 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getCoefficientContribution, getSmicRef } from '@/lib/oeth/calculs'
+import { getCoefficientContribution, getSmicRef, calculerStats } from '@/lib/oeth/calculs'
 import { QUOTA_LEGAL } from '@/lib/oeth/calculs'
+import type { Establishment } from '@/types'
 
 const orgSchema = z.object({
   name: z.string().min(1, 'Nom requis'),
@@ -34,7 +35,10 @@ export default function ParametresPage() {
   const [savingOrg, setSavingOrg] = useState(false)
   const [savingOETH, setSavingOETH] = useState(false)
   const [orgId, setOrgId] = useState<string | null>(null)
+  const [role, setRole] = useState<string>('')
   const [isReadOnly, setIsReadOnly] = useState(false)
+  const [etablissements, setEtablissements] = useState<Establishment[]>([])
+  const [tauxParSite, setTauxParSite] = useState<Record<string, number>>({})
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const supabase = useMemo(() => createClient(), [])
@@ -66,25 +70,50 @@ export default function ParametresPage() {
     if (!profile?.organization_id) { setLoading(false); return }
 
     setOrgId(profile.organization_id)
+    setRole(profile.role ?? '')
     // Un profil rattaché à un établissement précis = profil local → lecture seule
     setIsReadOnly(!!profile.establishment_id)
 
-    const [{ data: org }, { data: settings }] = await Promise.all([
+    const [{ data: org }, { data: settings }, sitesRes, { data: salaries }, { data: achats }] = await Promise.all([
       supabase.from('organizations').select('*').eq('id', profile.organization_id).single(),
       supabase.from('oeth_settings').select('*').eq('organization_id', profile.organization_id).eq('annee', anneeActuelle).single(),
+      supabase.from('establishments').select('*').eq('organization_id', profile.organization_id).order('is_headquarters', { ascending: false }).order('name'),
+      supabase.from('rqth_employees').select('*').eq('organization_id', profile.organization_id),
+      supabase.from('esat_purchases').select('*').eq('organization_id', profile.organization_id),
     ])
 
     if (org) orgForm.reset({ name: org.name, siret: org.siret ?? '' })
+
+    let smicRef = getSmicRef(anneeActuelle)
     if (settings) {
       const brut = settings.effectif_brut || settings.effectif_assujettissement || 0
       const ecap = settings.effectif_ecap || 0
+      smicRef = settings.smic_horaire_ref ?? smicRef
       oethForm.reset({
         annee: settings.annee,
         effectif_brut: brut,
         effectif_ecap: ecap,
-        smic_horaire_ref: settings.smic_horaire_ref ?? getSmicRef(anneeActuelle),
+        smic_horaire_ref: smicRef,
       })
     }
+
+    const sites = sitesRes.data ?? []
+    setEtablissements(sites)
+
+    // Calcul du taux OETH par site
+    if (sites.length > 0) {
+      const taux: Record<string, number> = {}
+      for (const site of sites) {
+        const s = (salaries ?? []).filter(e => e.establishment_id === site.id)
+        const a = (achats ?? []).filter(e => e.establishment_id === site.id)
+        const brut = site.effectif_brut || site.effectif_assujettissement || 0
+        const ecap = site.effectif_ecap || 0
+        const stats = calculerStats(s, a, brut, ecap, smicRef)
+        taux[site.id] = stats.taux
+      }
+      setTauxParSite(taux)
+    }
+
     setLoading(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, anneeActuelle])
@@ -135,11 +164,13 @@ export default function ParametresPage() {
       <div className="space-y-6 max-w-2xl">
         <Skeleton className="h-48 w-full" />
         <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-40 w-full" />
       </div>
     )
   }
 
   const coefficientLabel = effectifAssujettissement >= 750 ? '600 h (≥ 750 sal.)' : effectifAssujettissement >= 250 ? '500 h (250–749 sal.)' : '400 h (< 250 sal.)'
+  const isAdmin = role === 'admin'
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -368,6 +399,75 @@ export default function ParametresPage() {
         </CardContent>
       </Card>
 
+      {/* Établissements — visible par tous */}
+      {etablissements.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-[#EBF2FA] rounded-xl flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-[#1E4A8C]" />
+              </div>
+              <div>
+                <CardTitle>Sites et établissements</CardTitle>
+                <CardDescription>
+                  {etablissements.length} établissement{etablissements.length > 1 ? 's' : ''} configuré{etablissements.length > 1 ? 's' : ''}
+                  {isAdmin && <span className="text-[#1E4A8C] font-medium"> · Modifiables depuis la page Établissements</span>}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-[#F1F5F9]">
+              {etablissements.map((e) => {
+                const effectifAss = Math.max(0, (e.effectif_brut || e.effectif_assujettissement || 0) - (e.effectif_ecap || 0))
+                const taux = tauxParSite[e.id] ?? 0
+                return (
+                  <div key={e.id} className="px-6 py-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="w-8 h-8 bg-[#EBF2FA] rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                          <Building2 className="w-4 h-4 text-[#1E4A8C]" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-[#1A1A2E]">{e.name}</p>
+                            {e.is_headquarters && (
+                              <span className="inline-flex items-center gap-1 text-[10px] bg-[#EBF2FA] text-[#1E4A8C] px-2 py-0.5 rounded-full font-medium">
+                                <Star className="w-3 h-3" />Siège
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 mt-1 flex-wrap">
+                            {e.siret && (
+                              <span className="text-xs text-[#6B7280]">SIRET : {e.siret}</span>
+                            )}
+                            {e.address && (
+                              <span className="text-xs text-[#6B7280] truncate">{e.address}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6 shrink-0">
+                        <div className="text-right">
+                          <p className="text-xs text-[#6B7280]">Effectif assuj.</p>
+                          <p className="text-sm font-semibold text-[#1A1A2E]">{effectifAss} sal.</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-[#6B7280]">Taux OETH</p>
+                          <p className={`text-sm font-semibold ${taux >= 6 ? 'text-[#2E7D32]' : taux >= 3 ? 'text-[#BF5A00]' : 'text-[#B71C1C]'}`}>
+                            {taux.toFixed(1)} %
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Zone de danger — suppression de compte */}
       <div className="border border-red-200 rounded-2xl p-6 bg-red-50/40">
         <div className="flex items-start gap-3 mb-4">
@@ -376,10 +476,19 @@ export default function ParametresPage() {
           </div>
           <div>
             <p className="font-semibold text-[#1A1A2E]">Supprimer mon compte</p>
-            <p className="text-sm text-[#6B7280] mt-0.5">
-              Cette action est <strong>irréversible</strong>. Toutes vos données (salariés BOETH, budget, paramètres)
-              seront définitivement supprimées. Exportez vos données avant de continuer.
-            </p>
+            {isAdmin ? (
+              <p className="text-sm text-[#6B7280] mt-0.5">
+                Cette action est <strong>irréversible</strong>. En tant qu&apos;administrateur, votre compte
+                et l&apos;accès à l&apos;organisation seront désactivés. Les données (salariés BOETH, budget, paramètres)
+                sont conservées 30 jours puis supprimées définitivement. Exportez vos données avant de continuer.
+              </p>
+            ) : (
+              <p className="text-sm text-[#6B7280] mt-0.5">
+                Cette action supprime <strong>uniquement votre accès</strong> à Talenth.
+                Les données de l&apos;organisation (salariés BOETH, budget, paramètres) ne sont pas affectées
+                et restent accessibles aux autres membres de l&apos;équipe.
+              </p>
+            )}
           </div>
         </div>
 
@@ -396,7 +505,9 @@ export default function ParametresPage() {
         ) : (
           <div className="bg-white border border-red-200 rounded-xl p-4 space-y-3">
             <p className="text-sm font-semibold text-[#B71C1C]">
-              Êtes-vous certain de vouloir supprimer définitivement votre compte et toutes vos données ?
+              {isAdmin
+                ? 'Êtes-vous certain de vouloir désactiver l\'organisation et supprimer votre compte ?'
+                : 'Êtes-vous certain de vouloir supprimer votre accès à Talenth ?'}
             </p>
             <div className="flex items-center gap-3">
               <Button
@@ -406,7 +517,7 @@ export default function ParametresPage() {
                 className="bg-[#B71C1C] hover:bg-red-800 text-white"
               >
                 {deletingAccount && <Loader2 className="w-4 h-4 animate-spin" />}
-                Oui, supprimer définitivement
+                Oui, supprimer mon compte
               </Button>
               <Button
                 type="button"
