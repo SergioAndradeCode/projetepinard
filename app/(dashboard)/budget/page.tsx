@@ -172,8 +172,9 @@ export default function BudgetPage() {
       description: `Achat ESAT/EA — ${a.fournisseur}`,
       date_depense: a.date_facture,
       facture_ref: null,
+      rqth_employee_id: null,
       created_at: a.created_at,
-      source: 'esat',
+      source: 'esat' as const,
     }))
     return [
       ...depenses.map(d => ({ ...d, source: 'manuel' as const })),
@@ -535,31 +536,64 @@ export default function BudgetPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                  {['Établissement', 'Alloué', 'Dépensé', 'Restant', 'Consommation', ''].map((h, i) => (
-                    <th key={i} className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">{h}</th>
-                  ))}
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Établissement</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Alloué</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">
+                    <div>Dépensé</div>
+                    <div className="text-[10px] font-normal normal-case text-[#9CA3AF] tracking-normal mt-0.5">manuel · ESAT/EA</div>
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Restant</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#6B7280] uppercase tracking-wide">Consommation</th>
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0]">
                 {etablissements.map(site => {
                   const alloc = allocations.find(a => a.establishment_id === site.id)?.montant_total ?? 0
-                  // Inclut les dépenses manuelles ET les achats ESAT/EA pour ce site
-                  const dep = toutesDepenses.filter(d => d.establishment_id === site.id).reduce((s, d) => s + d.montant, 0)
-                  const taux = calculerTauxBudget(dep, alloc)
+                  const depManuel = depenses
+                    .filter(d => d.establishment_id === site.id)
+                    .reduce((s, d) => s + d.montant, 0)
+                  const depESAT = achatsESAT
+                    .filter(a => a.establishment_id === site.id)
+                    .reduce((s, a) => s + a.montant_ht, 0)
+                  const depTotal = depManuel + depESAT
+                  const restant = alloc - depTotal
+                  const taux = calculerTauxBudget(depTotal, alloc)
                   return (
                     <tr key={site.id} className="bg-white hover:bg-[#F8FAFC] transition-colors">
-                      <td className="px-4 py-3 text-sm font-medium text-[#1A1A2E]">
-                        {site.name}
-                        {site.is_headquarters && (
-                          <span className="ml-1.5 text-[10px] bg-[#EBF2FA] text-[#1E4A8C] px-1.5 py-0.5 rounded-full">Siège</span>
-                        )}
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-medium text-[#1A1A2E]">
+                          {site.name}
+                          {site.is_headquarters && (
+                            <span className="ml-1.5 text-[10px] bg-[#EBF2FA] text-[#1E4A8C] px-1.5 py-0.5 rounded-full">Siège</span>
+                          )}
+                        </p>
                       </td>
                       <td className="px-4 py-3 text-sm text-[#6B7280]">
                         {alloc > 0 ? formatEuros(alloc) : <span className="italic text-[#CBD5E1]">Non alloué</span>}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-[#1A1A2E]">{formatEuros(dep)}</td>
-                      <td className={`px-4 py-3 text-sm font-medium ${alloc > 0 && alloc - dep < 0 ? 'text-[#B71C1C]' : alloc > 0 ? 'text-[#2E7D32]' : 'text-[#6B7280]'}`}>
-                        {alloc > 0 ? formatEuros(alloc - dep) : '—'}
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-semibold text-[#1A1A2E]">{formatEuros(depTotal)}</p>
+                        {(depManuel > 0 || depESAT > 0) && (
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {depManuel > 0 && (
+                              <span className="text-[10px] text-[#6B7280]">{formatEuros(depManuel)} manuel</span>
+                            )}
+                            {depManuel > 0 && depESAT > 0 && <span className="text-[10px] text-[#CBD5E1]">·</span>}
+                            {depESAT > 0 && (
+                              <span className="text-[10px] text-[#1E4A8C] font-medium">{formatEuros(depESAT)} ESAT/EA</span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {alloc > 0 ? (
+                          <span className={`text-sm font-semibold ${restant < 0 ? 'text-[#B71C1C]' : 'text-[#2E7D32]'}`}>
+                            {restant < 0 ? '−' : ''}{formatEuros(Math.abs(restant))}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-[#6B7280]">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 w-36">
                         {alloc > 0 ? (
@@ -590,14 +624,86 @@ export default function BudgetPage() {
                     </tr>
                   )
                 })}
+
+                {/* Ligne "Non attribués" : achats ESAT/EA et dépenses sans établissement */}
+                {(() => {
+                  const depManuelNonAttrib = depenses
+                    .filter(d => !d.establishment_id)
+                    .reduce((s, d) => s + d.montant, 0)
+                  const depESATNonAttrib = achatsESAT
+                    .filter(a => !a.establishment_id)
+                    .reduce((s, a) => s + a.montant_ht, 0)
+                  const totalNonAttrib = depManuelNonAttrib + depESATNonAttrib
+                  if (totalNonAttrib === 0) return null
+                  return (
+                    <tr className="bg-amber-50 border-t border-amber-100">
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-medium text-[#BF5A00]">Non attribués à un site</p>
+                        <p className="text-[10px] text-[#BF5A00] opacity-70 mt-0.5">Dépenses sans établissement renseigné</p>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-[#CBD5E1]">—</td>
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-semibold text-[#BF5A00]">{formatEuros(totalNonAttrib)}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {depManuelNonAttrib > 0 && (
+                            <span className="text-[10px] text-[#BF5A00]">{formatEuros(depManuelNonAttrib)} manuel</span>
+                          )}
+                          {depManuelNonAttrib > 0 && depESATNonAttrib > 0 && <span className="text-[10px] text-[#CBD5E1]">·</span>}
+                          {depESATNonAttrib > 0 && (
+                            <span className="text-[10px] text-[#BF5A00] font-medium">{formatEuros(depESATNonAttrib)} ESAT/EA</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-[#CBD5E1]">—</td>
+                      <td className="px-4 py-3 text-xs text-[#BF5A00] italic">non imputé</td>
+                      <td className="px-4 py-3" />
+                    </tr>
+                  )
+                })()}
               </tbody>
               <tfoot>
-                <tr className="bg-[#F8FAFC] border-t-2 border-[#E2E8F0]">
-                  <td className="px-4 py-3 text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Total dépensé</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-[#1A1A2E]">{formatEuros(globalEnvelope)}</td>
-                  <td className="px-4 py-3 text-sm font-bold text-[#1A1A2E]">{formatEuros(toutesDepenses.reduce((s, d) => s + d.montant, 0))}</td>
-                  <td colSpan={3} />
-                </tr>
+                {(() => {
+                  const totalAlloue = allocations.filter(a => a.establishment_id !== null).reduce((s, a) => s + a.montant_total, 0)
+                  const totalDepManuel = depenses.reduce((s, d) => s + d.montant, 0)
+                  const totalDepESAT = achatsESAT.reduce((s, a) => s + a.montant_ht, 0)
+                  const totalDep = totalDepManuel + totalDepESAT
+                  const totalRestant = globalEnvelope - totalDep
+                  return (
+                    <tr className="bg-[#F8FAFC] border-t-2 border-[#E2E8F0]">
+                      <td className="px-4 py-3 text-xs font-semibold text-[#6B7280] uppercase tracking-wide">Total entreprise</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-[#1A1A2E]">
+                        {formatEuros(globalEnvelope)}
+                        {totalAlloue < globalEnvelope && (
+                          <span className="ml-1 text-[10px] text-[#9CA3AF]">({formatEuros(totalAlloue)} distribués)</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-bold text-[#1A1A2E]">{formatEuros(totalDep)}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-[#6B7280]">{formatEuros(totalDepManuel)} manuel</span>
+                          <span className="text-[10px] text-[#CBD5E1]">·</span>
+                          <span className="text-[10px] text-[#1E4A8C] font-medium">{formatEuros(totalDepESAT)} ESAT/EA</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-sm font-bold ${totalRestant < 0 ? 'text-[#B71C1C]' : 'text-[#2E7D32]'}`}>
+                          {totalRestant < 0 ? '−' : ''}{formatEuros(Math.abs(totalRestant))}
+                        </span>
+                      </td>
+                      <td colSpan={2} className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 h-1.5 bg-[#E2E8F0] rounded-full overflow-hidden">
+                            {(() => {
+                              const t = calculerTauxBudget(totalDep, globalEnvelope)
+                              return <div className={`h-full rounded-full ${t >= 90 ? 'bg-[#B71C1C]' : t >= 70 ? 'bg-[#BF5A00]' : 'bg-[#2E7D32]'}`} style={{ width: `${Math.min(t, 100)}%` }} />
+                            })()}
+                          </div>
+                          <span className="text-xs text-[#6B7280]">{calculerTauxBudget(totalDep, globalEnvelope).toFixed(0)}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })()}
               </tfoot>
             </table>
           </CardContent>
