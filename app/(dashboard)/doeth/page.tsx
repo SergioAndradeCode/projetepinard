@@ -114,13 +114,16 @@ export default function DoethPage() {
   // ─── Calculs pour l'année sélectionnée ─────────────────────────────────────
   const smicRef = oethSettings?.smic_horaire_ref ?? getSmicRef(annee)
 
-  // Source de vérité : oeth_settings (page Paramètres)
-  // Fallback : somme des établissements si oeth_settings n'est pas renseigné
-  const settingsEffectifBrut = oethSettings?.effectif_brut || oethSettings?.effectif_assujettissement || 0
+  // Règle unique : établissements = source de vérité pour l'effectif.
+  // Fallback sur oeth_settings si aucun établissement n'a d'effectif renseigné.
   const totalBrutSites = etablissements.reduce((s, e) => s + (e.effectif_brut || e.effectif_assujettissement || 0), 0)
   const totalEcapSites = etablissements.reduce((s, e) => s + (e.effectif_ecap || 0), 0)
-  const effectifBrutTotal = settingsEffectifBrut > 0 ? settingsEffectifBrut : totalBrutSites
-  const ecapTotal = settingsEffectifBrut > 0 ? (oethSettings?.effectif_ecap || 0) : totalEcapSites
+  const effectifBrutTotal = totalBrutSites > 0
+    ? totalBrutSites
+    : (oethSettings?.effectif_brut || oethSettings?.effectif_assujettissement || 0)
+  const ecapTotal = totalBrutSites > 0
+    ? totalEcapSites
+    : (oethSettings?.effectif_ecap || 0)
   const effectifTotal = Math.max(0, effectifBrutTotal - ecapTotal)
   const coefficient = getCoefficientContribution(effectifTotal)
 
