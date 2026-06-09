@@ -141,12 +141,12 @@ function TabEssentiel() {
           headers={['Code DSN', 'Reconnaissance', 'Organisme délivrant']}
           rows={[
             ['01', 'Travailleur reconnu handicapé (RQTH)', 'CDAPH / MDPH'],
-            ['02', 'Victime AT/MP — incapacité permanente ≥ 10 % + rente', 'CPAM / MSA'],
+            ['02', 'Victime AT/MP : incapacité permanente ≥ 10 % + rente', 'CPAM / MSA'],
             ['03', "Pension d'invalidité réduisant ≥ 2/3 la capacité de travail", 'CPAM / MSA'],
             ['06', "Allocation ou rente d'invalidité (Loi du 31/12/1991)", 'Organisme verseur'],
             ['07', 'Carte mobilité inclusion mention « invalidité »', 'MDPH'],
             ['08', "Allocation aux Adultes Handicapés (AAH)", 'CAF / MSA'],
-            ['12', "Ayant droit PCH / ACTP / AEEH — stagiaires uniquement", 'MDPH / CAF'],
+            ['12', "Ayant droit PCH / ACTP / AEEH, stagiaires uniquement", 'MDPH / CAF'],
           ]}
         />
         <Note variant="info">
@@ -187,7 +187,7 @@ function TabCalcul() {
         <strong>Simulateur officiel :</strong> L&apos;Agefiph met à disposition un simulateur gratuit sur <strong>agefiph.fr/employeur/simulateur_doeth</strong> pour vérifier vos calculs avant déclaration.
       </Note>
 
-      <Section title="Étape 1 — Contribution brute avant déductions">
+      <Section title="Étape 1, Contribution brute avant déductions">
         <p className="text-sm text-[#374151]">La contribution brute est calculée selon la formule suivante :</p>
         <Formula lines={[
           'Contribution brute = BOETH manquants × Coefficient × SMIC horaire brut',
@@ -206,7 +206,7 @@ function TabCalcul() {
         <Note variant="warning">
           Le SMIC à retenir est celui en vigueur au <strong>31 décembre</strong> de l&apos;année de référence. Pour 2025 : <strong>11,88 €/h</strong> en métropole et DOM (8,98 € à Mayotte).
         </Note>
-        <ExampleBox title="Exemple — Entreprise de 55 salariés (exercice 2025)">
+        <ExampleBox title="Exemple, Entreprise de 55 salariés (exercice 2025)">
           <p>• EMA : 55 salariés → coefficient <strong>400</strong></p>
           <p>• Obligation : 55 × 6 % = 3,30 → arrondi à <strong>3 BOETH</strong></p>
           <p>• BOETH employés : <strong>1,38 UB</strong></p>
@@ -234,7 +234,7 @@ function TabCalcul() {
         </Note>
       </Section>
 
-      <Section title="Étape 2 — Contribution nette (après déductions)">
+      <Section title="Étape 2, Contribution nette (après déductions)">
         <Formula lines={[
           'Contribution nette = Contribution brute − Déductions totales',
           '',
@@ -246,7 +246,7 @@ function TabCalcul() {
         <p className="text-sm text-[#374151]">Voir l&apos;onglet <strong>Déductions</strong> pour le détail complet.</p>
       </Section>
 
-      <Section title="Étape 3 — Contribution réelle due">
+      <Section title="Étape 3, Contribution réelle due">
         <p className="text-sm text-[#374151]">Depuis le <strong>1er janvier 2025</strong>, le mécanisme d&apos;écrêtement transitoire (2020–2024) n&apos;est plus applicable. La contribution réelle due est égale à la contribution nette.</p>
         <Note variant="info">
           L&apos;écrêtement peut encore s&apos;appliquer uniquement pour des <strong>régularisations portant sur des exercices antérieurs à 2025</strong>.
@@ -271,9 +271,9 @@ function TabDeductions() {
   return (
     <div className="space-y-8">
 
-      <p className="text-sm text-[#374151]">Les déductions viennent <strong>minorer la contribution brute</strong>. Vous déclarez les montants bruts non plafonnés — l&apos;Urssaf applique les plafonds lors du calcul de la contribution nette.</p>
+      <p className="text-sm text-[#374151]">Les déductions viennent <strong>minorer la contribution brute</strong>. Vous déclarez les montants bruts non plafonnés, l&apos;Urssaf applique les plafonds lors du calcul de la contribution nette.</p>
 
-      <Section title="1. Déduction sous-traitance — EA, ESAT, TIH, EPS">
+      <Section title="1. Déduction sous-traitance, EA, ESAT, TIH, EPS">
         <p className="text-sm text-[#374151]">Les achats passés avec des <strong>Entreprises Adaptées (EA)</strong>, <strong>ESAT</strong>, <strong>Travailleurs Indépendants Handicapés (TIH)</strong> ou <strong>entreprises de portage salarial (EPS)</strong> dont le salarié porté est BOETH ouvrent droit à déduction.</p>
         <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-sm space-y-2">
           <p className="font-semibold text-[#1A1A2E]">Calcul de la déduction (fournie par l&apos;attestation annuelle)</p>
@@ -290,7 +290,7 @@ function TabDeductions() {
           ]}
         />
         <Note variant="warning">
-          Conservez les attestations annuelles — vous n&apos;avez pas à les envoyer à l&apos;Urssaf, mais elles peuvent être demandées lors d&apos;un contrôle.
+          Conservez les attestations annuelles, vous n&apos;avez pas à les envoyer à l&apos;Urssaf, mais elles peuvent être demandées lors d&apos;un contrôle.
         </Note>
       </Section>
 
@@ -302,7 +302,7 @@ function TabDeductions() {
           "EMA ECAP est calculé et communiqué par l'Urssaf avant le 31 janvier.",
         ]} />
         <Note variant="success">
-          La déduction ECAP est <strong>non plafonnée</strong> — elle peut annuler entièrement la contribution annuelle.
+          La déduction ECAP est <strong>non plafonnée</strong>, elle peut annuler entièrement la contribution annuelle.
         </Note>
       </Section>
 
@@ -313,7 +313,7 @@ function TabDeductions() {
           rows={[
             [
               "Travaux d'accessibilité",
-              "Aménagement parking, ascenseur, rampes d'accès — au-delà de l'obligation légale",
+              "Aménagement parking, ascenseur, rampes d'accès, au-delà de l'obligation légale",
               '062',
             ],
             [
@@ -328,7 +328,7 @@ function TabDeductions() {
             ],
             [
               "Partenariats associatifs (jusqu'au 31/12/2029)",
-              "Convention ou adhésion avec association d'insertion de personnes handicapées — si CDI, CDD ≥ 6 mois, alternance ou stage ≥ 6 mois avec un BOETH",
+              "Convention ou adhésion avec association d'insertion de personnes handicapées, si CDI, CDD ≥ 6 mois, alternance ou stage ≥ 6 mois avec un BOETH",
               '072',
             ],
           ]}
@@ -363,14 +363,14 @@ function TabDSN() {
   return (
     <div className="space-y-8">
 
-      <Section title="Déclaration mensuelle — Tous les mois">
+      <Section title="Déclaration mensuelle, Tous les mois">
         <p className="text-sm text-[#374151]">Depuis janvier 2020, <strong>tout employeur</strong> (quelle que soit sa taille) doit déclarer dans la DSN mensuelle le statut BOETH de chaque salarié concerné.</p>
         <Table
           headers={['Bloc DSN', 'Rubrique', 'Contenu']}
           rows={[
-            ['S21.G00.40 — Contrat', 'S21.G00.40.072 — Statut BOETH', "Code statut BOETH du salarié (01 à 12). Laisser vide si non-BOETH."],
-            ['S21.G00.40 — Contrat', "S21.G00.40.007 — Nature du contrat", "Valeur « 29 » pour les stagiaires non rémunérés BOETH"],
-            ['S21.G00.41 — Changement contrat', 'S21.G00.41.048 — Ancien statut BOETH', 'Pour corriger rétroactivement un statut BOETH'],
+            ['S21.G00.40, Contrat', 'S21.G00.40.072, Statut BOETH', "Code statut BOETH du salarié (01 à 12). Laisser vide si non-BOETH."],
+            ['S21.G00.40, Contrat', "S21.G00.40.007, Nature du contrat", "Valeur « 29 » pour les stagiaires non rémunérés BOETH"],
+            ['S21.G00.41, Changement contrat', 'S21.G00.41.048, Ancien statut BOETH', 'Pour corriger rétroactivement un statut BOETH'],
           ]}
         />
         <Note variant="info">
@@ -378,7 +378,7 @@ function TabDSN() {
         </Note>
       </Section>
 
-      <Section title="Déclaration annuelle — DSN d'avril (paiement mai)">
+      <Section title="Déclaration annuelle, DSN d'avril (paiement mai)">
         <p className="text-sm text-[#374151]">Les entreprises de <strong>20 salariés et plus</strong> déclarent leur contribution dans la <strong>DSN d&apos;avril</strong>, exigible le <strong>5 ou 15 mai</strong> selon l&apos;effectif.</p>
         <Table
           headers={['Code cotisation', 'Libellé', 'Montant à déclarer']}
@@ -386,20 +386,20 @@ function TabDSN() {
             ['065', 'Contribution OETH brute avant déductions', 'Montant brut calculé'],
             ['060', 'Déduction ECAP', 'EMA ECAP × 17 × SMIC (non plafonné)'],
             ['061', 'Déduction sous-traitance (EA, ESAT, TIH, EPS)', "Montant de l'attestation, non plafonné"],
-            ['062', "Dépense déductible — travaux d'accessibilité", 'Montant HT factures, non plafonné'],
-            ['063', 'Dépense déductible — maintien/reconversion', 'Montant HT factures, non plafonné'],
-            ['064', 'Dépense déductible — accompagnement/sensibilisation', 'Montant HT factures, non plafonné'],
-            ['072', 'Dépense déductible — partenariats associations', 'Montant HT (plafond 10 % appliqué par Urssaf)'],
+            ['062', "Dépense déductible, travaux d'accessibilité", 'Montant HT factures, non plafonné'],
+            ['063', 'Dépense déductible, maintien/reconversion', 'Montant HT factures, non plafonné'],
+            ['064', 'Dépense déductible, accompagnement/sensibilisation', 'Montant HT factures, non plafonné'],
+            ['072', 'Dépense déductible, partenariats associations', 'Montant HT (plafond 10 % appliqué par Urssaf)'],
             ['066', 'Contribution OETH nette', 'Après déductions'],
             ['068', 'Contribution OETH réelle due', 'Montant final à payer (0 € si accord agréé)'],
           ]}
         />
         <Note variant="warning">
-          Les plafonds des déductions <strong>ne sont pas à appliquer par l&apos;employeur</strong> lors de la saisie — vous déclarez les montants bruts non plafonnés. L&apos;Urssaf applique les plafonds lors du calcul de la contribution nette (code 066).
+          Les plafonds des déductions <strong>ne sont pas à appliquer par l&apos;employeur</strong> lors de la saisie, vous déclarez les montants bruts non plafonnés. L&apos;Urssaf applique les plafonds lors du calcul de la contribution nette (code 066).
         </Note>
       </Section>
 
-      <Section title="Accord agréé — Alternative à la contribution">
+      <Section title="Accord agréé, Alternative à la contribution">
         <p className="text-sm text-[#374151]">Une entreprise peut s&apos;exonérer de contribution en concluant un <strong>accord agréé de branche, de groupe ou d&apos;entreprise</strong> prévoyant un programme pluriannuel en faveur des travailleurs handicapés.</p>
         <Table
           headers={['Caractéristique', 'Détail']}
@@ -412,7 +412,7 @@ function TabDSN() {
           ]}
         />
         <Note variant="info">
-          Les entreprises sous accord agréé ne déclarent <strong>pas</strong> les dépenses déductibles (codes 062–064, 072) — uniquement ECAP (060) et sous-traitance (061).
+          Les entreprises sous accord agréé ne déclarent <strong>pas</strong> les dépenses déductibles (codes 062–064, 072), uniquement ECAP (060) et sous-traitance (061).
         </Note>
       </Section>
 
@@ -462,7 +462,7 @@ export function GuideOETH() {
 
       <div className="mt-10 pt-6 border-t border-[#E2E8F0]">
         <p className="text-xs text-[#9CA3AF]">
-          Sources : Guide de l&apos;OETH v2.5 — Urssaf / Agefiph (7 avril 2026) · Décret n° 2019-522 &amp; 523 · Décret n° 2025-1294 · Loi n° 2018-771 du 5 sept. 2018
+          Sources : Guide de l&apos;OETH v2.5, Urssaf / Agefiph (7 avril 2026) · Décret n° 2019-522 &amp; 523 · Décret n° 2025-1294 · Loi n° 2018-771 du 5 sept. 2018
         </p>
       </div>
     </div>

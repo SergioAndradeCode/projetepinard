@@ -198,7 +198,7 @@ export default function EtablissementsPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-[#6B7280]">{e.siret ?? '—'}</td>
+                  <td className="px-4 py-3 text-sm text-[#6B7280]">{e.siret ?? '-'}</td>
                   <td className="px-4 py-3 text-sm text-[#1A1A2E] text-center font-medium">{effectifAss}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`text-sm font-semibold ${taux >= 6 ? 'text-[#2E7D32]' : taux >= 3 ? 'text-[#BF5A00]' : 'text-[#B71C1C]'}`}>

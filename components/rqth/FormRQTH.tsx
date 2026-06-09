@@ -213,12 +213,12 @@ export function FormRQTH({ open, onClose, onSuccess, organizationId, employee, d
                 {seniorInfo && (
                   seniorInfo.coeffAge === 1.5 ? (
                     <span className="inline-flex items-center gap-1.5 text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1.5 rounded-md font-medium">
-                      🎯 {seniorInfo.age} ans — ×1,5 UB senior
+                      🎯 {seniorInfo.age} ans, ×1,5 UB senior
                       <span className="font-bold">→ {seniorInfo.ubPreview.toFixed(2)} UB</span>
                     </span>
                   ) : (
                     <span className="text-xs text-[#6B7280]">
-                      {seniorInfo.age} ans — {seniorInfo.ubPreview.toFixed(2)} UB
+                      {seniorInfo.age} ans, {seniorInfo.ubPreview.toFixed(2)} UB
                     </span>
                   )
                 )}

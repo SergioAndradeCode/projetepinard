@@ -1,7 +1,7 @@
 import { ShieldCheck } from 'lucide-react'
 
 export const metadata = {
-  title: 'Politique de confidentialité — Talenth',
+  title: 'Politique de confidentialité | Talenth',
   description: 'Politique de confidentialité et protection des données personnelles de Talenth, conformément au Règlement (UE) 2016/679 (RGPD) et à la loi Informatique et Libertés.',
 }
 
@@ -36,9 +36,9 @@ export default function ConfidentialitePage() {
               'Règlement (UE) 2016/679 du Parlement européen et du Conseil du 27 avril 2016 (RGPD)',
               'Loi n° 78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés, modifiée par la loi n° 2018-493 du 20 juin 2018',
               'Loi n° 2004-575 du 21 juin 2004 pour la Confiance dans l\'Économie Numérique (LCEN)',
-              'Article 9 du RGPD — Traitement des catégories particulières de données (données de santé)',
-              'Articles 12 à 22 du RGPD — Droits des personnes concernées',
-              'Article 28 du RGPD — Sous-traitant',
+              'Article 9 du RGPD : Traitement des catégories particulières de données (données de santé)',
+              'Articles 12 à 22 du RGPD : Droits des personnes concernées',
+              'Article 28 du RGPD : Sous-traitant',
             ].map(t => (
               <li key={t} className="flex items-start gap-2">
                 <span className="text-[#1E4A8C] mt-1 shrink-0">·</span>
@@ -91,18 +91,18 @@ export default function ConfidentialitePage() {
                   },
                   {
                     cat: 'Données de facturation',
-                    items: ['Informations de paiement (traitées exclusivement par Stripe — Talenth ne stocke pas de données bancaires)', 'Historique des transactions'],
+                    items: ['Informations de paiement (traitées exclusivement par Stripe | Talenth ne stocke pas de données bancaires)', 'Historique des transactions'],
                     basis: 'Obligation légale / exécution du contrat (art. 6§1b et 6§1c RGPD)',
                   },
                   {
                     cat: 'Données relatives aux salariés BOETH',
                     items: [
-                      'Nom, prénom, date de naissance (requise pour le calcul du coefficient senior OETH — art. L5212-2 C. trav. : coefficient ×1,5 dès 50 ans)',
+                      'Nom, prénom, date de naissance (requise pour le calcul du coefficient senior OETH : art. L5212-2 C. trav. : coefficient ×1,5 dès 50 ans)',
                       'Numéro de sécurité sociale (optionnel)',
                       'Type et dates de reconnaissance (RQTH, AAH, pension d\'invalidité, rente AT/MP…)',
                       'Taux d\'emploi à temps partiel, établissement de rattachement',
                     ],
-                    basis: 'Obligation légale pesant sur l\'employeur (art. 6§1c RGPD) — art. L5212-1 et s. du Code du travail (OETH)',
+                    basis: 'Obligation légale pesant sur l\'employeur (art. 6§1c RGPD), art. L5212-1 et s. du Code du travail (OETH)',
                     special: true,
                   },
                   {
@@ -126,7 +126,7 @@ export default function ConfidentialitePage() {
                       <p className="font-semibold text-[#1A1A2E] text-sm">{cat}</p>
                       {special && (
                         <span className="shrink-0 text-[10px] bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-bold">
-                          Données de santé — art. 9 RGPD
+                          Données de santé, art. 9 RGPD
                         </span>
                       )}
                     </div>
@@ -163,7 +163,7 @@ export default function ConfidentialitePage() {
                 Leur traitement est autorisé sur le fondement de l&apos;article 9§2(b) du RGPD :
                 &laquo;&thinsp;le traitement est nécessaire aux fins de l&apos;exécution des obligations et de l&apos;exercice
                 des droits propres au responsable du traitement ou à la personne concernée en matière
-                de droit du travail&thinsp;&raquo; — en l&apos;espèce, l&apos;Obligation d&apos;Emploi des Travailleurs Handicapés
+                de droit du travail&thinsp;&raquo;, en l&apos;espèce, l&apos;Obligation d&apos;Emploi des Travailleurs Handicapés
                 (OETH) prévue aux articles L5212-1 à L5212-4 du Code du travail.
               </p>
               <p>
@@ -226,8 +226,8 @@ export default function ConfidentialitePage() {
                   <tbody className="divide-y divide-[#E2E8F0]">
                     {[
                       ['Données de compte utilisateur', 'Durée de l\'abonnement + 3 ans après résiliation'],
-                      ['Données BOETH et maintien dans l\'emploi', 'Durée de l\'abonnement + 5 ans (prescription civile — art. 2224 C. civ.)'],
-                      ['Données de facturation', '10 ans (obligation comptable — art. L123-22 C. com.)'],
+                      ['Données BOETH et maintien dans l\'emploi', 'Durée de l\'abonnement + 5 ans (prescription civile, art. 2224 C. civ.)'],
+                      ['Données de facturation', '10 ans (obligation comptable, art. L123-22 C. com.)'],
                       ['Journaux de connexion', '12 mois (recommandation CNIL)'],
                       ['Données supprimées à la demande', 'Suppression effective sous 30 jours'],
                     ].map(([type, duree]) => (
@@ -258,7 +258,7 @@ export default function ConfidentialitePage() {
                 {[
                   { name: 'Supabase Inc.', role: 'Hébergement de la base de données', location: 'UE (Frankfurt)' },
                   { name: 'Vercel Inc.', role: 'Hébergement de l\'application web', location: 'UE (AWS eu-west)' },
-                  { name: 'Stripe Inc.', role: 'Traitement des paiements', location: 'UE — certifié PCI-DSS' },
+                  { name: 'Stripe Inc.', role: 'Traitement des paiements', location: 'UE, certifié PCI-DSS' },
                 ].map(({ name, role, location }) => (
                   <div key={name} className="flex items-center justify-between bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-3 text-xs">
                     <span className="font-semibold text-[#1A1A2E]">{name}</span>
@@ -336,7 +336,7 @@ export default function ConfidentialitePage() {
                 {[
                   'Chiffrement des données en transit (HTTPS/TLS 1.3) et au repos (AES-256)',
                   'Authentification sécurisée avec hachage des mots de passe (bcrypt)',
-                  'Contrôle d\'accès basé sur les rôles (RBAC) — Row Level Security Supabase',
+                  'Contrôle d\'accès basé sur les rôles (RBAC), Row Level Security Supabase',
                   'Journalisation des accès et des modifications',
                   'Hébergement en Union européenne',
                   'Sauvegardes quotidiennes chiffrées',
@@ -370,7 +370,7 @@ export default function ConfidentialitePage() {
               <p>
                 La suppression sera effectuée dans un délai de <strong>30 jours</strong>. Certaines données
                 pourront être conservées au-delà de ce délai si une obligation légale l&apos;exige (données
-                de facturation notamment — voir article 5).
+                de facturation notamment, voir article 5).
               </p>
               <p>
                 Avant suppression, vous pouvez exporter l&apos;ensemble de vos données via les fonctions
@@ -379,14 +379,14 @@ export default function ConfidentialitePage() {
             </div>
           </div>
 
-          {/* 10 — DPA */}
+          {/* 10, DPA */}
           <div id="sous-traitance" className="scroll-mt-24">
             <h2 className="text-lg font-bold text-[#1A1A2E] mb-4 pb-2 border-b border-[#F0EBE3]">
               10. Accord de sous-traitance des données (DPA)
             </h2>
             <div className="text-sm text-[#374151] leading-relaxed space-y-3">
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-                <p className="font-semibold text-[#1A1A2E] mb-2">Article 28 RGPD — Obligations du sous-traitant</p>
+                <p className="font-semibold text-[#1A1A2E] mb-2">Article 28 RGPD : Obligations du sous-traitant</p>
                 <p>
                   En utilisant Talenth, votre organisation (responsable de traitement) confie à Talenth
                   (sous-traitant) le traitement de données personnelles relatives à vos salariés.
@@ -418,7 +418,7 @@ export default function ConfidentialitePage() {
             </div>
           </div>
 
-          {/* 11 — Cookies */}
+          {/* 11, Cookies */}
           <div id="cookies" className="scroll-mt-24">
             <h2 className="text-lg font-bold text-[#1A1A2E] mb-4 pb-2 border-b border-[#F0EBE3]">
               11. Cookies et traceurs
@@ -441,7 +441,7 @@ export default function ConfidentialitePage() {
                   </thead>
                   <tbody className="divide-y divide-[#E2E8F0]">
                     {[
-                      ['sb-* (Supabase)', 'Session d\'authentification — maintien de la connexion', 'Session / 7 jours', 'Exempt (technique nécessaire)'],
+                      ['sb-* (Supabase)', 'Session d\'authentification, maintien de la connexion', 'Session / 7 jours', 'Exempt (technique nécessaire)'],
                       ['talenth_cookie_notice_v1', 'Mémorisation de la fermeture de la notice cookies', 'Persistant (localStorage)', 'Exempt (technique nécessaire)'],
                     ].map(([name, purpose, duration, consent]) => (
                       <tr key={name} className="hover:bg-[#F8FAFC]">

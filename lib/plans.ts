@@ -23,7 +23,7 @@ const ALL_FEATURES = Object.keys(FEATURES) as FeatureKey[]
 export const PLANS = {
   essentiel: {
     name: 'Essentiel',
-    maxEstablishments: -1,   // illimité — la limite est sur les utilisateurs
+    maxEstablishments: -1,   // illimité, la limite est sur les utilisateurs
     maxUsers: 1,
     features: ALL_FEATURES,
     stripeProductId: process.env.STRIPE_PRODUCT_ESSENTIEL ?? '',

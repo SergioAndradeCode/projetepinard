@@ -50,9 +50,9 @@ const TYPE_RECO_OPTIONS = [
 // ─── Mapping texte → clé interne (insensible à la casse) ──────────────────────
 const TYPES_VALIDES: Record<string, TypeReconnaissance> = {
   'rqth':                                                'rqth',
-  'rqth — reconnaissance qualité travailleur handicapé': 'rqth',
+  'rqth, reconnaissance qualité travailleur handicapé': 'rqth',
   'aah':                                                 'aah',
-  'aah — allocation adulte handicapé':                   'aah',
+  'aah, allocation adulte handicapé':                   'aah',
   'pension invalidité 2':                                'pension_invalidite_2',
   'pension invalidité 2e cat.':                          'pension_invalidite_2',
   'pension invalidité 2ème cat':                         'pension_invalidite_2',
@@ -222,7 +222,7 @@ function parseCSV(
       } else {
         const resolved = etabMap[nomEtab.toLowerCase().trim()]
         if (!resolved) {
-          erreurs.push(`Centre inconnu : "${nomEtab}" — vérifiez l'orthographe exacte`)
+          erreurs.push(`Centre inconnu : "${nomEtab}", vérifiez l'orthographe exacte`)
         } else {
           etablissementId = resolved
         }
@@ -305,7 +305,7 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
   // Ligne 2 — indications obligatoire / optionnel
   // date_fin = seule colonne optionnelle
   const etabSubLabel = multiEtab
-    ? '★ Obligatoire — liste déroulante'
+    ? '★ Obligatoire, liste déroulante'
     : singleName
       ? `Auto : ${singleName}`
       : '★ Obligatoire'
@@ -313,12 +313,12 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
   const subRow = ws.addRow([
     '★ Obligatoire',
     '★ Obligatoire',
-    '★ Obligatoire — liste déroulante',
-    '★ Obligatoire — JJ/MM/AAAA',
-    'Optionnel — JJ/MM/AAAA',
-    '★ Obligatoire — Oui / Non',
+    '★ Obligatoire, liste déroulante',
+    '★ Obligatoire, JJ/MM/AAAA',
+    'Optionnel, JJ/MM/AAAA',
+    '★ Obligatoire, Oui / Non',
     '★ Obligatoire (1–100)',
-    '★ Obligatoire — JJ/MM/AAAA',
+    '★ Obligatoire, JJ/MM/AAAA',
     '★ Obligatoire',
     etabSubLabel,
   ])
@@ -398,20 +398,20 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
   })
 
   const etabDesc = etabNames.length > 1
-    ? 'Nom exact du centre/établissement — utiliser la liste déroulante'
+    ? 'Nom exact du centre/établissement, utiliser la liste déroulante'
     : etabNames.length === 1
-      ? `Un seul centre enregistré (${singleName}) — auto-assigné si vide`
+      ? `Un seul centre enregistré (${singleName}), auto-assigné si vide`
       : 'Nom exact du centre/établissement enregistré dans Talenth'
 
   const lgData: [string, string, string, string][] = [
     ['Prénom',                        'Oui', 'Prénom du salarié BOETH',                                   'Marie, Jean…'],
     ['Nom',                            'Oui', 'Nom de famille',                                            'Dupont, Martin…'],
-    ['Type de reconnaissance',         'Oui', 'Statut BOETH — utiliser la liste déroulante',               TYPE_RECO_OPTIONS.join(' · ')],
-    ['Date début (jj/mm/aaaa)',        'Oui', 'Date de début de validité',                                 '15/01/2023 — format JJ/MM/AAAA'],
+    ['Type de reconnaissance',         'Oui', 'Statut BOETH : utiliser la liste déroulante',               TYPE_RECO_OPTIONS.join(' · ')],
+    ['Date début (jj/mm/aaaa)',        'Oui', 'Date de début de validité',                                 '15/01/2023, format JJ/MM/AAAA'],
     ['Date fin (jj/mm/aaaa)',          'Non', 'Date de fin. Laisser vide si la reconnaissance est permanente', '14/01/2026'],
     ['Permanent ?',                    'Oui', 'Oui = reconnaissance sans date de fin (AAH, pension…)',     'Oui · Non'],
     ['Taux temps travail (%)',         'Oui', 'Pourcentage du temps de travail contractuel',               '100 = temps plein · 80 · 50'],
-    ['Date de naissance (jj/mm/aaaa)', 'Oui', 'Date de naissance du salarié',                             '20/06/1985 — format JJ/MM/AAAA'],
+    ['Date de naissance (jj/mm/aaaa)', 'Oui', 'Date de naissance du salarié',                             '20/06/1985, format JJ/MM/AAAA'],
     ['Code interne / Matricule',       'Oui', 'Matricule ou identifiant RH interne',                      'EMP001, M0042…'],
     ['Centre / Établissement',         etabNames.length === 1 ? 'Auto' : 'Oui', etabDesc,
       etabNames.length > 0 ? etabNames.join(' · ') : 'Nom exact tel qu\'enregistré dans Talenth'],
@@ -431,7 +431,7 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
   lg.addRow([])
   const noteRow = lg.addRow([
     "ℹ️  Seule la colonne « Date fin » est optionnelle. " +
-    "Toutes les autres colonnes sont obligatoires — les lignes incomplètes sont ignorées à l'import. " +
+    "Toutes les autres colonnes sont obligatoires, les lignes incomplètes sont ignorées à l'import. " +
     "Les dates sont acceptées au format JJ/MM/AAAA ou AAAA-MM-JJ.",
   ])
   noteRow.getCell(1).font = { italic: true, color: { argb: 'FF6B7280' }, size: 9, name: 'Calibri' }
@@ -607,7 +607,7 @@ export function ImportCSV({ open, onClose, onSuccess, organizationId }: ImportCS
               )}
               {etablissements.length === 1 && (
                 <p className="text-xs text-[#1E4A8C]/60 mt-1">
-                  Centre unique ({etablissements[0].name}) — auto-assigné à chaque ligne.
+                  Centre unique ({etablissements[0].name}), auto-assigné à chaque ligne.
                 </p>
               )}
             </div>
@@ -665,11 +665,11 @@ export function ImportCSV({ open, onClose, onSuccess, organizationId }: ImportCS
                           <td className="px-3 py-1.5 text-[#1A1A2E]">{l.nom}</td>
                           <td className="px-3 py-1.5 text-[#6B7280]">{l.type_reconnaissance}</td>
                           <td className="px-3 py-1.5 text-[#6B7280]">{l.date_debut}</td>
-                          <td className="px-3 py-1.5 text-[#6B7280]">{l.date_fin || '—'}</td>
+                          <td className="px-3 py-1.5 text-[#6B7280]">{l.date_fin || '-'}</td>
                           <td className="px-3 py-1.5 text-[#6B7280]">{l.taux_temps_travail}%</td>
-                          <td className="px-3 py-1.5 text-[#6B7280]">{l.date_naissance || '—'}</td>
-                          <td className="px-3 py-1.5 text-[#6B7280]">{l.matricule || '—'}</td>
-                          <td className="px-3 py-1.5 text-[#6B7280]">{l.etablissement || (autoEtabId ? etablissements[0]?.name : '—')}</td>
+                          <td className="px-3 py-1.5 text-[#6B7280]">{l.date_naissance || '-'}</td>
+                          <td className="px-3 py-1.5 text-[#6B7280]">{l.matricule || '-'}</td>
+                          <td className="px-3 py-1.5 text-[#6B7280]">{l.etablissement || (autoEtabId ? etablissements[0]?.name : '-')}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -691,7 +691,7 @@ export function ImportCSV({ open, onClose, onSuccess, organizationId }: ImportCS
                   </p>
                   {lignesErreur.slice(0, 5).map((l, i) => (
                     <p key={i} className="text-xs text-orange-600 ml-5">
-                      {l.prenom || '—'} {l.nom || '(sans nom)'} — {l._erreurs.join(', ')}
+                      {l.prenom || '-'} {l.nom || '(sans nom)'}, {l._erreurs.join(', ')}
                     </p>
                   ))}
                   {lignesErreur.length > 5 && (

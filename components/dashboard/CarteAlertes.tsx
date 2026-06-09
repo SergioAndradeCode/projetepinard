@@ -54,7 +54,7 @@ export function CarteAlertes({ salaries }: CarteAlertesProps) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-[#1A1A2E] truncate">
-                Renouvellement RQTH — {s.prenom ?? ''} {s.nom ?? ''}
+                Renouvellement RQTH : {s.prenom ?? ''} {s.nom ?? ''}
               </p>
               <p className={`text-xs ${isExpire ? 'text-[#B71C1C]' : 'text-[#BF5A00]'}`}>
                 {isExpire

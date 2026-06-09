@@ -35,9 +35,9 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-lg xl:text-xl text-white/60 leading-relaxed max-w-xl mb-10">
-                Talenth accompagne les équipes mission handicap dans leur quotidien —
+                Talenth accompagne les équipes mission handicap dans leur quotidien,
                 suivi des collaborateurs BOETH, maintien dans l&apos;emploi, conformité OETH
-                et pilotage budgétaire — dans un seul outil, conçu pour des personnes qui s&apos;engagent.
+                et pilotage budgétaire, dans un seul outil, conçu pour des personnes qui s&apos;engagent.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 mb-10">
@@ -119,7 +119,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-[#6B7280] text-lg leading-relaxed">
               Les équipes mission handicap jonglent entre des contraintes légales complexes et un engagement humain profond
-              envers leurs collaborateurs. Talenth est construit pour honorer ces deux dimensions — sans les opposer.
+              envers leurs collaborateurs. Talenth est construit pour honorer ces deux dimensions, sans les opposer.
             </p>
           </div>
 
@@ -129,19 +129,19 @@ export default function LandingPage() {
                 icon: Heart,
                 color: 'bg-amber-50 text-[#D97706] border-amber-100',
                 title: 'Centré sur les personnes',
-                desc: 'Chaque fiche salarié, chaque situation de maintien dans l\'emploi, chaque reconnaissance — tous les outils sont conçus pour un suivi individualisé et humain.',
+                desc: 'Chaque fiche salarié, chaque situation de maintien dans l\'emploi, chaque reconnaissance, tous les outils sont conçus pour un suivi individualisé et humain.',
               },
               {
                 icon: ShieldCheck,
                 color: 'bg-blue-50 text-[#1E4A8C] border-blue-100',
                 title: 'Sérieux sur la conformité',
-                desc: 'Les calculs d\'unités bénéficiaires, les coefficients seniors, les déductions ESAT/EA — tout est conforme aux règles AGEFIPH en vigueur, mis à jour chaque année.',
+                desc: 'Les calculs d\'unités bénéficiaires, les coefficients seniors, les déductions ESAT/EA, tout est conforme aux règles AGEFIPH en vigueur, mis à jour chaque année.',
               },
               {
                 icon: Users,
                 color: 'bg-green-50 text-green-700 border-green-100',
                 title: 'Fait pour les équipes',
-                desc: 'Du référent national au chargé de mission local — chaque membre de l\'équipe dispose d\'un accès adapté à son rôle et à son périmètre géographique.',
+                desc: 'Du référent national au chargé de mission local, chaque membre de l\'équipe dispose d\'un accès adapté à son rôle et à son périmètre géographique.',
               },
             ].map(({ icon: Icon, color, title, desc }) => (
               <div key={title} className="p-8 bg-white rounded-2xl border border-[#F0EBE3] shadow-sm hover:shadow-md transition-shadow">
@@ -215,14 +215,14 @@ export default function LandingPage() {
               Un outil complet pour toute<br />l&apos;équipe mission handicap.
             </h2>
             <p className="text-[#6B7280] max-w-xl mx-auto text-lg">
-              Du référent national au chargé de mission local — chacun dispose de son périmètre,
+              Du référent national au chargé de mission local, chacun dispose de son périmètre,
               avec les données dont il a besoin, sans complexité.
             </p>
           </div>
 
           <div className="space-y-24">
 
-            {/* 1 — Dashboard */}
+            {/* 1, Dashboard */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 xl:gap-24 items-center">
               <div>
                 <div className="w-11 h-11 rounded-xl bg-white border border-[#E2E8F0] flex items-center justify-center mb-6 shadow-sm">
@@ -231,7 +231,7 @@ export default function LandingPage() {
                 <h3 className="text-2xl xl:text-3xl font-black text-[#1A1A2E] mb-4">Tableau de bord OETH en temps réel</h3>
                 <p className="text-[#6B7280] leading-relaxed mb-7 text-lg">
                   Visualisez instantanément votre taux d&apos;emploi, vos unités bénéficiaires, votre contribution AGEFIPH estimée
-                  et votre projection de fin d&apos;année — consolidés sur l&apos;ensemble de vos établissements.
+                  et votre projection de fin d&apos;année, consolidés sur l&apos;ensemble de vos établissements.
                 </p>
                 <ul className="space-y-3">
                   {[
@@ -250,7 +250,7 @@ export default function LandingPage() {
               <div><MockupDashboard /></div>
             </div>
 
-            {/* 2 — BOETH */}
+            {/* 2, BOETH */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 xl:gap-24 items-center">
               <div className="lg:order-2">
                 <div className="w-11 h-11 rounded-xl bg-white border border-[#E2E8F0] flex items-center justify-center mb-6 shadow-sm">
@@ -278,7 +278,7 @@ export default function LandingPage() {
               <div className="lg:order-1"><MockupRQTH /></div>
             </div>
 
-            {/* 3 — Maintien dans l'emploi */}
+            {/* 3, Maintien dans l'emploi */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 xl:gap-24 items-center">
               <div>
                 <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center mb-6 shadow-sm">
@@ -287,7 +287,7 @@ export default function LandingPage() {
                 <h3 className="text-2xl xl:text-3xl font-black text-[#1A1A2E] mb-4">Maintien dans l&apos;emploi</h3>
                 <p className="text-[#6B7280] leading-relaxed mb-7 text-lg">
                   C&apos;est souvent la partie la plus humaine et la plus délicate de la mission. Talenth vous aide
-                  à documenter et piloter chaque situation individuelle — AT/MP, inaptitude, aménagement de poste.
+                  à documenter et piloter chaque situation individuelle, AT/MP, inaptitude, aménagement de poste.
                 </p>
                 <ul className="space-y-3">
                   {[
@@ -329,7 +329,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* 4 — DOETH + Budget */}
+            {/* 4, DOETH + Budget */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 xl:gap-24 items-center">
               <div className="lg:order-2">
                 <div className="w-11 h-11 rounded-xl bg-white border border-[#E2E8F0] flex items-center justify-center mb-6 shadow-sm">

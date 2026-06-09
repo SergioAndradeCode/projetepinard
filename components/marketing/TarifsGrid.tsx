@@ -26,7 +26,7 @@ type CycleOption = {
 const CYCLE_OPTIONS: CycleOption[] = [
   {
     cycle: 'annual_upfront',
-    label: 'Annuel — 1 paiement',
+    label: 'Annuel en 1 fois',
     badge: '−15%',
     sub: 'Une facture · 12 mois d\'accès · compatible bon de commande',
   },
@@ -65,7 +65,7 @@ function formatPrice(planId: PlanId, cycle: BillingCycle): PriceInfo | null {
     return {
       main:   totalEuros,
       unit:   '€ / an',
-      note:   `Soit ${perMonth} €/mois — 1 seul paiement`,
+      note:   `Soit ${perMonth} €/mois, 1 seul paiement`,
       saving: `Économie de ${saving} € vs mensuel`,
     }
   }
@@ -221,7 +221,7 @@ export function TarifsGrid() {
         </div>
         <div className="flex flex-col items-center gap-2 shrink-0">
           <a
-            href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth — demande de devis"
+            href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth | demande de devis"
             className="flex items-center gap-2 bg-[#1E4A8C] text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-[#163870] transition-colors text-sm whitespace-nowrap"
           >
             <Mail className="w-4 h-4" />

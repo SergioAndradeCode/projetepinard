@@ -119,7 +119,7 @@ export default function OnboardingPage() {
         })
       if (profileError) throw profileError
 
-      // 3. Créer les paramètres OETH — coefficient calculé automatiquement
+      // 3. Créer les paramètres OETH : coefficient calculé automatiquement
       const { error: settingsError } = await supabase
         .from('oeth_settings')
         .insert({

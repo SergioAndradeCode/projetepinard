@@ -142,7 +142,7 @@ export function FormESAT({
           {/* Champ caché pour que react-hook-form suive establishment_id même sans <input> visible */}
           <input type="hidden" {...register('establishment_id')} />
 
-          {/* Établissement — obligatoire */}
+          {/* Établissement, obligatoire */}
           <div className="space-y-1.5">
             <Label>
               Établissement <span className="text-[#B71C1C]">*</span>
@@ -166,7 +166,7 @@ export function FormESAT({
                 <SelectContent>
                   {etablissements.map(e => (
                     <SelectItem key={e.id} value={e.id}>
-                      {e.name}{e.is_headquarters ? ' — Siège' : ''}
+                      {e.name}{e.is_headquarters ? ', Siège' : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -217,7 +217,7 @@ export function FormESAT({
           {/* Montant attestation */}
           <div className="space-y-2 p-3 bg-[#EBF2FA] border border-[#1E4A8C]/20 rounded-lg">
             <div>
-              <Label className="text-[#1E4A8C]">Montant de l&apos;attestation ESAT/EA (€) — optionnel</Label>
+              <Label className="text-[#1E4A8C]">Montant de l&apos;attestation ESAT/EA (€), optionnel</Label>
               <p className="text-xs text-[#1E4A8C]/80 mt-0.5">
                 Montant exact figurant sur l&apos;<strong>attestation annuelle</strong> remise par votre fournisseur
                 (formule légale : 30% × (prix HT − coûts matières)).

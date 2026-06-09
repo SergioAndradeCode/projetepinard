@@ -6,7 +6,7 @@ import { Toaster } from 'sonner'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Talenth — Pilotage OETH',
+  title: 'Talenth | Pilotage OETH',
   description: "Plateforme de pilotage de l'Obligation d'Emploi des Travailleurs Handicapés",
 }
 

@@ -2,7 +2,7 @@ import { FileText } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'CGV / CGU — Talenth',
+  title: 'CGV / CGU | Talenth',
   description: 'Conditions Générales de Vente et d\'Utilisation de la plateforme Talenth.',
 }
 
@@ -34,11 +34,11 @@ export default function CGVPage() {
           <p className="text-xs font-bold text-[#1E4A8C] uppercase tracking-widest mb-3">Textes de référence</p>
           <ul className="space-y-1.5 text-sm text-[#374151]">
             {[
-              'Code de la consommation — articles L111-1, L221-1 et suivants',
-              'Code civil — articles 1101 et suivants (droit des contrats)',
-              'Règlement (UE) 2016/679 du 27 avril 2016 (RGPD) — article 28 (sous-traitance)',
+              'Code de la consommation, articles L111-1, L221-1 et suivants',
+              'Code civil, articles 1101 et suivants (droit des contrats)',
+              'Règlement (UE) 2016/679 du 27 avril 2016 (RGPD), article 28 (sous-traitance)',
               'Loi n° 2004-575 du 21 juin 2004 (LCEN)',
-              'Loi n° 2008-776 du 4 août 2008 de modernisation de l\'économie (LME) — délais de paiement',
+              'Loi n° 2008-776 du 4 août 2008 de modernisation de l\'économie (LME), délais de paiement',
             ].map(t => (
               <li key={t} className="flex items-start gap-2">
                 <span className="text-[#1E4A8C] mt-1 shrink-0">·</span>

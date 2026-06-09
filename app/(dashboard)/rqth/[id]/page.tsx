@@ -381,7 +381,7 @@ export default function ProfilRQTHPage() {
               <p className="text-sm font-medium text-[#1A1A2E]">
                 {employee.est_permanent
                   ? <span className="text-[#2E7D32]">Permanente</span>
-                  : employee.date_fin ? formatDate(employee.date_fin) : '—'
+                  : employee.date_fin ? formatDate(employee.date_fin) : '-'
                 }
               </p>
             </div>
@@ -493,7 +493,7 @@ export default function ProfilRQTHPage() {
                     : <><span className="font-medium text-[#1E4A8C]">Cliquez</span> ou déposez un fichier</>
                   }
                 </p>
-                <p className="text-[10px] text-[#CBD5E1]">PDF, image, Word — max {MAX_SIZE_MB} Mo</p>
+                <p className="text-[10px] text-[#CBD5E1]">PDF, image, Word, max {MAX_SIZE_MB} Mo</p>
               </div>
               <input
                 ref={fileInputRef}

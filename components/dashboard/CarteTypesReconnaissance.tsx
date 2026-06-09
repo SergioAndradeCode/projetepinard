@@ -24,7 +24,7 @@ export function CarteTypesReconnaissance({ salaries }: CarteTypesReconnaissanceP
         return new Date(s.date_fin) >= new Date(new Date().setHours(0, 0, 0, 0))
       })
       const ub = calculerUBRQTH(actifs)
-      return { type, label: label.split(' — ')[0], labelLong: label, nb: actifs.length, ub }
+      return { type, label: label.split(', ')[0], labelLong: label, nb: actifs.length, ub }
     })
     .filter(r => r.nb > 0)
     .sort((a, b) => b.nb - a.nb)

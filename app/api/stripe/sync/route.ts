@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
  * POST /api/stripe/sync
  *
  * Synchronise l'abonnement depuis Stripe directement après un checkout réussi.
- * Appelé côté client avec le session_id Stripe — contourne le webhook
+ * Appelé côté client avec le session_id Stripe, contourne le webhook
  * (indispensable en développement où localhost n'est pas joignable par Stripe).
  */
 export async function POST(req: NextRequest) {

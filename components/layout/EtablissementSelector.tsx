@@ -101,7 +101,7 @@ export function EtablissementSelector() {
           className={!selectedEstablishmentId ? 'bg-[#EBF2FA] text-[#1E4A8C]' : ''}
         >
           <Globe className="w-4 h-4 mr-2 text-[#6B7280]" />
-          Vue globale — Entreprise entière
+          Vue globale, Entreprise entière
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {etablissements.map((e) => (

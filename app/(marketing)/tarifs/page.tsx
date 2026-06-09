@@ -4,7 +4,7 @@ import { TarifsGrid } from '@/components/marketing/TarifsGrid'
 import { FEATURES } from '@/lib/plans'
 
 export const metadata = {
-  title: 'Tarifs — Talenth',
+  title: 'Tarifs | Talenth',
   description: 'Des tarifs simples et transparents pour gérer votre conformité OETH. Essai gratuit 10 jours, sans carte bancaire.',
 }
 
@@ -23,7 +23,7 @@ const FAQ = [
   },
   {
     q: 'Est-il possible de payer par bon de commande ou virement bancaire ?',
-    a: 'Oui, l\'option « Annuel — 1 paiement » est spécialement conçue pour les organisations qui fonctionnent par bon de commande. Après votre essai gratuit, sélectionnez cette formule lors du paiement — Stripe accepte la carte bancaire et le virement SEPA. Pour un processus de devis/bon de commande formalisé, contactez-nous à contact@talenth.fr.',
+    a: 'Oui, l\'option « Annuel en 1 fois » est spécialement conçue pour les organisations qui fonctionnent par bon de commande. Après votre essai gratuit, sélectionnez cette formule lors du paiement : Stripe accepte la carte bancaire et le virement SEPA. Pour un processus de devis/bon de commande formalisé, contactez-nous à contact@talenth.fr.',
   },
   {
     q: 'Puis-je changer de plan à tout moment ?',
@@ -66,14 +66,14 @@ export default function TarifsPage() {
         <TarifsGrid />
       </section>
 
-      {/* Tout inclus — liste complète */}
+      {/* Tout inclus, liste complète */}
       <section className="max-w-4xl mx-auto px-6 mb-20">
         <div className="bg-[#FEFCF8] border border-[#F0EBE3] rounded-3xl p-10">
           <h2 className="text-2xl font-black text-[#1A1A2E] mb-2 text-center">
             Tout est inclus. Dans chaque plan.
           </h2>
           <p className="text-[#6B7280] text-center mb-8 text-sm">
-            Pas de modules optionnels, pas de surprises — voici ce que vous obtenez dès le premier jour.
+            Pas de modules optionnels, pas de surprises : voici ce que vous obtenez dès le premier jour.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {(Object.values(FEATURES) as string[]).map((label) => (

@@ -1,7 +1,7 @@
 import { Scale } from 'lucide-react'
 
 export const metadata = {
-  title: 'Mentions légales — Talenth',
+  title: 'Mentions légales | Talenth',
   description: 'Mentions légales de la plateforme Talenth, conformément à la loi n° 2004-575 du 21 juin 2004 pour la Confiance dans l\'Économie Numérique (LCEN).',
 }
 
@@ -46,16 +46,16 @@ const SECTIONS = [
         <p>Le site et ses données sont hébergés par :</p>
         <div className="space-y-4">
           <div className="bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] p-4">
-            <p className="font-semibold text-[#1A1A2E] mb-1">Application web — Vercel Inc.</p>
+            <p className="font-semibold text-[#1A1A2E] mb-1">Application web, Vercel Inc.</p>
             <p className="text-[#6B7280]">440 N Barranca Ave #4133, Covina, CA 91723, États-Unis</p>
             <p className="text-[#6B7280]">Site : <a href="https://vercel.com" className="text-[#1E4A8C] hover:underline">vercel.com</a></p>
             <p className="text-xs text-[#9CA3AF] mt-1">Infrastructure sous-jacente : datacenters européens (AWS eu-west).</p>
           </div>
           <div className="bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] p-4">
-            <p className="font-semibold text-[#1A1A2E] mb-1">Base de données — Supabase Inc.</p>
+            <p className="font-semibold text-[#1A1A2E] mb-1">Base de données, Supabase Inc.</p>
             <p className="text-[#6B7280]">970 Toa Payoh North #07-04, Singapore 318992</p>
             <p className="text-[#6B7280]">Site : <a href="https://supabase.com" className="text-[#1E4A8C] hover:underline">supabase.com</a></p>
-            <p className="text-xs text-[#9CA3AF] mt-1">Région de stockage : Europe de l&apos;Ouest (Frankfurt, Allemagne — Union européenne). Conforme au RGPD.</p>
+            <p className="text-xs text-[#9CA3AF] mt-1">Région de stockage : Europe de l&apos;Ouest (Frankfurt, Allemagne, Union européenne). Conforme au RGPD.</p>
           </div>
         </div>
       </div>

@@ -46,7 +46,7 @@ export function ProfileProvider({
 }
 
 /**
- * Hook — lit le profil chargé une seule fois dans le Server Component layout.
+ * Hook, lit le profil chargé une seule fois dans le Server Component layout.
  * Évite les appels redondants getUser() + profiles.select() dans chaque page client.
  */
 export function useProfile() {

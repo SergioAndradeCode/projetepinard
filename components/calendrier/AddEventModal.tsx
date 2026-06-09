@@ -70,7 +70,7 @@ export function AddEventModal({ establishments, onClose }: Props) {
               type="text"
               value={titre}
               onChange={(e) => setTitre(e.target.value)}
-              placeholder="Ex : Réunion CSE — Bilan OETH"
+              placeholder="Ex : Réunion CSE, Bilan OETH"
               required
               className="w-full px-3 py-2 text-sm border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E4A8C]/30 focus:border-[#1E4A8C]"
             />

@@ -144,7 +144,7 @@ async function buildBudgetExport(
   ws1.columns = Array(8).fill(null).map(() => ({ width: 16 }))
 
   ws1.addRow([])
-  const titleRow = ws1.addRow([`BUDGET MISSION HANDICAP — ${orgName} — ${year}`])
+  const titleRow = ws1.addRow([`BUDGET MISSION HANDICAP | ${orgName}, ${year}`])
   ws1.mergeCells('A2:H2'); titleRow.height = 36
   styleTitle(titleRow.getCell(1))
 
@@ -187,9 +187,9 @@ async function buildBudgetExport(
   ws2.columns = Array(8).fill(null).map(() => ({ width: 16 }))
 
   ws2.addRow([])
-  const t2 = ws2.addRow([`BUDGET PAR ÉTABLISSEMENT — ${year}`])
+  const t2 = ws2.addRow([`BUDGET PAR ÉTABLISSEMENT | ${year}`])
   ws2.mergeCells('A2:H2'); t2.height = 32; styleTitle(t2.getCell(1))
-  const s2 = ws2.addRow([`${orgName} — Exporté le ${TODAY}`])
+  const s2 = ws2.addRow([` | Exporté le ${TODAY}`])
   ws2.mergeCells('A3:H3'); s2.height = 20; styleSubtitle(s2.getCell(1))
   ws2.addRow([])
 
@@ -238,16 +238,16 @@ async function buildBudgetExport(
   // ── Onglet 3 : Dépenses détaillées ──
   const detailRows = [...expenses].sort((a, b) => b.date_depense.localeCompare(a.date_depense)).map(d => ({
     date: d.date_depense,
-    etablissement: etablissements.find(e => e.id === d.establishment_id)?.name ?? '—',
+    etablissement: etablissements.find(e => e.id === d.establishment_id)?.name ?? '-',
     categorie: BUDGET_CATEGORIES_LABELS[d.categorie as BudgetCategorie] ?? d.categorie,
     description: d.description,
-    facture_ref: d.facture_ref ?? '—',
+    facture_ref: d.facture_ref ?? '-',
     montant: d.montant,
   }))
 
   const ws3 = createFormattedSheet(wb, 'Dépenses détaillées',
-    `DÉPENSES MISSION HANDICAP — ${year}`,
-    `${orgName} — Exporté le ${TODAY}`,
+    `DÉPENSES MISSION HANDICAP | ${year}`,
+    ` | Exporté le ${TODAY}`,
     [
       { header: 'Date', key: 'date', format: 'date', align: 'center', width: 12 },
       { header: 'Établissement', key: 'etablissement', align: 'left' },
@@ -266,9 +266,9 @@ async function buildBudgetExport(
   ws4.columns = Array(6).fill(null).map(() => ({ width: 18 }))
 
   ws4.addRow([])
-  const t4 = ws4.addRow([`DÉPENSES PAR CATÉGORIE — ${year}`])
+  const t4 = ws4.addRow([`DÉPENSES PAR CATÉGORIE | ${year}`])
   ws4.mergeCells('A2:F2'); t4.height = 32; styleTitle(t4.getCell(1))
-  const s4 = ws4.addRow([`${orgName} — Exporté le ${TODAY}`])
+  const s4 = ws4.addRow([` | Exporté le ${TODAY}`])
   ws4.mergeCells('A3:F3'); s4.height = 20; styleSubtitle(s4.getCell(1))
   ws4.addRow([])
 
@@ -289,8 +289,8 @@ async function buildBudgetExport(
   createFormattedSheet(
     wb,
     '_cat_data',
-    `DÉPENSES PAR CATÉGORIE — ${year}`,
-    `${orgName} — Exporté le ${TODAY}`,
+    `DÉPENSES PAR CATÉGORIE | ${year}`,
+    ` | Exporté le ${TODAY}`,
     [
       { header: 'Catégorie', key: 'categorie', align: 'left' },
       { header: 'Nb dépenses', key: 'nb', align: 'center', width: 14 },
@@ -351,14 +351,14 @@ function buildRQTHExport(
       ...s,
       statut,
       joursRestants,
-      etablissementName: etablissements.find(e => e.id === s.establishment_id)?.name ?? '—',
-      typeLabel: LABEL_RECONNAISSANCE[s.type_reconnaissance]?.split(' — ')[0] ?? s.type_reconnaissance,
+      etablissementName: etablissements.find(e => e.id === s.establishment_id)?.name ?? '-',
+      typeLabel: LABEL_RECONNAISSANCE[s.type_reconnaissance]?.split(', ')[0] ?? s.type_reconnaissance,
     }
   })
 
   // ── Onglet 1 : Liste complète ──
   const ws1 = createFormattedSheet(wb, 'Salariés RQTH',
-    `SALARIÉS RQTH — ${orgName}`,
+    `SALARIÉS RQTH : ${orgName}`,
     `Exporté le ${TODAY}`,
     [
       { header: 'Prénom', key: 'prenom', align: 'left' },
@@ -375,12 +375,12 @@ function buildRQTHExport(
     enriched.map(s => ({
       prenom: s.prenom,
       nom: s.nom,
-      matricule: s.matricule ?? '—',
+      matricule: s.matricule ?? '-',
       etablissementName: s.etablissementName,
-      batiment: s.batiment ?? '—',
+      batiment: s.batiment ?? '-',
       typeLabel: s.typeLabel,
       date_debut: s.date_debut,
-      date_fin: s.est_permanent ? 'Permanente' : (s.date_fin ?? '—'),
+      date_fin: s.est_permanent ? 'Permanente' : (s.date_fin ?? '-'),
       statut: s.statut === 'actif' ? 'Actif' : s.statut === 'expire_bientot' ? 'Expire bientôt' : 'Expiré',
       joursRestants: s.joursRestants ?? '∞',
     }))
@@ -415,7 +415,7 @@ function buildRQTHExport(
 
   createFormattedSheet(wb, 'Par établissement',
     `RÉCAPITULATIF PAR ÉTABLISSEMENT`,
-    `${orgName} — Exporté le ${TODAY}`,
+    ` | Exporté le ${TODAY}`,
     [
       { header: 'Établissement', key: 'etablissement', align: 'left' },
       { header: 'RQTH actifs', key: 'actifs', align: 'center', width: 14 },
@@ -439,8 +439,8 @@ function buildRQTHExport(
     .sort((a, b) => (a.joursRestants ?? 0) - (b.joursRestants ?? 0))
 
   const ws3 = createFormattedSheet(wb, 'Alertes expirations',
-    'ALERTES — RECONNAISSANCES À RENOUVELER',
-    `${orgName} — Reconnaissances expirant dans moins de 120 jours — ${TODAY}`,
+    'ALERTES : RECONNAISSANCES À RENOUVELER',
+    `${orgName}, Reconnaissances expirant dans moins de 120 jours, ${TODAY}`,
     [
       { header: 'Prénom', key: 'prenom', align: 'left' },
       { header: 'Nom', key: 'nom', align: 'left' },
@@ -484,7 +484,7 @@ function buildESATExport(
 
   const enriched = achats.map(a => ({
     ...a,
-    etablissementName: etablissements.find(e => e.id === a.establishment_id)?.name ?? '—',
+    etablissementName: etablissements.find(e => e.id === a.establishment_id)?.name ?? '-',
     deduction_estimee: a.montant_ht * 0.3,
   }))
 
@@ -493,7 +493,7 @@ function buildESATExport(
 
   // ── Onglet 1 : Tous les achats ──
   const ws1 = createFormattedSheet(wb, 'Achats ESAT-EA',
-    `ACHATS ESAT/EA — ${orgName}`,
+    `ACHATS ESAT/EA | ${orgName}`,
     `Exporté le ${TODAY}`,
     [
       { header: 'Date', key: 'date_facture', format: 'date', align: 'center', width: 13 },
@@ -509,7 +509,7 @@ function buildESATExport(
       fournisseur: a.fournisseur,
       montant_ht: a.montant_ht,
       deduction_estimee: parseFloat(a.deduction_estimee.toFixed(2)),
-      notes: a.notes ?? '—',
+      notes: a.notes ?? '-',
     })),
     { date_facture: '', etablissementName: '', fournisseur: 'TOTAL', montant_ht: totalHT, deduction_estimee: parseFloat(totalDeduction.toFixed(2)), notes: '' }
   )
@@ -528,7 +528,7 @@ function buildESATExport(
 
   const ws2 = createFormattedSheet(wb, 'Par établissement',
     `ACHATS ESAT/EA PAR ÉTABLISSEMENT`,
-    `${orgName} — Exporté le ${TODAY}`,
+    ` | Exporté le ${TODAY}`,
     [
       { header: 'Établissement', key: 'etablissement', align: 'left' },
       { header: 'Nb achats', key: 'nb', align: 'center', width: 12 },
@@ -569,7 +569,7 @@ function buildESATExport(
 
   createFormattedSheet(wb, 'Par fournisseur',
     `ACHATS ESAT/EA PAR FOURNISSEUR`,
-    `${orgName} — Exporté le ${TODAY}`,
+    ` | Exporté le ${TODAY}`,
     [
       { header: 'Fournisseur', key: 'fournisseur', align: 'left', width: 28 },
       { header: 'Nb factures', key: 'nb', align: 'center', width: 13 },
@@ -636,11 +636,11 @@ function buildDOETHExport(
   ws1.columns = Array(4).fill(null).map(() => ({ width: 36 }))
 
   ws1.addRow([])
-  const titleRow = ws1.addRow([`DÉCLARATION DOETH ${annee} — ${orgName}`])
+  const titleRow = ws1.addRow([`DÉCLARATION DOETH ${annee}, ${orgName}`])
   ws1.mergeCells('A2:D2'); titleRow.height = 36
   styleTitle(titleRow.getCell(1))
 
-  const subRow = ws1.addRow([`À transmettre au gestionnaire de paie — intégration en DSN d'avril ${annee + 1}`])
+  const subRow = ws1.addRow([`À transmettre au gestionnaire de paie, intégration en DSN d'avril ${annee + 1}`])
   ws1.mergeCells('A3:D3'); subRow.height = 22
   styleSubtitle(subRow.getCell(1))
 
@@ -670,7 +670,7 @@ function buildDOETHExport(
   }
 
   addSection('EFFECTIFS', '', true, EXCEL_THEME.accent, EXCEL_THEME.primary)
-  addSection(`Effectif d'assujettissement — ${annee}`, `${effectifTotal} salariés`)
+  addSection(`Effectif d'assujettissement, ${annee}`, `${effectifTotal} salariés`)
   addSection('Quota légal BOETH (6%)', `${quotaTheorique.toFixed(2)} UB`)
   addSection(`Coefficient de contribution (effectif ${effectifTotal < 250 ? '< 250' : effectifTotal < 750 ? '250–749' : '≥ 750'})`, `${coefficient}`)
   addSection('SMIC horaire de référence', `${smicRef.toFixed(2)} €`)
@@ -682,7 +682,7 @@ function buildDOETHExport(
     const actifs = salActifs.filter(s => s.type_reconnaissance === type)
     const ub = actifs.reduce((sum, s) => sum + getUBProratee(s, annee), 0)
     if (actifs.length > 0) {
-      const row = ws1.addRow([`   └ ${label.split(' — ')[0]} (${actifs.length} sal.)`, ub.toFixed(4)])
+      const row = ws1.addRow([`   └ ${label.split(', ')[0]} (${actifs.length} sal.)`, ub.toFixed(4)])
       row.height = 18
       row.getCell(1).font = { name: 'Calibri', size: 10, italic: true, color: { argb: 'FF' + EXCEL_THEME.textMuted } }
       row.getCell(2).font = { name: 'Calibri', size: 10, italic: true, color: { argb: 'FF' + EXCEL_THEME.textMuted } }
@@ -713,7 +713,7 @@ function buildDOETHExport(
   netteRow.getCell(1).font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF' + EXCEL_THEME.white } }
   netteRow.getCell(2).font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF' + EXCEL_THEME.white } }
   ws1.addRow([])
-  addSection(`Mode d'acquittement DSN (indicatif) — code ${modeAcquittement.code}`, modeAcquittement.label)
+  addSection(`Mode d'acquittement DSN (indicatif), code ${modeAcquittement.code}`, modeAcquittement.label)
 
   // ── Onglet 2 : Par établissement ──
   const siteRows = etablissements.map(e => {
@@ -734,8 +734,8 @@ function buildDOETHExport(
   })
 
   const ws2 = createFormattedSheet(wb, 'Par établissement',
-    `DOETH ${annee} — DÉTAIL PAR ÉTABLISSEMENT`,
-    `${orgName} — Exporté le ${TODAY}`,
+    `DOETH ${annee}, DÉTAIL PAR ÉTABLISSEMENT`,
+    ` | Exporté le ${TODAY}`,
     [
       { header: 'Établissement', key: 'etablissement', align: 'left' },
       { header: 'SIRET', key: 'siret', align: 'center', width: 18 },
@@ -781,7 +781,7 @@ function buildDOETHExport(
   // ── Onglet 3 : Salariés RQTH ──
   createFormattedSheet(wb, 'Salariés RQTH',
     `SALARIÉS BOETH ACTIFS EN ${annee}`,
-    `${orgName} — Exporté le ${TODAY}`,
+    ` | Exporté le ${TODAY}`,
     [
       { header: 'Prénom', key: 'prenom', align: 'left' },
       { header: 'Nom', key: 'nom', align: 'left' },
@@ -797,18 +797,18 @@ function buildDOETHExport(
     salActifs.map(s => ({
       prenom: s.prenom,
       nom: s.nom,
-      matricule: s.matricule ?? '—',
-      etablissementName: etablissements.find(e => e.id === s.establishment_id)?.name ?? '—',
-      typeLabel: LABEL_RECONNAISSANCE[s.type_reconnaissance]?.split(' — ')[0] ?? s.type_reconnaissance,
+      matricule: s.matricule ?? '-',
+      etablissementName: etablissements.find(e => e.id === s.establishment_id)?.name ?? '-',
+      typeLabel: LABEL_RECONNAISSANCE[s.type_reconnaissance]?.split(', ')[0] ?? s.type_reconnaissance,
       date_debut: s.date_debut,
-      date_fin_label: s.est_permanent ? 'Permanente' : (s.date_fin ?? '—'),
+      date_fin_label: s.est_permanent ? 'Permanente' : (s.date_fin ?? '-'),
       moisPresence: getMoisPresencePourAnnee(s, annee),
       taux: `${s.taux_temps_travail ?? 100} %`,
       ub: parseFloat(getUBProratee(s, annee).toFixed(4)),
     })),
     {
       prenom: '', nom: '', matricule: '', etablissementName: '', typeLabel: '',
-      date_debut: '', date_fin_label: `TOTAL — ${salActifs.length} BOETH`,
+      date_debut: '', date_fin_label: `TOTAL, ${salActifs.length} BOETH`,
       moisPresence: '', taux: '', ub: parseFloat(ubRQTH.toFixed(4)),
     }
   )
@@ -817,8 +817,8 @@ function buildDOETHExport(
   const totalAchatsHT = achats.reduce((s, a) => s + a.montant_ht, 0)
   const estimDeductionESAT = estimerDeductionESAT(achats)
   createFormattedSheet(wb, 'Achats ESAT-EA',
-    `ACHATS ESAT/EA — ${annee}`,
-    `${orgName} — Exporté le ${TODAY}`,
+    `ACHATS ESAT/EA | ${annee}`,
+    ` | Exporté le ${TODAY}`,
     [
       { header: 'Fournisseur', key: 'fournisseur', align: 'left', width: 26 },
       { header: 'Établissement', key: 'etablissementName', align: 'left' },
@@ -828,7 +828,7 @@ function buildDOETHExport(
     ],
     achats.map(a => ({
       fournisseur: a.fournisseur,
-      etablissementName: etablissements.find(e => e.id === a.establishment_id)?.name ?? '—',
+      etablissementName: etablissements.find(e => e.id === a.establishment_id)?.name ?? '-',
       date_facture: a.date_facture,
       montant_ht: a.montant_ht,
       deduction_estimee: parseFloat((a.montant_ht * 0.3).toFixed(2)),
@@ -852,7 +852,7 @@ function buildDOETHExport(
   ]
 
   ws5.addRow([])
-  const t5 = ws5.addRow([`GUIDE DE SAISIE DSN — DOETH ${annee}`])
+  const t5 = ws5.addRow([`GUIDE DE SAISIE DSN : DOETH ${annee}`])
   ws5.mergeCells('A2:D2'); t5.height = 36
   styleTitle(t5.getCell(1))
 
@@ -902,28 +902,28 @@ function buildDOETHExport(
 
   // ── Calendrier ──
   addDSNSection('CALENDRIER ET PROCÉDURE')
-  addDSNRow('Période couverte', `1er janv. ${annee} — 31 déc. ${annee}`, '—', `Données de l'exercice civil ${annee} uniquement`)
-  addDSNRow('DSN à alimenter', `Paie d'avril ${annee + 1}`, '—', `Intégrer dans la DSN mensuelle de la paie d'avril ${annee + 1} (transmise début mai)`)
-  addDSNRow('Date limite dépôt DSN', `5 mai ${annee + 1}`, '—', `15 mai ${annee + 1} si décalage de paie. En cas de retard : pénalité de 25% sur la contribution.`)
-  addDSNRow('Bloc DSN concerné', 'S21.G00.83', '—', `"Versement libératoire OETH" — présent dans la DSN V3. Chaque établissement peut avoir son propre bloc.`)
+  addDSNRow('Période couverte', `1er janv. ${annee}, 31 déc. ${annee}`, '-', `Données de l'exercice civil ${annee} uniquement`)
+  addDSNRow('DSN à alimenter', `Paie d'avril ${annee + 1}`, '-', `Intégrer dans la DSN mensuelle de la paie d'avril ${annee + 1} (transmise début mai)`)
+  addDSNRow('Date limite dépôt DSN', `5 mai ${annee + 1}`, '-', `15 mai ${annee + 1} si décalage de paie. En cas de retard : pénalité de 25% sur la contribution.`)
+  addDSNRow('Bloc DSN concerné', 'S21.G00.83', '-', `"Versement libératoire OETH", présent dans la DSN V3. Chaque établissement peut avoir son propre bloc.`)
   ws5.addRow([])
 
   // ── Effectifs ──
   addDSNSection('EFFECTIFS')
   addDSNRow('Effectif global d\'assujettissement', `${effectifTotal} salariés`, 'S21.G00.83.001', `Saisir l'effectif ETP total de l'entreprise (somme de tous les établissements)`)
-  addDSNRow('Quota légal BOETH (6%)', `${quotaTheorique.toFixed(2)} UB`, '—', `Calculé automatiquement : ${effectifTotal} × 6% = ${quotaTheorique.toFixed(2)} UB`)
+  addDSNRow('Quota légal BOETH (6%)', `${quotaTheorique.toFixed(2)} UB`, '-', `Calculé automatiquement : ${effectifTotal} × 6% = ${quotaTheorique.toFixed(2)} UB`)
   ws5.addRow([])
 
   // ── UB ──
   addDSNSection('UNITÉS BÉNÉFICIAIRES (EMPLOI DIRECT)')
   addDSNRow('Total UB emploi direct', ubTotales.toFixed(4), 'S21.G00.83.002', `UB BOETH proratisées par mois de présence : ${ubRQTH.toFixed(4)} UB (RQTH) + ${ubStagiaires} UB (stagiaires)`)
   addDSNRow('Nb de BOETH distincts employés', `${salActifs.length + stagiaires} personnes`, 'S21.G00.83.004', `Nombre de travailleurs handicapés différents ayant été présents en ${annee}`)
-  addDSNRow('Taux d\'emploi BOETH', `${tauxActuel.toFixed(2)} %`, '—', `${ubTotales.toFixed(4)} / ${effectifTotal} × 100 = ${tauxActuel.toFixed(2)}%`)
+  addDSNRow('Taux d\'emploi BOETH', `${tauxActuel.toFixed(2)} %`, '-', `${ubTotales.toFixed(4)} / ${effectifTotal} × 100 = ${tauxActuel.toFixed(2)}%`)
   ws5.addRow([])
 
   // ── Contribution ──
   addDSNSection('CONTRIBUTION FINANCIÈRE')
-  addDSNRow('Déficit d\'UB', deficit.toFixed(4), '—', `Max(0 ; ${quotaTheorique.toFixed(4)} − ${ubTotales.toFixed(4)}) = ${deficit.toFixed(4)} UB`)
+  addDSNRow('Déficit d\'UB', deficit.toFixed(4), '-', `Max(0 ; ${quotaTheorique.toFixed(4)} − ${ubTotales.toFixed(4)}) = ${deficit.toFixed(4)} UB`)
   addDSNRow(`Contribution brute`, formatEuros(contributionBrute), 'S21.G00.83.003', `${deficit.toFixed(4)} × ${coefficient} × ${smicRef.toFixed(2)} € = ${formatEuros(contributionBrute)}`)
   addDSNRow('Déduction sous-traitance ESAT/EA (plafonnée)', `− ${formatEuros(deductionESATAppliquee)}`, 'S21.G00.83.xxx', `Montant de l'attestation ESAT/EA reçue avant le 31/01/${annee + 1}. Plafond : ${tauxActuel >= 3 ? '75' : '50'}% × ${formatEuros(contributionBrute)} = ${formatEuros(plafondDeductionESAT)}`)
   addDSNRow('Déduction accords collectifs agréés', `− ${formatEuros(deductionAccords)}`, 'S21.G00.83.xxx', `Accords agréés par DREETS uniquement. Joindre le numéro d'agrément au dossier.`)
@@ -934,17 +934,17 @@ function buildDOETHExport(
 
   // ── Mode d'acquittement ──
   addDSNSection('MODE D\'ACQUITTEMENT')
-  addDSNRow('Code mode d\'acquittement (indicatif)', modeAcquittement.code, 'S21.G00.83.001', modeAcquittement.label + ' — À vérifier avec votre logiciel de paie (les codes varient selon les éditeurs).')
+  addDSNRow('Code mode d\'acquittement (indicatif)', modeAcquittement.code, 'S21.G00.83.001', modeAcquittement.label + ', À vérifier avec votre logiciel de paie (les codes varient selon les éditeurs).')
   ws5.addRow([])
 
   // ── Points de vigilance ──
   addDSNSection('POINTS DE VIGILANCE')
   const vigRows = [
-    ['SIRET par établissement', 'Obligatoire dans la DSN', '—', 'Vérifier que chaque établissement a son SIRET dans le bloc S21.G00.83. SIRET manquants : ' + (etablissements.filter(e => !e.siret).map(e => e.name).join(', ') || 'aucun')],
-    ['Attestations ESAT/EA', 'À conserver', '—', `Conserver toutes les attestations reçues des EA/ESAT jusqu'au contrôle AGEFIPH (délai de 3 ans). Montant retenu : ${formatEuros(deductionESATAppliquee)}`],
-    ['UB proratisées', 'Méthode appliquée', '—', 'Les UB sont calculées au prorata des mois de présence dans l\'année (nb mois / 12 × taux temps travail). Voir onglet "Salariés RQTH" pour le détail.'],
-    ['Sanctions', 'Pénalité 25%', '—', 'En cas de non-déclaration ou déclaration tardive, la contribution est majorée de 25%. En cas de fausse déclaration : redressement + pénalités.'],
-    ['AGEFIPH contact', 'Accompagnement', '—', 'Pour toute question : agefiph.fr ou votre délégué régional AGEFIPH. L\'AGEFIPH propose aussi des aides pour l\'emploi des BOETH.'],
+    ['SIRET par établissement', 'Obligatoire dans la DSN', '-', 'Vérifier que chaque établissement a son SIRET dans le bloc S21.G00.83. SIRET manquants : ' + (etablissements.filter(e => !e.siret).map(e => e.name).join(', ') || 'aucun')],
+    ['Attestations ESAT/EA', 'À conserver', '-', `Conserver toutes les attestations reçues des EA/ESAT jusqu'au contrôle AGEFIPH (délai de 3 ans). Montant retenu : ${formatEuros(deductionESATAppliquee)}`],
+    ['UB proratisées', 'Méthode appliquée', '-', 'Les UB sont calculées au prorata des mois de présence dans l\'année (nb mois / 12 × taux temps travail). Voir onglet "Salariés RQTH" pour le détail.'],
+    ['Sanctions', 'Pénalité 25%', '-', 'En cas de non-déclaration ou déclaration tardive, la contribution est majorée de 25%. En cas de fausse déclaration : redressement + pénalités.'],
+    ['AGEFIPH contact', 'Accompagnement', '-', 'Pour toute question : agefiph.fr ou votre délégué régional AGEFIPH. L\'AGEFIPH propose aussi des aides pour l\'emploi des BOETH.'],
   ]
   vigRows.forEach(([champ, valeur, rubrique, instruction]) => addDSNRow(champ, valeur, rubrique, instruction))
 

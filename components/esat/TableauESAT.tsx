@@ -92,7 +92,7 @@ export function TableauESAT({ achats, organizationId, smicHoraire = SMIC_REF_COU
                       <span className="text-xs text-[#6B7280] italic">non saisie</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-[#6B7280] max-w-[160px] truncate">{a.notes ?? '—'}</td>
+                  <td className="px-4 py-3 text-sm text-[#6B7280] max-w-[160px] truncate">{a.notes ?? '-'}</td>
                   {!readonly && (
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">

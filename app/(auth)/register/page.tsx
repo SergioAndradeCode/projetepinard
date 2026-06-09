@@ -117,7 +117,7 @@ export default function RegisterPage() {
             </svg>
             Continuer avec Microsoft
           </Button>
-          {/* Transparence OAuth — RGPD art. 13 */}
+          {/* Transparence OAuth, RGPD art. 13 */}
           <p className="text-[10px] text-[#9CA3AF] text-center leading-relaxed px-2">
             En utilisant Google ou Microsoft, votre adresse email et votre profil de base seront partagés
             avec ces fournisseurs conformément à leurs propres politiques de confidentialité.

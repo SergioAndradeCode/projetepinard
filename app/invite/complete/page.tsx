@@ -214,7 +214,7 @@ export default function InviteCompletePage() {
         .from('profiles').update({ full_name: data.full_name }).eq('id', user.id)
       if (profileError) throw profileError
 
-      toast.success('Compte créé — bienvenue !')
+      toast.success('Compte créé, bienvenue !')
       router.replace('/dashboard')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erreur inconnue'

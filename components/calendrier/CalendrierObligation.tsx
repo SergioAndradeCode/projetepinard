@@ -54,7 +54,7 @@ export function CalendrierObligation({ evenements, salaries }: CalendrierObligat
     })
     .map((s) => ({
       id: `rqth-${s.id}`,
-      titre: `Renouvellement RQTH — ${s.prenom ?? ''} ${s.nom ?? ''}`.trim(),
+      titre: `Renouvellement RQTH : ${s.prenom ?? ''} ${s.nom ?? ''}`.trim(),
       description: `Reconnaissance expirant le ${formatDateLong(s.date_fin!)}`,
       date_evenement: s.date_fin!,
       type: 'alerte_rqth' as TypeEvenement,

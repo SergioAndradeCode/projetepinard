@@ -39,7 +39,7 @@ function generateGlobalEvents(year: number): EventItem[] {
   for (let m = 1; m <= 12; m++) {
     events.push({
       id: `dsn-${year}-${m}`,
-      titre: `Vérification DSN — ${NOMS_MOIS[m - 1]}`,
+      titre: `Vérification DSN : ${NOMS_MOIS[m - 1]}`,
       description: 'Contrôle mensuel des déclarations OETH dans la DSN',
       date_evenement: `${year}-${String(m).padStart(2, '0')}-05`,
       type: 'obligation',
@@ -50,27 +50,27 @@ function generateGlobalEvents(year: number): EventItem[] {
   // Notification effectifs BOETH par l'Urssaf — 15 mars
   events.push({
     id: `notif-boeth-${year}`,
-    titre: 'Notification effectifs BOETH — Urssaf',
+    titre: 'Notification effectifs BOETH : Urssaf',
     description: "L'Urssaf met à disposition les effectifs BOETH et l'effectif d'assujettissement de l'année N-1",
     date_evenement: `${year}-03-15`,
     type: 'obligation',
     est_global: true,
   })
 
-  // Paiement contribution OETH — 5 mai (DSN d'avril)
+  // Paiement contribution OETH : 5 mai (DSN d'avril)
   events.push({
     id: `doeth-${year}`,
-    titre: 'DOETH annuelle — Paiement contribution OETH',
-    description: "Déclaration et paiement de la contribution OETH (exercice N-1) via DSN d'avril — exigible le 5 ou 15 mai selon effectif",
+    titre: 'DOETH annuelle, Paiement contribution OETH',
+    description: "Déclaration et paiement de la contribution OETH (exercice N-1) via DSN d'avril, exigible le 5 ou 15 mai selon effectif",
     date_evenement: `${year}-05-05`,
     type: 'obligation',
     est_global: true,
   })
 
-  // Bilan OETH — 15 décembre
+  // Bilan OETH : 15 décembre
   events.push({
     id: `bilan-${year}`,
-    titre: 'Bilan annuel OETH — Dernière chance avant clôture',
+    titre: 'Bilan annuel OETH : Dernière chance avant clôture',
     description: "Vérifiez et optimisez votre taux avant la clôture de l'exercice",
     date_evenement: `${year}-12-15`,
     type: 'obligation',
@@ -81,8 +81,8 @@ function generateGlobalEvents(year: number): EventItem[] {
   const seeph = seephLundi(year)
   events.push({
     id: `seeph-${year}`,
-    titre: "SEEPH — Semaine Européenne pour l'Emploi des Personnes Handicapées",
-    description: 'Semaine nationale de sensibilisation — organisez vos actions internes',
+    titre: "SEEPH, Semaine Européenne pour l'Emploi des Personnes Handicapées",
+    description: 'Semaine nationale de sensibilisation, organisez vos actions internes',
     date_evenement: seeph,
     type: 'evenement',
     est_global: true,
@@ -94,7 +94,7 @@ function generateGlobalEvents(year: number): EventItem[] {
   duoday.setDate(seephDate.getDate() + 3)
   events.push({
     id: `duoday-${year}`,
-    titre: 'DuoDay — Jeudi de la SEEPH',
+    titre: 'DuoDay, Jeudi de la SEEPH',
     description: "Un jeune en situation de handicap passe la journée avec un professionnel volontaire",
     date_evenement: duoday.toISOString().split('T')[0],
     type: 'evenement',
@@ -105,7 +105,7 @@ function generateGlobalEvents(year: number): EventItem[] {
   events.push({
     id: `jmh-${year}`,
     titre: 'Journée mondiale du handicap',
-    description: 'Journée internationale des personnes handicapées — ONU',
+    description: 'Journée internationale des personnes handicapées, ONU',
     date_evenement: `${year}-12-03`,
     type: 'evenement',
     est_global: true,

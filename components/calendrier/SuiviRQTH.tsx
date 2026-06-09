@@ -67,8 +67,8 @@ export function SuiviRQTH({ salaries, establishments }: Props) {
 
   const groupes = [
     { titre: 'Expirées', items: expires, accent: 'text-gray-500' },
-    { titre: 'À renouveler — moins de 30 jours', items: urgents, accent: 'text-red-600' },
-    { titre: 'À anticiper — moins de 3 mois', items: proches, accent: 'text-orange-600' },
+    { titre: 'À renouveler, moins de 30 jours', items: urgents, accent: 'text-red-600' },
+    { titre: 'À anticiper, moins de 3 mois', items: proches, accent: 'text-orange-600' },
     { titre: 'Valides', items: ok, accent: 'text-[#1E4A8C]' },
   ].filter((g) => g.items.length > 0)
 
@@ -87,7 +87,7 @@ export function SuiviRQTH({ salaries, establishments }: Props) {
             {groupe.items.map((s) => {
               const jours = joursRestants(s.date_fin!)
               const urgence = getUrgence(jours)
-              const nomComplet = [s.prenom, s.nom].filter(Boolean).join(' ') || '—'
+              const nomComplet = [s.prenom, s.nom].filter(Boolean).join(' ') || '-'
               const etablissementNom = s.establishment_id ? etablissementMap[s.establishment_id] : null
 
               return (

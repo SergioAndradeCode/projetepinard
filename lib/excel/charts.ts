@@ -251,7 +251,7 @@ export function drawBarMensuel(
 
   ctx.font = `bold 18px ${FONT}`
   ctx.fillStyle = TEXT_DARK
-  ctx.fillText(`Évolution mensuelle des dépenses — ${annee}`, 32, 36)
+  ctx.fillText(`Évolution mensuelle des dépenses, ${annee}`, 32, 36)
 
   const hasData = data.some(d => d.depenses > 0 || d.budget > 0)
   if (!hasData) {

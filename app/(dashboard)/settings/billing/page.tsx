@@ -12,7 +12,7 @@ import { PLANS, FEATURES, type BillingCycle, type FeatureKey, type PlanId } from
 const CYCLE_LABELS: Record<BillingCycle, string> = {
   monthly:        'Mensuel',
   annual_monthly: 'Annuel mensuel',
-  annual_upfront: 'Annuel — 1 paiement',
+  annual_upfront: 'Annuel en 1 fois',
 }
 
 const CYCLE_DISCOUNT: Record<BillingCycle, string | null> = {
@@ -70,7 +70,7 @@ export default function BillingPage() {
         .then(r => r.json())
         .then(data => {
           if (data.success) {
-            toast.success('Abonnement activé — bienvenue !')
+            toast.success('Abonnement activé, bienvenue !')
             refetch()
           } else {
             toast.error(data.error ?? 'Erreur de synchronisation')
@@ -80,7 +80,7 @@ export default function BillingPage() {
         .finally(() => setSyncing(false))
     } else {
       // Fallback : attend 2 s que le webhook ait eu le temps de s'exécuter
-      toast.success('Abonnement activé — bienvenue !')
+      toast.success('Abonnement activé, bienvenue !')
       setTimeout(() => refetch(), 2000)
     }
 
@@ -201,7 +201,7 @@ export default function BillingPage() {
         </div>
       </div>
 
-      {/* Grille des plans — 3 plans standards */}
+      {/* Grille des plans, 3 plans standards */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {(Object.entries(PLANS) as [PlanId, typeof PLANS[PlanId]][])
           .filter(([id]) => id !== 'groupe')
@@ -318,12 +318,12 @@ export default function BillingPage() {
               )}
             </div>
             <p className="text-xs text-[#6B7280]">
-              Plus de 15 utilisateurs · Multi-entités · Cabinets RH — tarif sur mesure, facturation adaptée à votre organisation.
+              Plus de 15 utilisateurs · Multi-entités · Cabinets RH, tarif sur mesure, facturation adaptée à votre organisation.
             </p>
           </div>
         </div>
         <a
-          href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth — demande de devis"
+          href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth | demande de devis"
           className="flex items-center gap-2 bg-[#1E4A8C] text-white font-semibold px-4 py-2 rounded-lg hover:bg-[#163870] transition-colors text-sm whitespace-nowrap shrink-0"
         >
           Demander un devis
@@ -333,7 +333,7 @@ export default function BillingPage() {
 
       {/* Note TVA */}
       <p className="text-xs text-[#6B7280] text-center">
-        Tarifs HT — TVA 20% applicable. Paiement par carte bancaire ou prélèvement SEPA.
+        Tarifs HT, TVA 20% applicable. Paiement par carte bancaire ou prélèvement SEPA.
         Factures PDF disponibles dans l&apos;espace client Stripe.
       </p>
     </div>

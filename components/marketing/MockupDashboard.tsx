@@ -42,7 +42,7 @@ export function MockupDashboard() {
             <div className="flex items-center justify-between px-3 py-2 bg-green-50 border border-green-200 rounded-xl">
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 rounded-full bg-green-500 shrink-0" />
-                <span className="text-[11px] font-semibold text-green-800">Taux OETH conforme — objectif 6% atteint</span>
+                <span className="text-[11px] font-semibold text-green-800">Taux OETH conforme, objectif 6% atteint</span>
               </div>
               <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">✓ 2025</span>
             </div>
@@ -93,8 +93,8 @@ export function MockupDashboard() {
               <div className="bg-white rounded-xl p-2.5 shadow-sm border border-[#E2E8F0] space-y-1.5">
                 <p className="text-[10px] font-semibold text-[#6B7280]">Alertes</p>
                 {[
-                  { dot: 'bg-orange-400', text: 'Dupont M. — exp. 15 jan.' },
-                  { dot: 'bg-orange-400', text: 'Martin C. — exp. 28 jan.' },
+                  { dot: 'bg-orange-400', text: 'Dupont M., exp. 15 jan.' },
+                  { dot: 'bg-orange-400', text: 'Martin C., exp. 28 jan.' },
                   { dot: 'bg-green-400', text: 'Toutes en règle' },
                 ].map(({ dot, text }, i) => (
                   <div key={i} className="flex items-center gap-1.5">

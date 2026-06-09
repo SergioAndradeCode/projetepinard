@@ -247,7 +247,7 @@ export default function EquipePage() {
   return (
     <div className="space-y-6 max-w-3xl">
 
-      {/* ── Barre d'actions — admin uniquement ──────────────────────────────── */}
+      {/* ── Barre d'actions, admin uniquement ──────────────────────────────── */}
       {isAdmin && (
         <div className="flex items-center justify-between flex-wrap gap-3">
           {/* Lien d'inscription à partager */}
@@ -298,7 +298,7 @@ export default function EquipePage() {
         </div>
       )}
 
-      {/* ── L'équipe MH — tous les membres actifs, visibles par tous ──────────── */}
+      {/* ── L'équipe MH, tous les membres actifs, visibles par tous ──────────── */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-[#1A1A2E]">L&apos;équipe MH</h2>
@@ -306,7 +306,7 @@ export default function EquipePage() {
         </div>
 
         {/* Helper : carte membre active */}
-        {/* Périmètre national — membres sans établissement */}
+        {/* Périmètre national, membres sans établissement */}
         {(() => {
           const nationaux = membres.filter(m => !m.establishment_id)
           const pendingNationaux = isAdmin ? pending.filter(p => !p.establishment_id) : []
@@ -332,7 +332,7 @@ export default function EquipePage() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-medium text-[#1A1A2E] truncate">
-                            {m.full_name ?? '—'}{m.id === currentProfile?.id && <span className="text-[#6B7280] ml-1">(vous)</span>}
+                            {m.full_name ?? '-'}{m.id === currentProfile?.id && <span className="text-[#6B7280] ml-1">(vous)</span>}
                           </p>
                           <span className={`inline-flex items-center gap-1 text-[10px] rounded-full px-1.5 py-0.5 font-medium mt-0.5 ${cfg.color}`}>
                             {cfg.icon}<span>{cfg.label}</span>
@@ -341,7 +341,7 @@ export default function EquipePage() {
                       </div>
                     )
                   })}
-                  {/* En attente — admin uniquement */}
+                  {/* En attente, admin uniquement */}
                   {pendingNationaux.map(p => {
                     const cfg = ROLE_CONFIG[p.role] ?? ROLE_CONFIG.lecteur
                     return (
@@ -394,7 +394,7 @@ export default function EquipePage() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-medium text-[#1A1A2E] truncate">
-                            {m.full_name ?? '—'}{m.id === currentProfile?.id && <span className="text-[#6B7280] ml-1">(vous)</span>}
+                            {m.full_name ?? '-'}{m.id === currentProfile?.id && <span className="text-[#6B7280] ml-1">(vous)</span>}
                           </p>
                           <span className={`inline-flex items-center gap-1 text-[10px] rounded-full px-1.5 py-0.5 font-medium mt-0.5 ${cfg.color}`}>
                             {cfg.icon}<span>{cfg.label}</span>
@@ -403,7 +403,7 @@ export default function EquipePage() {
                       </div>
                     )
                   })}
-                  {/* En attente — admin uniquement */}
+                  {/* En attente, admin uniquement */}
                   {pendingIci.map(p => {
                     const cfg = ROLE_CONFIG[p.role] ?? ROLE_CONFIG.lecteur
                     return (
@@ -428,14 +428,14 @@ export default function EquipePage() {
         })}
       </div>
 
-      {/* ── Membres de l'équipe — tableau de gestion (scope utilisateur) ──────── */}
+      {/* ── Membres de l'équipe, tableau de gestion (scope utilisateur) ──────── */}
       {isLecteur ? null : <Card>
         <CardHeader>
           <CardTitle>Membres de l&apos;équipe</CardTitle>
           <CardDescription>
             {membresGestion.length} membre{membresGestion.length !== 1 ? 's' : ''} actif{membresGestion.length !== 1 ? 's' : ''}
             {membresGestion.length < membres.length && (
-              <span className="ml-1 text-[#1E4A8C]">— votre site</span>
+              <span className="ml-1 text-[#1E4A8C]">votre site</span>
             )}
           </CardDescription>
         </CardHeader>
@@ -467,7 +467,7 @@ export default function EquipePage() {
                           </div>
                           <div>
                             <p className="text-sm font-medium text-[#1A1A2E]">
-                              {membre.full_name ?? '—'}
+                              {membre.full_name ?? '-'}
                               {isMe && <span className="ml-2 text-xs text-[#6B7280]">(vous)</span>}
                             </p>
                           </div>
@@ -520,7 +520,7 @@ export default function EquipePage() {
       </Card>}
 
       {/* ── Accès en attente d'inscription (caché aux lecteurs) ──────────────── */}
-      {/* Tableau "En attente" — admin uniquement, pour gérer les invitations */}
+      {/* Tableau "En attente", admin uniquement, pour gérer les invitations */}
       {isAdmin && pending.length > 0 && (
         <Card>
           <CardHeader>
@@ -529,7 +529,7 @@ export default function EquipePage() {
               <CardTitle>Accès en attente d&apos;inscription</CardTitle>
             </div>
             <CardDescription>
-              {pending.length} invitation{pending.length !== 1 ? 's' : ''} envoyée{pending.length !== 1 ? 's' : ''} — le collaborateur doit créer son compte sur{' '}
+              {pending.length} invitation{pending.length !== 1 ? 's' : ''} envoyée{pending.length !== 1 ? 's' : ''}, le collaborateur doit créer son compte sur{' '}
               <span className="font-medium text-[#1A1A2E]">{joinUrl}</span>
             </CardDescription>
           </CardHeader>
@@ -594,7 +594,7 @@ export default function EquipePage() {
         </Card>
       )}
 
-      {/* ── Modal — Ajouter un accès ─────────────────────────────────────────── */}
+      {/* ── Modal, Ajouter un accès ─────────────────────────────────────────── */}
       <Dialog open={showAdd} onOpenChange={v => { if (!v) { setShowAdd(false); addForm.reset() } }}>
         <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
@@ -636,10 +636,10 @@ export default function EquipePage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {isAdmin && (
-                    <SelectItem value="charge_site">Référent(e) Handicap — périmètre national</SelectItem>
+                    <SelectItem value="charge_site">Référent(e) Handicap, périmètre national</SelectItem>
                   )}
-                  <SelectItem value="charge_mission">Chargé(e) de Mission Handicap — périmètre local</SelectItem>
-                  <SelectItem value="lecteur">Lecteur — consultation uniquement</SelectItem>
+                  <SelectItem value="charge_mission">Chargé(e) de Mission Handicap, périmètre local</SelectItem>
+                  <SelectItem value="lecteur">Lecteur, consultation uniquement</SelectItem>
                 </SelectContent>
               </Select>
               {selectedAddRole === 'charge_mission' && (
@@ -672,7 +672,7 @@ export default function EquipePage() {
                     <SelectItem value="__all__">Accès à tous les sites</SelectItem>
                     {etablissements.map(e => (
                       <SelectItem key={e.id} value={e.id}>
-                        {e.name}{e.is_headquarters ? ' — Siège' : ''}
+                        {e.name}{e.is_headquarters ? ', Siège' : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -710,8 +710,8 @@ export default function EquipePage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">Administrateur</SelectItem>
-                  <SelectItem value="charge_site">Référent(e) Handicap — national</SelectItem>
-                  <SelectItem value="charge_mission">Chargé(e) de Mission Handicap — local</SelectItem>
+                  <SelectItem value="charge_site">Référent(e) Handicap, national</SelectItem>
+                  <SelectItem value="charge_mission">Chargé(e) de Mission Handicap, local</SelectItem>
                   <SelectItem value="lecteur">Lecteur</SelectItem>
                 </SelectContent>
               </Select>
@@ -728,7 +728,7 @@ export default function EquipePage() {
                     <SelectItem value="__all__">Tous les sites</SelectItem>
                     {etablissements.map(e => (
                       <SelectItem key={e.id} value={e.id}>
-                        {e.name}{e.is_headquarters ? ' — Siège' : ''}
+                        {e.name}{e.is_headquarters ? ', Siège' : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

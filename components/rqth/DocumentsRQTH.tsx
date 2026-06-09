@@ -228,7 +228,7 @@ export function DocumentsRQTH({ employee, organizationId, open, onClose, readonl
                       : <><span className="font-medium text-[#1E4A8C]">Cliquez</span> ou déposez un fichier</>
                     }
                   </p>
-                  <p className="text-xs text-[#CBD5E1]">PDF, image, Word — max {MAX_SIZE_MB} Mo</p>
+                  <p className="text-xs text-[#CBD5E1]">PDF, image, Word, max {MAX_SIZE_MB} Mo</p>
                 </div>
                 <input
                   ref={fileInputRef}

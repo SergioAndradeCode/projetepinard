@@ -111,7 +111,7 @@ export interface ESATPurchase {
   fournisseur: string
   montant_ht: number
   date_facture: string
-  readonly ub_generees: number  // Colonne GENERATED ALWAYS AS côté PostgreSQL — lecture seule
+  readonly ub_generees: number  // Colonne GENERATED ALWAYS AS côté PostgreSQL, lecture seule
   montant_attestation: number | null
   notes: string | null
   created_at: string
@@ -168,10 +168,10 @@ export interface OETHStats {
 }
 
 export const LABEL_RECONNAISSANCE: Record<TypeReconnaissance, string> = {
-  rqth: 'RQTH — Reconnaissance Qualité Travailleur Handicapé',
+  rqth: 'RQTH : Reconnaissance Qualité Travailleur Handicapé',
   pension_invalidite_2: "Pension d'invalidité 2e catégorie",
   pension_invalidite_3: "Pension d'invalidité 3e catégorie",
-  aah: 'AAH — Allocation Adulte Handicapé',
+  aah: 'AAH : Allocation Adulte Handicapé',
   carte_mobilite_invalidite: 'Carte mobilité inclusion mention invalidité',
   rente_at_mp: 'Rente AT/MP ≥ 10%',
 }
@@ -220,7 +220,7 @@ export interface MaintienEmploi {
 }
 
 export const LABEL_TYPE_SITUATION: Record<TypeSituationMaintien, string> = {
-  at_mp:                'AT/MP — Accident du travail / Maladie professionnelle',
+  at_mp:                'AT/MP : Accident du travail / Maladie professionnelle',
   maladie_longue:       'Maladie longue durée',
   inaptitude_partielle: 'Inaptitude partielle',
   inaptitude_totale:    'Inaptitude totale',

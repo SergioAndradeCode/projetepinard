@@ -246,11 +246,11 @@ export default function ParametresPage() {
             <div className="space-y-4">
               <div className="space-y-1">
                 <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wide">Nom de l&apos;entreprise</p>
-                <p className="text-sm font-semibold text-[#1A1A2E]">{orgForm.getValues('name') || '—'}</p>
+                <p className="text-sm font-semibold text-[#1A1A2E]">{orgForm.getValues('name') || '-'}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wide">SIRET</p>
-                <p className="text-sm text-[#1A1A2E]">{orgForm.getValues('siret') || '—'}</p>
+                <p className="text-sm text-[#1A1A2E]">{orgForm.getValues('siret') || '-'}</p>
               </div>
             </div>
           ) : (
@@ -327,7 +327,7 @@ export default function ParametresPage() {
                 </div>
                 <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
                   <p className="text-xs text-[#6B7280]">Coefficient de contribution</p>
-                  <p className="text-sm font-semibold text-[#1A1A2E] mt-0.5">{coefficient} h — {coefficientLabel(totalAssuj)}</p>
+                  <p className="text-sm font-semibold text-[#1A1A2E] mt-0.5">{coefficient} h, {coefficientLabel(totalAssuj)}</p>
                   <p className="text-xs text-[#9CA3AF] mt-1">400 h si &lt; 250 sal. · 500 h si 250–749 sal. · 600 h si ≥ 750 sal.</p>
                 </div>
               </div>
@@ -490,7 +490,7 @@ export default function ParametresPage() {
                   </div>
                   <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0]">
                     <p className="text-xs text-[#6B7280]">Coefficient de contribution</p>
-                    <p className="text-sm font-semibold text-[#1A1A2E] mt-0.5">{getCoefficientContribution(effectifAssujLegacy)} h — {coefficientLabel(effectifAssujLegacy)}</p>
+                    <p className="text-sm font-semibold text-[#1A1A2E] mt-0.5">{getCoefficientContribution(effectifAssujLegacy)} h, {coefficientLabel(effectifAssujLegacy)}</p>
                     <p className="text-xs text-[#9CA3AF] mt-1">400 h si &lt; 250 sal. · 500 h si 250–749 sal. · 600 h si ≥ 750 sal.</p>
                   </div>
                 </div>
@@ -505,7 +505,7 @@ export default function ParametresPage() {
         </CardContent>
       </Card>
 
-      {/* ── Établissements — visible par tous ──────────────────────────────────── */}
+      {/* ── Établissements, visible par tous ──────────────────────────────────── */}
       {etablissements.length > 0 && (
         <Card>
           <CardHeader>
@@ -567,7 +567,7 @@ export default function ParametresPage() {
                         <div className="text-right">
                           <p className="text-xs text-[#6B7280]">Taux OETH</p>
                           <p className={`text-sm font-semibold ${effectifAss === 0 ? 'text-[#CBD5E1]' : taux >= 6 ? 'text-[#2E7D32]' : taux >= 3 ? 'text-[#BF5A00]' : 'text-[#B71C1C]'}`}>
-                            {effectifAss === 0 ? '—' : `${taux.toFixed(1)} %`}
+                            {effectifAss === 0 ? '-' : `${taux.toFixed(1)} %`}
                           </p>
                         </div>
                       </div>

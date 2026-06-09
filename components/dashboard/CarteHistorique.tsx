@@ -19,7 +19,7 @@ export function CarteHistorique({ donnees }: CarteHistoriqueProps) {
   if (donnees.length === 0) {
     return (
       <p className="text-sm text-[#6B7280] text-center py-6">
-        Aucune donnée historique disponible — les années sans BOETH enregistrés n&apos;apparaissent pas.
+        Aucune donnée historique disponible, les années sans BOETH enregistrés n&apos;apparaissent pas.
       </p>
     )
   }

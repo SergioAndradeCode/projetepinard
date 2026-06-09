@@ -134,7 +134,7 @@ export default function RQTHPage() {
 
       <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
 
-        {/* Filtre Site — profil national uniquement, si plusieurs établissements */}
+        {/* Filtre Site, profil national uniquement, si plusieurs établissements */}
         {isNational && etablissements.length > 1 && (
           <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[#E2E8F0] flex-wrap">
             <span className="text-sm text-[#6B7280] shrink-0">Site :</span>

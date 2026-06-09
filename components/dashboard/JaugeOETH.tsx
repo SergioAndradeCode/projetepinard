@@ -64,7 +64,7 @@ export function JaugeOETH({ stats }: JaugeOETHProps) {
           <p className="text-xs text-[#6B7280]">UB BOETH</p>
         </div>
         <div className="bg-[#F8FAFC] rounded-lg p-3 text-center">
-          <p className="text-[22px] font-bold text-[#1A1A2E]">{stats.deductionESAT > 0 ? `−${Math.round(stats.deductionESAT).toLocaleString('fr-FR')} €` : '—'}</p>
+          <p className="text-[22px] font-bold text-[#1A1A2E]">{stats.deductionESAT > 0 ? `−${Math.round(stats.deductionESAT).toLocaleString('fr-FR')} €` : '-'}</p>
           <p className="text-xs text-[#6B7280]">Déd. ESAT/EA est.</p>
         </div>
       </div>

@@ -56,7 +56,7 @@ function InfoBox({ children, color = 'blue' }: { children: React.ReactNode; colo
 
 export default function DoethPage() {
   const supabase = useMemo(() => createClient(), [])
-  const { orgId } = useProfile()   // profil chargé une fois dans le layout — pas de re-fetch
+  const { orgId } = useProfile()   // profil chargé une fois dans le layout, pas de re-fetch
   const [step, setStep] = useState(0)
   const [annee, setAnnee] = useState(ANNEES[0])
   const [orgName, setOrgName] = useState('')
@@ -183,13 +183,13 @@ export default function DoethPage() {
   const ubParType = Object.entries(LABEL_RECONNAISSANCE).map(([type, label]) => {
     const sal = salariesAnnee.filter(s => s.type_reconnaissance === type)
     const ub = sal.reduce((sum, s) => sum + getUBProratee(s, annee), 0)
-    return { type, label: label.split(' — ')[0], labelLong: label, nb: sal.length, ub }
+    return { type, label: label.split(', ')[0], labelLong: label, nb: sal.length, ub }
   }).filter(r => r.nb > 0)
 
   // Mode d'acquittement DSN
   const modeAcquittement = useMemo(() => {
     if (conforme && deductionAccords === 0) {
-      return { code: '10', label: 'Emploi direct exclusif', desc: 'Taux d\'emploi ≥ 6% — aucune contribution due', color: 'green' as const }
+      return { code: '10', label: 'Emploi direct exclusif', desc: 'Taux d\'emploi ≥ 6%, aucune contribution due', color: 'green' as const }
     }
     if (conforme && deductionAccords > 0) {
       return { code: '30', label: 'Emploi direct + accord collectif', desc: 'Taux ≥ 6% et accord agréé actif', color: 'green' as const }
@@ -207,7 +207,7 @@ export default function DoethPage() {
       return { code: '90', label: 'Contribution + accord collectif', desc: 'Contribution partielle malgré l\'accord agréé', color: 'orange' as const }
     }
     if (!conforme && contributionNette === 0 && deductionESATAppliquee > 0) {
-      return { code: '60', label: 'Sous-traitance — contribution nulle', desc: 'Les déductions ESAT/EA couvrent l\'intégralité de la contribution brute', color: 'green' as const }
+      return { code: '60', label: 'Sous-traitance, contribution nulle', desc: 'Les déductions ESAT/EA couvrent l\'intégralité de la contribution brute', color: 'green' as const }
     }
     return { code: '50', label: 'Contribution pécuniaire', desc: 'Contribution à verser à l\'AGEFIPH via la DSN d\'avril', color: 'orange' as const }
   }, [conforme, contributionNette, deductionESATAppliquee, deductionAccords])
@@ -278,7 +278,7 @@ export default function DoethPage() {
                 <p className="font-semibold">Qu&apos;est-ce que la DOETH ?</p>
                 <p>
                   La DOETH est obligatoire pour toute entreprise d&apos;au moins 20 salariés. Elle est transmise
-                  automatiquement via la <strong>DSN de paie d&apos;avril</strong> de l&apos;année suivante — votre logiciel
+                  automatiquement via la <strong>DSN de paie d&apos;avril</strong> de l&apos;année suivante, votre logiciel
                   de paie l&apos;intègre à partir des données que vous lui fournissez.
                 </p>
                 <p>
@@ -294,7 +294,7 @@ export default function DoethPage() {
                   <SelectContent>
                     {ANNEES.map(a => (
                       <SelectItem key={a} value={String(a)}>
-                        DOETH {a} — à intégrer dans la DSN d&apos;avril {a + 1}
+                        DOETH {a}, à intégrer dans la DSN d&apos;avril {a + 1}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -303,7 +303,7 @@ export default function DoethPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: 'Période couverte', value: `1er janv. ${annee} — 31 déc. ${annee}` },
+                  { label: 'Période couverte', value: `1er janv. ${annee}, 31 déc. ${annee}` },
                   { label: 'DSN concernée', value: `Paie d'avril ${annee + 1}` },
                   { label: 'Date limite', value: `5 mai ${annee + 1}` },
                 ].map(({ label, value }) => (
@@ -333,7 +333,7 @@ export default function DoethPage() {
                 </p>
                 <p>
                   Si ces chiffres semblent incorrects, corrigez-les dans <strong>Paramètres › Établissements</strong>.
-                  Vérifiez également que le SIRET de chaque établissement est renseigné — il est requis dans la DSN.
+                  Vérifiez également que le SIRET de chaque établissement est renseigné, il est requis dans la DSN.
                 </p>
               </InfoBox>
 
@@ -500,12 +500,12 @@ export default function DoethPage() {
                             return (
                               <tr key={s.id} className="bg-white hover:bg-[#F8FAFC]">
                                 <td className="px-3 py-2 font-medium text-[#1A1A2E]">{s.prenom} {s.nom}</td>
-                                <td className="px-3 py-2 text-[#6B7280]">{etab?.name ?? '—'}</td>
-                                <td className="px-3 py-2 text-[#6B7280]">{LABEL_RECONNAISSANCE[s.type_reconnaissance]?.split(' — ')[0]}</td>
+                                <td className="px-3 py-2 text-[#6B7280]">{etab?.name ?? '-'}</td>
+                                <td className="px-3 py-2 text-[#6B7280]">{LABEL_RECONNAISSANCE[s.type_reconnaissance]?.split(', ')[0]}</td>
                                 <td className="px-3 py-2">
                                   <span className={`inline-flex items-center gap-1 ${expireDurantAnnee ? 'text-orange-700' : 'text-[#6B7280]'}`}>
                                     {debutFmt} → {finFmt}
-                                    {expireDurantAnnee && <span title="Reconnaissance expirée en cours d'année — comptée pro-rata">⚠</span>}
+                                    {expireDurantAnnee && <span title="Reconnaissance expirée en cours d'année, comptée pro-rata">⚠</span>}
                                   </span>
                                 </td>
                                 <td className="px-3 py-2 text-center">
@@ -581,7 +581,7 @@ export default function DoethPage() {
 
               {deficit === 0 && (
                 <InfoBox color="green">
-                  <p className="font-semibold">Taux d&apos;emploi atteint — aucune contribution due</p>
+                  <p className="font-semibold">Taux d&apos;emploi atteint, aucune contribution due</p>
                   <p>Votre taux BOETH de <strong>{tauxActuel.toFixed(1)}%</strong> est supérieur ou égal au quota légal de 6%. La contribution brute est nulle. Vous pouvez passer directement à l&apos;export.</p>
                 </InfoBox>
               )}
@@ -606,7 +606,7 @@ export default function DoethPage() {
                         <p>
                           Talenth a trouvé <strong>{achatsAnnee.length} achat{achatsAnnee.length > 1 ? 's' : ''}</strong> enregistré{achatsAnnee.length > 1 ? 's' : ''} pour {annee}.
                           Pour chaque fournisseur, saisissez le <strong>montant exact de l&apos;attestation officielle</strong> dès que vous la recevez.
-                          Sans attestation, Talenth applique une <strong>estimation à 30% du HT</strong> — données sauvegardées et réutilisables.
+                          Sans attestation, Talenth applique une <strong>estimation à 30% du HT</strong>, données sauvegardées et réutilisables.
                         </p>
                       </InfoBox>
 
@@ -619,7 +619,7 @@ export default function DoethPage() {
                         >
                           <span className="flex items-center gap-2">
                             <Receipt className="w-4 h-4 text-[#1E4A8C] shrink-0" />
-                            Achats {annee} — {achatsAnnee.length} facture{achatsAnnee.length > 1 ? 's' : ''} · {formatEuros(totalAchatsESAT)} HT
+                            Achats {annee}, {achatsAnnee.length} facture{achatsAnnee.length > 1 ? 's' : ''} · {formatEuros(totalAchatsESAT)} HT
                             {deductionParAchat.some(a => a.hasAttestation) && (
                               <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">
                                 {deductionParAchat.filter(a => a.hasAttestation).length}/{achatsAnnee.length} attestation{deductionParAchat.filter(a => a.hasAttestation).length > 1 ? 's' : ''} saisie{deductionParAchat.filter(a => a.hasAttestation).length > 1 ? 's' : ''}
@@ -640,7 +640,7 @@ export default function DoethPage() {
                             <table className="w-full text-xs">
                               <thead>
                                 <tr className="bg-white border-b border-[#E2E8F0]">
-                                  {['Fournisseur', 'Date', 'Montant HT', 'Est. 30% HT', 'Attestation officielle — optionnel', 'Déduction retenue'].map(h => (
+                                  {['Fournisseur', 'Date', 'Montant HT', 'Est. 30% HT', 'Attestation officielle, optionnel', 'Déduction retenue'].map(h => (
                                     <th key={h} className="text-left px-3 py-2.5 font-medium text-[#6B7280] uppercase tracking-wide whitespace-nowrap">{h}</th>
                                   ))}
                                 </tr>
@@ -820,7 +820,7 @@ export default function DoethPage() {
                       {modeAcquittement.desc}
                     </p>
                     <p className={`text-xs mt-1 font-mono ${modeAcquittement.color === 'green' ? 'text-green-600' : modeAcquittement.color === 'blue' ? 'text-[#1E4A8C]/70' : 'text-orange-600'}`}>
-                      Code DSN indicatif : {modeAcquittement.code} — à confirmer avec votre logiciel de paie
+                      Code DSN indicatif : {modeAcquittement.code}, à confirmer avec votre logiciel de paie
                     </p>
                   </div>
                 </div>

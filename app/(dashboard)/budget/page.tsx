@@ -169,7 +169,7 @@ export default function BudgetPage() {
       establishment_id: a.establishment_id ?? null,
       categorie: 'esat_ea' as BudgetCategorie,
       montant: a.montant_ht,
-      description: `Achat ESAT/EA — ${a.fournisseur}`,
+      description: `Achat ESAT/EA, ${a.fournisseur}`,
       date_depense: a.date_facture,
       facture_ref: null,
       rqth_employee_id: null,
@@ -371,7 +371,7 @@ export default function BudgetPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold text-[#1A1A2E]">Budget</h1>
-          <p className="text-sm text-[#6B7280] mt-0.5">Suivi des dépenses OETH — exercice {anneeSelectionnee}</p>
+          <p className="text-sm text-[#6B7280] mt-0.5">Suivi des dépenses OETH : exercice {anneeSelectionnee}</p>
         </div>
         <div className="flex items-center gap-1 bg-white border border-[#E2E8F0] rounded-xl p-1 shadow-sm">
           <button
@@ -592,7 +592,7 @@ export default function BudgetPage() {
                             {restant < 0 ? '−' : ''}{formatEuros(Math.abs(restant))}
                           </span>
                         ) : (
-                          <span className="text-sm text-[#6B7280]">—</span>
+                          <span className="text-sm text-[#6B7280]">-</span>
                         )}
                       </td>
                       <td className="px-4 py-3 w-36">
@@ -607,7 +607,7 @@ export default function BudgetPage() {
                             <span className="text-xs text-[#6B7280] shrink-0 w-9 text-right">{taux.toFixed(0)}%</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-[#CBD5E1]">—</span>
+                          <span className="text-xs text-[#CBD5E1]">-</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -641,7 +641,7 @@ export default function BudgetPage() {
                         <p className="text-sm font-medium text-[#BF5A00]">Non attribués à un site</p>
                         <p className="text-[10px] text-[#BF5A00] opacity-70 mt-0.5">Dépenses sans établissement renseigné</p>
                       </td>
-                      <td className="px-4 py-3 text-sm text-[#CBD5E1]">—</td>
+                      <td className="px-4 py-3 text-sm text-[#CBD5E1]">-</td>
                       <td className="px-4 py-3">
                         <p className="text-sm font-semibold text-[#BF5A00]">{formatEuros(totalNonAttrib)}</p>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -654,7 +654,7 @@ export default function BudgetPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-[#CBD5E1]">—</td>
+                      <td className="px-4 py-3 text-sm text-[#CBD5E1]">-</td>
                       <td className="px-4 py-3 text-xs text-[#BF5A00] italic">non imputé</td>
                       <td className="px-4 py-3" />
                     </tr>
@@ -850,7 +850,7 @@ export default function BudgetPage() {
                       <td className="px-4 py-3 text-sm text-[#6B7280] whitespace-nowrap">{formatDate(d.date_depense)}</td>
                       <td className="px-4 py-3 text-sm text-[#6B7280]">
                         {etablissements.find(e => e.id === d.establishment_id)?.name ?? (
-                          <span className="italic text-[#CBD5E1]">—</span>
+                          <span className="italic text-[#CBD5E1]">-</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -869,11 +869,11 @@ export default function BudgetPage() {
                             ? <span className="inline-flex items-center gap-1 text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full whitespace-nowrap">
                                 {emp.prenom} {emp.nom}
                               </span>
-                            : <span className="italic text-[#CBD5E1]">—</span>
-                        })() : <span className="italic text-[#CBD5E1]">—</span>}
+                            : <span className="italic text-[#CBD5E1]">-</span>
+                        })() : <span className="italic text-[#CBD5E1]">-</span>}
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold text-[#1A1A2E] text-right whitespace-nowrap">{formatEuros(d.montant)}</td>
-                      <td className="px-4 py-3 text-sm text-[#6B7280] text-right">{d.facture_ref ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-[#6B7280] text-right">{d.facture_ref ?? '-'}</td>
                       <td className="px-4 py-3 text-right">
                         {canEdit && (
                           d.source === 'esat' ? (
@@ -924,7 +924,7 @@ export default function BudgetPage() {
             <DialogTitle>
               {editAllocModal?.siteId === null
                 ? `Enveloppe budgétaire ${anneeSelectionnee}`
-                : `Budget — ${editAllocModal?.name}`}
+                : `Budget, ${editAllocModal?.name}`}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
@@ -944,7 +944,7 @@ export default function BudgetPage() {
               />
               {editAllocModal?.siteId !== null && globalEnvelope > 0 && (
                 <p className="text-xs text-[#6B7280]">
-                  Enveloppe globale : {formatEuros(globalEnvelope)} — déjà distribué : {formatEuros(sumSiteAllocs)}
+                  Enveloppe globale : {formatEuros(globalEnvelope)}, déjà distribué : {formatEuros(sumSiteAllocs)}
                 </p>
               )}
             </div>
@@ -992,7 +992,7 @@ export default function BudgetPage() {
                   <SelectContent>
                     {etablissements.map(e => (
                       <SelectItem key={e.id} value={e.id}>
-                        {e.name}{e.is_headquarters ? ' — Siège' : ''}
+                        {e.name}{e.is_headquarters ? ', Siège' : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1056,10 +1056,10 @@ export default function BudgetPage() {
                     <SelectValue placeholder="Associer à un collaborateur…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">— Aucun —</SelectItem>
+                    <SelectItem value="__none__">Aucun</SelectItem>
                     {salariesBoeth.map(s => (
                       <SelectItem key={s.id} value={s.id}>
-                        {s.prenom} {s.nom}{s.matricule ? ` · #${s.matricule}` : ''}{s.service ? ` — ${s.service}` : ''}
+                        {s.prenom} {s.nom}{s.matricule ? ` · #${s.matricule}` : ''}{s.service ? `, ${s.service}` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

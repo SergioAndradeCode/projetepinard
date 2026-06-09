@@ -167,7 +167,7 @@ export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = fa
                   </button>
                 </td>
 
-                {/* Site — profil national uniquement */}
+                {/* Site, profil national uniquement */}
                 {showSiteCol && (
                   <td className="px-4 py-3">
                     {s.establishment_id && etabById[s.establishment_id] ? (
@@ -178,7 +178,7 @@ export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = fa
                         )}
                       </span>
                     ) : (
-                      <span className="text-xs text-[#CBD5E1]">—</span>
+                      <span className="text-xs text-[#CBD5E1]">-</span>
                     )}
                   </td>
                 )}
@@ -189,7 +189,7 @@ export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = fa
                     {s.service && <p className="text-sm text-[#1A1A2E]">{s.service}</p>}
                     {s.poste && <p className="text-xs text-[#6B7280] mt-0.5">{s.poste}</p>}
                     {s.batiment && <p className="text-xs text-[#6B7280] mt-0.5">{s.batiment}</p>}
-                    {!s.service && !s.poste && !s.batiment && <span className="text-xs text-[#CBD5E1]">—</span>}
+                    {!s.service && !s.poste && !s.batiment && <span className="text-xs text-[#CBD5E1]">-</span>}
                   </div>
                 </td>
 
@@ -215,7 +215,7 @@ export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = fa
                   <p className="text-xs mt-0.5">
                     {s.est_permanent
                       ? <span className="text-[#2E7D32] font-medium">Permanente</span>
-                      : s.date_fin ? formatDate(s.date_fin) : '—'
+                      : s.date_fin ? formatDate(s.date_fin) : '-'
                     }
                   </p>
                 </td>
@@ -308,7 +308,7 @@ export function TableauRQTH({ salaries, organizationId, onRefresh, readonly = fa
             </div>
             <div className="flex items-center justify-between mt-3">
               <p className="text-xs text-[#6B7280]">
-                {formatDate(s.date_debut)} → {s.est_permanent ? 'Permanente' : s.date_fin ? formatDate(s.date_fin) : '—'}
+                {formatDate(s.date_debut)} → {s.est_permanent ? 'Permanente' : s.date_fin ? formatDate(s.date_fin) : '-'}
               </p>
               <div className="flex gap-1">
                 <button

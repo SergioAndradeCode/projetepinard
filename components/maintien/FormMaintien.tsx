@@ -232,12 +232,12 @@ export function FormMaintien({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
 
         {/* ══════════════════════════════════════════════════════════════════
-            ÉTAPE 1 — Sélection du salarié RQTH
+            ÉTAPE 1, Sélection du salarié RQTH
         ══════════════════════════════════════════════════════════════════ */}
         {step === 1 && (
           <>
             <DialogHeader>
-              <DialogTitle>Nouvelle situation — Sélectionner le salarié</DialogTitle>
+              <DialogTitle>Nouvelle situation, Sélectionner le salarié</DialogTitle>
               <p className="text-sm text-[#6B7280] mt-1">
                 Choisissez le salarié RQTH concerné par cette action de maintien dans l&apos;emploi.
               </p>
@@ -318,7 +318,7 @@ export function FormMaintien({
         )}
 
         {/* ══════════════════════════════════════════════════════════════════
-            ÉTAPE 2 — Détails de la situation
+            ÉTAPE 2, Détails de la situation
         ══════════════════════════════════════════════════════════════════ */}
         {step === 2 && (
           <>

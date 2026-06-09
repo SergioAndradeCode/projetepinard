@@ -73,7 +73,7 @@ export function CarteSimulation({ stats, smicRef }: CarteSimulationProps) {
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">
               Recruter des BOETH
             </p>
-            <p className="text-[11px] text-[#9CA3AF] mt-0.5">Temps plein — +1 UB par recrutement</p>
+            <p className="text-[11px] text-[#9CA3AF] mt-0.5">Temps plein, +1 UB par recrutement</p>
           </div>
           <div className="flex items-center gap-3">
             <input
@@ -285,7 +285,7 @@ export function CarteSimulation({ stats, smicRef }: CarteSimulationProps) {
                 >
                   {formatPct(tauxSimule)}
                 </span>{' '}
-                — contribution réduite de{' '}
+               , contribution réduite de{' '}
                 <span
                   className={`font-medium ${
                     economie >= 0 ? 'text-[#2E7D32]' : 'text-[#B71C1C]'
