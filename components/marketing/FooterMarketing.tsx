@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Mail, Shield } from 'lucide-react'
 
+
 export function FooterMarketing() {
   return (
     <footer className="bg-[#0D1F3C] text-white">
@@ -10,7 +11,10 @@ export function FooterMarketing() {
 
           {/* Brand */}
           <div className="md:col-span-2 space-y-4">
-            <Image src="/logo-white.svg" alt="Talenth" width={130} height={32} />
+            <div className="flex items-center gap-2.5">
+              <Image src="/logo.png" alt="Talenth" width={36} height={36} />
+              <span className="text-[20px] font-bold text-white">Talenth</span>
+            </div>
             <p className="text-sm text-white/60 leading-relaxed max-w-xs">
               La plateforme de gestion de l&apos;obligation d&apos;emploi des travailleurs handicapés (OETH) pensée pour les RH et cabinets spécialisés.
             </p>

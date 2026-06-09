@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -258,10 +259,8 @@ export default function InviteCompletePage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-[#1E4A8C] rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">T</span>
-            </div>
+          <div className="flex items-center gap-2.5">
+            <Image src="/logo.png" alt="Talenth" width={44} height={44} />
             <span className="text-2xl font-bold text-[#1E4A8C]">Talenth</span>
           </div>
         </div>

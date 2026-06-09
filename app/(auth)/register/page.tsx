@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -83,10 +84,8 @@ export default function RegisterPage() {
     <div className="w-full max-w-[480px]">
       <div className="bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-[#1E4A8C] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">T</span>
-            </div>
+          <div className="inline-flex items-center gap-2.5 mb-2">
+            <Image src="/logo.png" alt="Talenth" width={40} height={40} />
             <span className="text-[22px] font-bold text-[#1E4A8C]">Talenth</span>
           </div>
           <p className="text-[#6B7280] text-sm mt-1">Pilotage OETH simplifié</p>

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, Building2, Calendar, Settings,
@@ -89,11 +90,9 @@ export function Sidebar({ profile, orgName }: SidebarProps) {
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-[240px] bg-white border-r border-[#E2E8F0] z-40">
       {/* Logo */}
-      <div className="p-6 border-b border-[#E2E8F0]">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#1E4A8C] rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-white font-bold text-sm">T</span>
-          </div>
+      <div className="px-5 py-4 border-b border-[#E2E8F0]">
+        <div className="flex items-center gap-2.5">
+          <Image src="/logo.png" alt="Talenth" width={36} height={36} className="shrink-0" />
           <div>
             <span className="text-[18px] font-bold text-[#1E4A8C]">Talenth</span>
             {orgName && (

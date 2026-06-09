@@ -20,15 +20,17 @@ export function NavMarketing() {
       <div className="max-w-[1600px] mx-auto px-10 h-16 flex items-center justify-between">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center gap-2.5">
           <Image
-            src={scrolled ? '/logo-full.svg' : '/logo-white.svg'}
+            src="/logo.png"
             alt="Talenth"
-            width={140}
-            height={34}
-            style={{ width: 140, height: 'auto' }}
+            width={36}
+            height={36}
             priority
           />
+          <span className={`text-[20px] font-bold transition-colors ${scrolled ? 'text-[#1E4A8C]' : 'text-white'}`}>
+            Talenth
+          </span>
         </Link>
 
         {/* Desktop nav */}
