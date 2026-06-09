@@ -18,8 +18,12 @@ const FAQ = [
     a: 'Oui, sans exception. Quel que soit votre plan, vous accédez à l\'intégralité de Talenth : tableau de bord OETH, suivi BOETH, maintien dans l\'emploi, DOETH, budget, achats ESAT, exports Excel et gestion d\'équipe. La seule différence entre les plans est le nombre d\'utilisateurs.',
   },
   {
-    q: 'Qu\'est-ce que l\'abonnement annuel mensuel ?',
-    a: 'Vous êtes prélevé chaque mois mais vous vous engagez sur 12 mois. En contrepartie, vous bénéficiez de 15% de réduction par rapport au mensuel sans engagement. Vous pouvez annuler avant le renouvellement annuel.',
+    q: 'Quelle est la différence entre « Annuel 1 paiement » et « Annuel mensuel » ?',
+    a: 'Les deux formules offrent la même remise de 15% par rapport au mensuel sans engagement. La différence est uniquement dans la façon dont vous payez : « Annuel 1 paiement » génère une seule facture pour l\'année entière (idéal pour les entreprises fonctionnant par bon de commande ou virement bancaire), tandis qu\'« Annuel mensuel » vous prélève chaque mois sur 12 mois avec engagement annuel.',
+  },
+  {
+    q: 'Est-il possible de payer par bon de commande ou virement bancaire ?',
+    a: 'Oui, l\'option « Annuel — 1 paiement » est spécialement conçue pour les organisations qui fonctionnent par bon de commande. Après votre essai gratuit, sélectionnez cette formule lors du paiement — Stripe accepte la carte bancaire et le virement SEPA. Pour un processus de devis/bon de commande formalisé, contactez-nous à contact@talenth.fr.',
   },
   {
     q: 'Puis-je changer de plan à tout moment ?',

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, ArrowRight } from 'lucide-react'
+import { CheckCircle, ArrowRight, Mail } from 'lucide-react'
 import { PLANS, FEATURES, type PlanId, type BillingCycle } from '@/lib/plans'
 
 const PLAN_META: Record<PlanId, {
@@ -16,24 +16,92 @@ const PLAN_META: Record<PlanId, {
   groupe:       { tagline: 'Grands groupes & cabinets RH',           seatsLabel: 'Utilisateurs illimités' },
 }
 
-function formatPrice(amount: number, cycle: BillingCycle) {
+type CycleOption = {
+  cycle: BillingCycle
+  label: string
+  badge?: string
+  sub: string
+}
+
+const CYCLE_OPTIONS: CycleOption[] = [
+  {
+    cycle: 'annual_upfront',
+    label: 'Annuel — 1 paiement',
+    badge: '−15%',
+    sub: 'Une facture · 12 mois d\'accès · compatible bon de commande',
+  },
+  {
+    cycle: 'annual_monthly',
+    label: 'Annuel mensuel',
+    badge: '−15%',
+    sub: 'Engagement 12 mois · paiement mensuel · annulable avant renouvellement',
+  },
+  {
+    cycle: 'monthly',
+    label: 'Mensuel',
+    sub: 'Sans engagement · résiliable à tout moment',
+  },
+]
+
+// Plans affichés sous forme de cartes (les 3 tarifs standards)
+const STANDARD_PLANS: PlanId[] = ['essentiel', 'equipe', 'organisation']
+
+type PriceInfo = {
+  main: number
+  unit: string
+  note: string
+  saving: string | null
+}
+
+function formatPrice(planId: PlanId, cycle: BillingCycle): PriceInfo | null {
+  const plan   = PLANS[planId]
+  const amount = plan.prices[cycle].amount
   if (amount === 0) return null
+
+  if (cycle === 'annual_upfront') {
+    const totalEuros = Math.round(amount / 100)
+    const perMonth   = Math.round(totalEuros / 12)
+    const saving     = Math.round((plan.prices.monthly.amount - plan.prices.annual_monthly.amount) / 100 * 12)
+    return {
+      main:   totalEuros,
+      unit:   '€ / an',
+      note:   `Soit ${perMonth} €/mois — 1 seul paiement`,
+      saving: `Économie de ${saving} € vs mensuel`,
+    }
+  }
+
   const euros = Math.round(amount / 100)
-  return { euros, note: cycle === 'annual_monthly' ? 'par mois, facturé annuellement' : 'par mois, sans engagement' }
+
+  if (cycle === 'annual_monthly') {
+    const saving = Math.round((plan.prices.monthly.amount - amount) / 100 * 12)
+    return {
+      main:   euros,
+      unit:   '€ / mois',
+      note:   'Facturé chaque mois',
+      saving: `Économie de ${saving} €/an`,
+    }
+  }
+
+  return {
+    main:   euros,
+    unit:   '€ / mois',
+    note:   'Sans engagement',
+    saving: null,
+  }
 }
 
 export function TarifsGrid() {
-  const [cycle, setCycle] = useState<BillingCycle>('annual_monthly')
+  const [cycle, setCycle] = useState<BillingCycle>('annual_upfront')
 
-  const planIds = Object.keys(PLANS) as PlanId[]
+  const activeOpt = CYCLE_OPTIONS.find(o => o.cycle === cycle)!
 
   return (
     <div className="space-y-10">
 
-      {/* Toggle mensuel / annuel */}
+      {/* Toggle 3 options */}
       <div className="flex flex-col items-center gap-3">
-        <div className="inline-flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-1 gap-1">
-          {(['annual_monthly', 'monthly'] as BillingCycle[]).map(key => (
+        <div className="inline-flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-1 gap-1 flex-wrap justify-center">
+          {CYCLE_OPTIONS.map(({ cycle: key, label, badge }) => (
             <button
               key={key}
               onClick={() => setCycle(key)}
@@ -43,27 +111,29 @@ export function TarifsGrid() {
                   : 'text-[#6B7280] hover:text-[#1A1A2E]'
               }`}
             >
-              {key === 'annual_monthly' ? 'Annuel' : 'Mensuel'}
-              {key === 'annual_monthly' && (
+              {label}
+              {badge && (
                 <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">
-                  −15%
+                  {badge}
                 </span>
               )}
             </button>
           ))}
         </div>
-        {cycle === 'annual_monthly' && (
-          <p className="text-xs text-[#6B7280]">Engagement 12 mois · paiement mensuel · annulable avant renouvellement</p>
+        <p className="text-xs text-[#6B7280] text-center">{activeOpt.sub}</p>
+        {cycle === 'annual_upfront' && (
+          <p className="text-[11px] text-[#1E4A8C] bg-[#EBF2FA] px-3 py-1 rounded-full font-medium">
+            Paiement par carte bancaire · virement ou bon de commande sur demande
+          </p>
         )}
       </div>
 
-      {/* Cartes plan */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-        {planIds.map((planId) => {
-          const plan   = PLANS[planId]
-          const meta   = PLAN_META[planId]
-          const priceInfo = formatPrice(plan.prices[cycle].amount, cycle)
-          const isCustom  = priceInfo === null
+      {/* 3 cartes plans standards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {STANDARD_PLANS.map((planId) => {
+          const plan      = PLANS[planId]
+          const meta      = PLAN_META[planId]
+          const priceInfo = formatPrice(planId, cycle)!  // jamais null pour les 3 standards
 
           return (
             <div
@@ -91,60 +161,36 @@ export function TarifsGrid() {
 
               {/* Prix */}
               <div className="mb-6">
-                {isCustom ? (
-                  <div>
-                    <p className="text-3xl font-black text-[#1A1A2E]">Sur mesure</p>
-                    <p className="text-xs text-[#9CA3AF] mt-1">Tarif personnalisé selon vos besoins</p>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-5xl font-black text-[#1A1A2E]">{priceInfo.euros}</span>
-                      <span className="text-base text-[#6B7280]">€</span>
-                    </div>
-                    <p className="text-[11px] text-[#9CA3AF] mt-0.5">{priceInfo.note}</p>
-                    {cycle === 'annual_monthly' && (
-                      <p className="text-[11px] text-green-600 font-medium mt-1">
-                        Soit {Math.round(plan.prices.annual_monthly.amount / 100 * 12)} € / an
-                        {' '}— économie de {Math.round((plan.prices.monthly.amount - plan.prices.annual_monthly.amount) / 100 * 12)} €
-                      </p>
-                    )}
-                  </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-5xl font-black text-[#1A1A2E]">{priceInfo.main}</span>
+                  <span className="text-base text-[#6B7280]">{priceInfo.unit}</span>
+                </div>
+                <p className="text-[11px] text-[#9CA3AF] mt-0.5">{priceInfo.note}</p>
+                {priceInfo.saving && (
+                  <p className="text-[11px] text-green-600 font-medium mt-1">{priceInfo.saving}</p>
                 )}
               </div>
 
               {/* CTA */}
               <div className="mb-6">
-                {isCustom ? (
-                  <a
-                    href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth"
-                    className="flex items-center justify-center gap-2 bg-[#F8FAFC] text-[#1E4A8C] border border-[#E2E8F0] font-semibold px-4 py-2.5 rounded-xl hover:bg-[#EBF2FA] transition-colors text-sm w-full"
-                  >
-                    Nous contacter
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </a>
-                ) : (
-                  <Link
-                    href="/register"
-                    className={`flex items-center justify-center gap-2 font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm w-full ${
-                      meta.recommended
-                        ? 'bg-[#F59E0B] text-white hover:bg-[#D97706]'
-                        : 'bg-[#EBF2FA] text-[#1E4A8C] hover:bg-[#d8e8f7]'
-                    }`}
-                  >
-                    Essai gratuit 10 jours
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                )}
-                {!isCustom && (
-                  <p className="text-[10px] text-center text-[#9CA3AF] mt-1.5">Sans carte bancaire</p>
-                )}
+                <Link
+                  href="/register"
+                  className={`flex items-center justify-center gap-2 font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm w-full ${
+                    meta.recommended
+                      ? 'bg-[#F59E0B] text-white hover:bg-[#D97706]'
+                      : 'bg-[#EBF2FA] text-[#1E4A8C] hover:bg-[#d8e8f7]'
+                  }`}
+                >
+                  Essai gratuit 10 jours
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <p className="text-[10px] text-center text-[#9CA3AF] mt-1.5">Sans carte bancaire</p>
               </div>
 
               {/* Séparateur */}
               <div className="border-t border-[#E2E8F0] my-1" />
 
-              {/* Fonctionnalités (toutes incluses) */}
+              {/* Fonctionnalités */}
               <ul className="space-y-2 mt-4 flex-1">
                 {(Object.entries(FEATURES) as [keyof typeof FEATURES, string][]).map(([, label]) => (
                   <li key={label} className="flex items-start gap-2 text-xs text-[#1A1A2E]">
@@ -158,7 +204,34 @@ export function TarifsGrid() {
         })}
       </div>
 
-      {/* Bas : réassurance */}
+      {/* Bannière Groupe */}
+      <div className="rounded-2xl border border-[#E2E8F0] bg-gradient-to-r from-[#F8FAFC] to-[#EBF2FA] p-6 flex flex-col sm:flex-row items-center justify-between gap-5">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-bold text-[#1E4A8C] uppercase tracking-widest">Groupe</span>
+            <span className="text-[10px] bg-[#1E4A8C] text-white px-2 py-0.5 rounded-full font-bold">Sur mesure</span>
+          </div>
+          <p className="text-sm font-semibold text-[#1A1A2E] mb-1">
+            Plus de 15 utilisateurs · Groupes multi-entités · Cabinets RH
+          </p>
+          <p className="text-xs text-[#6B7280] leading-relaxed">
+            Nombre d&apos;utilisateurs illimité · Toutes les fonctionnalités incluses · Accompagnement dédié ·
+            Facturation adaptée à votre organisation (mensuel, annuel, bon de commande).
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-2 shrink-0">
+          <a
+            href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth — demande de devis"
+            className="flex items-center gap-2 bg-[#1E4A8C] text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-[#163870] transition-colors text-sm whitespace-nowrap"
+          >
+            <Mail className="w-4 h-4" />
+            Demander un devis
+          </a>
+          <p className="text-[10px] text-[#9CA3AF]">Réponse sous 24 h</p>
+        </div>
+      </div>
+
+      {/* Réassurance */}
       <p className="text-center text-xs text-[#9CA3AF]">
         Toutes fonctionnalités incluses dans chaque plan · Données hébergées en France · Conformité RGPD
       </p>

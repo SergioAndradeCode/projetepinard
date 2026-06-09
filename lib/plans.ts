@@ -1,5 +1,5 @@
 export type PlanId = 'essentiel' | 'equipe' | 'organisation' | 'groupe'
-export type BillingCycle = 'monthly' | 'annual_monthly'
+export type BillingCycle = 'monthly' | 'annual_monthly' | 'annual_upfront'
 
 // Toutes les fonctionnalités — identiques quel que soit le plan
 // La différenciation est uniquement par le nombre d'utilisateurs
@@ -28,8 +28,10 @@ export const PLANS = {
     features: ALL_FEATURES,
     stripeProductId: process.env.STRIPE_PRODUCT_ESSENTIEL ?? '',
     prices: {
-      monthly:        { amount: 3900,  stripePriceId: process.env.STRIPE_PRICE_ESSENTIEL_MONTHLY ?? '' },
-      annual_monthly: { amount: 3300,  stripePriceId: process.env.STRIPE_PRICE_ESSENTIEL_ANNUAL_MONTHLY ?? '' },
+      monthly:         { amount: 3900,  stripePriceId: process.env.STRIPE_PRICE_ESSENTIEL_MONTHLY ?? '' },
+      annual_monthly:  { amount: 3300,  stripePriceId: process.env.STRIPE_PRICE_ESSENTIEL_ANNUAL_MONTHLY ?? '' },
+      // annual_upfront : même remise −15% qu'annual_monthly, mais 1 seul paiement annuel
+      annual_upfront:  { amount: 39600, stripePriceId: process.env.STRIPE_PRICE_ESSENTIEL_ANNUAL_UPFRONT ?? '' },
     },
   },
   equipe: {
@@ -41,6 +43,7 @@ export const PLANS = {
     prices: {
       monthly:        { amount: 8900,  stripePriceId: process.env.STRIPE_PRICE_EQUIPE_MONTHLY ?? '' },
       annual_monthly: { amount: 7500,  stripePriceId: process.env.STRIPE_PRICE_EQUIPE_ANNUAL_MONTHLY ?? '' },
+      annual_upfront: { amount: 90000, stripePriceId: process.env.STRIPE_PRICE_EQUIPE_ANNUAL_UPFRONT ?? '' },
     },
   },
   organisation: {
@@ -50,8 +53,9 @@ export const PLANS = {
     features: ALL_FEATURES,
     stripeProductId: process.env.STRIPE_PRODUCT_ORGANISATION ?? '',
     prices: {
-      monthly:        { amount: 17900, stripePriceId: process.env.STRIPE_PRICE_ORGANISATION_MONTHLY ?? '' },
-      annual_monthly: { amount: 15200, stripePriceId: process.env.STRIPE_PRICE_ORGANISATION_ANNUAL_MONTHLY ?? '' },
+      monthly:        { amount: 17900,  stripePriceId: process.env.STRIPE_PRICE_ORGANISATION_MONTHLY ?? '' },
+      annual_monthly: { amount: 15200,  stripePriceId: process.env.STRIPE_PRICE_ORGANISATION_ANNUAL_MONTHLY ?? '' },
+      annual_upfront: { amount: 182400, stripePriceId: process.env.STRIPE_PRICE_ORGANISATION_ANNUAL_UPFRONT ?? '' },
     },
   },
   // Groupe = sur mesure, pas de Stripe standard
@@ -64,6 +68,7 @@ export const PLANS = {
     prices: {
       monthly:        { amount: 0, stripePriceId: '' },
       annual_monthly: { amount: 0, stripePriceId: '' },
+      annual_upfront: { amount: 0, stripePriceId: '' },
     },
   },
 } satisfies Record<PlanId, {
@@ -94,5 +99,6 @@ export function canAddUser(planId: PlanId | null | undefined, currentCount: numb
 
 export const BILLING_CYCLE_LABELS: Record<BillingCycle, string> = {
   monthly:        'Mensuel',
-  annual_monthly: 'Annuel (−15%)',
+  annual_monthly: 'Annuel mensuel (−15%)',
+  annual_upfront: 'Annuel 1 paiement (−15%)',
 }

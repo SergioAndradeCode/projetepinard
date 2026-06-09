@@ -49,6 +49,9 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
+  // annual_upfront = abonnement annuel (interval: year côté Stripe) — même mode 'subscription'
+  // La différence est uniquement dans le Price ID Stripe (yearly vs monthly interval).
+  // Stripe génère automatiquement une facture PDF pour l'année entière → compatible bons de commande.
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     payment_method_types: ['card', 'sepa_debit'],

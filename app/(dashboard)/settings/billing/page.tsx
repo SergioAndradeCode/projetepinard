@@ -12,11 +12,13 @@ import { PLANS, FEATURES, type BillingCycle, type FeatureKey, type PlanId } from
 const CYCLE_LABELS: Record<BillingCycle, string> = {
   monthly:        'Mensuel',
   annual_monthly: 'Annuel mensuel',
+  annual_upfront: 'Annuel — 1 paiement',
 }
 
 const CYCLE_DISCOUNT: Record<BillingCycle, string | null> = {
   monthly:        null,
   annual_monthly: '−15%',
+  annual_upfront: '−15%',
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -36,7 +38,7 @@ const PLAN_ICONS: Record<PlanId, React.ReactNode> = {
 
 export default function BillingPage() {
   const { planId, billingCycle, status, currentPeriodEnd, isTrialing, trialEndsAt, refetch } = useSubscription()
-  const [selectedCycle, setSelectedCycle] = useState<BillingCycle>('annual_monthly')
+  const [selectedCycle, setSelectedCycle] = useState<BillingCycle>('annual_upfront')
   const [loadingPlan, setLoadingPlan]     = useState<string | null>(null)
   const [loadingPortal, setLoadingPortal] = useState(false)
   const [syncing, setSyncing]             = useState(false)
@@ -199,12 +201,14 @@ export default function BillingPage() {
         </div>
       </div>
 
-      {/* Grille des plans */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {(Object.entries(PLANS) as [PlanId, typeof PLANS[PlanId]][]).map(([id, plan]) => {
+      {/* Grille des plans — 3 plans standards */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {(Object.entries(PLANS) as [PlanId, typeof PLANS[PlanId]][])
+          .filter(([id]) => id !== 'groupe')
+          .map(([id, plan]) => {
           const price = plan.prices[selectedCycle]
           const isCurrentPlan = planId === id
-          const monthlyAmount = price.amount
+          const amount = price.amount
 
           return (
             <div
@@ -231,14 +235,31 @@ export default function BillingPage() {
               </div>
 
               <div className="mb-4">
-                <span className="text-3xl font-extrabold text-[#1A1A2E]">
-                  {(monthlyAmount / 100).toFixed(0)}€
-                </span>
-                <span className="text-sm text-[#6B7280]">/mois</span>
-                {selectedCycle === 'annual_monthly' && (
-                  <p className="text-xs text-[#6B7280] mt-0.5">
-                    Engagement 12 mois · paiement mensuel
-                  </p>
+                {selectedCycle === 'annual_upfront' ? (
+                  <>
+                    <span className="text-3xl font-extrabold text-[#1A1A2E]">
+                      {(amount / 100).toFixed(0)}€
+                    </span>
+                    <span className="text-sm text-[#6B7280]">/an</span>
+                    <p className="text-xs text-[#6B7280] mt-0.5">
+                      1 paiement · 12 mois d&apos;accès
+                    </p>
+                    <p className="text-xs text-green-600 font-medium mt-0.5">
+                      Soit {Math.round(amount / 100 / 12)}€/mois effectif
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-3xl font-extrabold text-[#1A1A2E]">
+                      {(amount / 100).toFixed(0)}€
+                    </span>
+                    <span className="text-sm text-[#6B7280]">/mois</span>
+                    {selectedCycle === 'annual_monthly' && (
+                      <p className="text-xs text-[#6B7280] mt-0.5">
+                        Engagement 12 mois · paiement mensuel
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -281,6 +302,33 @@ export default function BillingPage() {
             </div>
           )
         })}
+      </div>
+
+      {/* Bannière Groupe */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-gradient-to-r from-[#F8FAFC] to-[#EBF2FA] p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="p-2 rounded-lg bg-[#EBF2FA] text-[#1E4A8C] shrink-0">
+            {PLAN_ICONS['groupe']}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="font-bold text-[#1A1A2E] text-sm">Groupe</p>
+              {planId === 'groupe' && (
+                <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">Plan actuel</span>
+              )}
+            </div>
+            <p className="text-xs text-[#6B7280]">
+              Plus de 15 utilisateurs · Multi-entités · Cabinets RH — tarif sur mesure, facturation adaptée à votre organisation.
+            </p>
+          </div>
+        </div>
+        <a
+          href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth — demande de devis"
+          className="flex items-center gap-2 bg-[#1E4A8C] text-white font-semibold px-4 py-2 rounded-lg hover:bg-[#163870] transition-colors text-sm whitespace-nowrap shrink-0"
+        >
+          Demander un devis
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
       </div>
 
       {/* Note TVA */}
