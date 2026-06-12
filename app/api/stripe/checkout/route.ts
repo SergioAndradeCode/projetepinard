@@ -49,26 +49,37 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-  // annual_upfront = abonnement annuel (interval: year côté Stripe) — même mode 'subscription'
-  // La différence est uniquement dans le Price ID Stripe (yearly vs monthly interval).
-  // Stripe génère automatiquement une facture PDF pour l'année entière → compatible bons de commande.
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    payment_method_types: ['card', 'sepa_debit'],
-    line_items: [{ price: price.stripePriceId, quantity: 1 }],
-    mode: 'subscription',
-    success_url: `${appUrl}/settings/billing?success=1&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url:  `${appUrl}/settings/billing?canceled=1`,
-    metadata: {
-      organization_id: orgId,
-      plan_id: planId,
-      billing_cycle: billingCycle,
-    },
-    subscription_data: {
-      metadata: { organization_id: orgId, plan_id: planId, billing_cycle: billingCycle },
-    },
-    locale: 'fr',
-  })
+  // Tous les cycles utilisent mode 'subscription' :
+  //   - monthly        : prix mensuel récurrent
+  //   - annual_monthly : prix mensuel récurrent sur 12 mois
+  //   - annual_upfront : prix annuel récurrent (interval: year) — 1 paiement/an
+  let session: Awaited<ReturnType<typeof stripe.checkout.sessions.create>>
+  try {
+    session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card', 'sepa_debit'],
+      line_items: [{ price: price.stripePriceId, quantity: 1 }],
+      mode: 'subscription',
+      success_url: `${appUrl}/settings/billing?success=1&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${appUrl}/settings/billing?canceled=1`,
+      metadata: {
+        organization_id: orgId,
+        plan_id: planId,
+        billing_cycle: billingCycle,
+      },
+      subscription_data: {
+        metadata: { organization_id: orgId, plan_id: planId, billing_cycle: billingCycle },
+      },
+      locale: 'fr',
+    })
+  } catch (err: unknown) {
+    const stripeError = err as { message?: string; type?: string; code?: string }
+    console.error('[stripe/checkout] Erreur Stripe:', stripeError)
+    return NextResponse.json(
+      { error: stripeError?.message ?? 'Erreur lors de la création de la session de paiement' },
+      { status: 500 },
+    )
+  }
 
   return NextResponse.json({ url: session.url })
 }
