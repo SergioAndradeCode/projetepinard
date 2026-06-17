@@ -1,4 +1,6 @@
-import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage } from 'pdf-lib'
+import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage, type PDFImage } from 'pdf-lib'
+import path from 'path'
+import fs from 'fs'
 
 export interface InvoiceData {
   invoiceNumber:        string
@@ -17,240 +19,297 @@ export interface InvoiceData {
   amountTtc:            number
 }
 
-const COLOR_PRIMARY = rgb(0.118, 0.290, 0.549) // #1E4A8C
-const COLOR_DARK    = rgb(0.102, 0.102, 0.180) // #1A1A2E
-const COLOR_GRAY    = rgb(0.420, 0.447, 0.502) // #6B7280
-const COLOR_LIGHT   = rgb(0.886, 0.925, 0.980) // #EBF2FA
-const COLOR_BLACK   = rgb(0, 0, 0)
-const COLOR_WHITE   = rgb(1, 1, 1)
+// ── Palette Talenth ───────────────────────────────────────────────────────
+const C_BLUE       = rgb(0.118, 0.290, 0.549)  // #1E4A8C
+const C_BLUE_DARK  = rgb(0.059, 0.122, 0.235)  // #0F1F3C
+const C_AMBER      = rgb(0.961, 0.620, 0.043)  // #F59E0B
+const C_DARK       = rgb(0.102, 0.102, 0.180)  // #1A1A2E
+const C_GRAY       = rgb(0.420, 0.447, 0.502)  // #6B7280
+const C_LIGHT_BLUE = rgb(0.922, 0.949, 0.980)  // #EBF2FA
+const C_WHITE      = rgb(1, 1, 1)
+const C_BORDER     = rgb(0.886, 0.910, 0.941)  // #E2E8F0
+const C_BG         = rgb(0.973, 0.980, 0.988)  // #F8FAFC
 
 const PAGE_W = 595.28
 const PAGE_H = 841.89
-const MARGIN = 56
-const USABLE_W = PAGE_W - MARGIN * 2
-
-function fmt(n: number): string {
-  return n.toFixed(2).replace('.', ',') + ' €'
-}
+const M      = 52   // marge
+const W      = PAGE_W - M * 2
 
 function fmtDate(d: Date): string {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-function drawLine(page: PDFPage, y: number, color = COLOR_LIGHT) {
-  page.drawLine({
-    start: { x: MARGIN, y },
-    end:   { x: PAGE_W - MARGIN, y },
-    thickness: 0.5,
-    color,
-  })
+function fmt(n: number): string {
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 }
 
 function drawRect(page: PDFPage, x: number, y: number, w: number, h: number, color: ReturnType<typeof rgb>) {
   page.drawRectangle({ x, y, width: w, height: h, color })
 }
 
-function text(
+function drawLine(page: PDFPage, x1: number, y1: number, x2: number, y2: number, color = C_BORDER, thickness = 0.5) {
+  page.drawLine({ start: { x: x1, y: y1 }, end: { x: x2, y: y2 }, thickness, color })
+}
+
+function txt(
   page: PDFPage,
   content: string,
   x: number,
   y: number,
   font: PDFFont,
   size: number,
-  color: ReturnType<typeof rgb> = COLOR_DARK,
+  color: ReturnType<typeof rgb> = C_DARK,
   align: 'left' | 'right' | 'center' = 'left',
-  maxWidth?: number,
+  maxW?: number,
 ) {
+  if (!content) return
+  let str = content
+  if (maxW) {
+    while (str.length > 1 && font.widthOfTextAtSize(str, size) > maxW) str = str.slice(0, -1)
+    if (str !== content) str = str.slice(0, -1) + '…'
+  }
+  const w = font.widthOfTextAtSize(str, size)
   let dx = x
-  if (align !== 'left') {
-    const w = font.widthOfTextAtSize(content, size)
-    if (align === 'right') dx = x - w
-    if (align === 'center') dx = x - w / 2
-  }
-  if (maxWidth) {
-    // Truncate if too long
-    let str = content
-    while (str.length > 0 && font.widthOfTextAtSize(str, size) > maxWidth) str = str.slice(0, -1)
-    content = str
-  }
-  page.drawText(content, { x: dx, y, font, size, color })
+  if (align === 'right')  dx = x - w
+  if (align === 'center') dx = x - w / 2
+  page.drawText(str, { x: dx, y, font, size, color })
 }
 
 export async function generateInvoice(data: InvoiceData): Promise<Uint8Array> {
   const doc  = await PDFDocument.create()
   const page = doc.addPage([PAGE_W, PAGE_H])
 
-  const fontBold    = await doc.embedFont(StandardFonts.HelveticaBold)
-  const fontRegular = await doc.embedFont(StandardFonts.Helvetica)
+  const bold    = await doc.embedFont(StandardFonts.HelveticaBold)
+  const regular = await doc.embedFont(StandardFonts.Helvetica)
 
-  const companyName = process.env.TALENTH_COMPANY_NAME ?? 'Talenth'
-  const companyAddress = process.env.TALENTH_ADDRESS ?? 'France'
-  const companySiret = process.env.TALENTH_SIRET ?? ''
-  const companyEmail = process.env.TALENTH_EMAIL_CONTACT ?? 'contact@talenth.fr'
-  const iban = process.env.TALENTH_IBAN ?? 'À RENSEIGNER'
-  const bic  = process.env.TALENTH_BIC  ?? 'À RENSEIGNER'
-  const bankHolder = process.env.TALENTH_BANK_HOLDER ?? companyName
+  const emitterName    = process.env.TALENTH_COMPANY_NAME ?? 'Talenth'
+  const emitterAddress = process.env.TALENTH_ADDRESS      ?? 'France'
+  const emitterSiret   = process.env.TALENTH_SIRET        ?? ''
+  const emitterEmail   = process.env.TALENTH_EMAIL_CONTACT ?? 'talenthsupport@gmail.com'
+  const iban           = process.env.TALENTH_IBAN         ?? 'À RENSEIGNER'
+  const bic            = process.env.TALENTH_BIC          ?? 'À RENSEIGNER'
+  const bankHolder     = process.env.TALENTH_BANK_HOLDER  ?? emitterName
 
-  // ── HEADER ───────────────────────────────────────────────────────────────
-  const headerH = 80
-  drawRect(page, 0, PAGE_H - headerH, PAGE_W, headerH, COLOR_PRIMARY)
-
-  text(page, companyName, MARGIN, PAGE_H - 34, fontBold, 22, COLOR_WHITE)
-  text(page, 'Pilotage OETH simplifié', MARGIN, PAGE_H - 52, fontRegular, 10, rgb(0.75, 0.85, 0.95))
-  text(page, companyAddress, PAGE_W - MARGIN, PAGE_H - 30, fontRegular, 9, rgb(0.75, 0.85, 0.95), 'right')
-  if (companySiret) {
-    text(page, `SIRET : ${companySiret}`, PAGE_W - MARGIN, PAGE_H - 42, fontRegular, 9, rgb(0.75, 0.85, 0.95), 'right')
+  // ── Logo ─────────────────────────────────────────────────────────────────
+  let logo: PDFImage | null = null
+  try {
+    const logoPath  = path.join(process.cwd(), 'public', 'logo.png')
+    const logoBytes = fs.readFileSync(logoPath)
+    logo = await doc.embedPng(logoBytes)
+  } catch {
+    // Logo non disponible, on continue sans
   }
-  text(page, companyEmail, PAGE_W - MARGIN, PAGE_H - 54, fontRegular, 9, rgb(0.75, 0.85, 0.95), 'right')
 
-  // ── INVOICE TITLE BAND ───────────────────────────────────────────────────
-  let y = PAGE_H - headerH - 36
+  // ════════════════════════════════════════════════════════════════════════
+  // HEADER — bande bleue foncée
+  // ════════════════════════════════════════════════════════════════════════
+  const headerH = 90
+  drawRect(page, 0, PAGE_H - headerH, PAGE_W, headerH, C_BLUE_DARK)
 
-  text(page, 'FACTURE', MARGIN, y, fontBold, 20, COLOR_PRIMARY)
+  // Liseré amber en bas du header
+  drawRect(page, 0, PAGE_H - headerH, PAGE_W, 3, C_AMBER)
 
-  const rightColX = PAGE_W - MARGIN - 180
-  const labelX    = rightColX
-  const valueX    = PAGE_W - MARGIN
+  // Logo
+  const logoSize = 48
+  const logoX    = M
+  const logoY    = PAGE_H - headerH + (headerH - logoSize) / 2
+  if (logo) {
+    page.drawImage(logo, { x: logoX, y: logoY, width: logoSize, height: logoSize })
+  }
 
-  const rows: [string, string][] = [
-    ['N° de facture',    data.invoiceNumber],
-    ['Date d\'émission', fmtDate(data.issueDate)],
-    ['Date d\'échéance', fmtDate(data.dueDate)],
+  // Nom entreprise
+  const nameX = logo ? logoX + logoSize + 12 : logoX
+  txt(page, emitterName, nameX, PAGE_H - 38, bold, 20, C_WHITE)
+  txt(page, 'Pilotage OETH simplifié', nameX, PAGE_H - 54, regular, 9, rgb(0.65, 0.78, 0.92))
+
+  // Infos émetteur (droite)
+  const rightX = PAGE_W - M
+  txt(page, emitterEmail,   rightX, PAGE_H - 32, regular, 8, rgb(0.75, 0.86, 0.95), 'right')
+  txt(page, emitterAddress, rightX, PAGE_H - 44, regular, 8, rgb(0.75, 0.86, 0.95), 'right')
+  if (emitterSiret) {
+    txt(page, `SIRET : ${emitterSiret}`, rightX, PAGE_H - 56, regular, 8, rgb(0.75, 0.86, 0.95), 'right')
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // BLOC FACTURE — titre + meta
+  // ════════════════════════════════════════════════════════════════════════
+  let y = PAGE_H - headerH - 30
+
+  // Titre "FACTURE"
+  txt(page, 'FACTURE', M, y, bold, 22, C_BLUE)
+
+  // Numéro + dates (colonne droite)
+  const metaLabelX = PAGE_W - M - 170
+  const metaValueX = PAGE_W - M
+
+  const metaRows: [string, string][] = [
+    ['N°', data.invoiceNumber],
+    ['Émise le', fmtDate(data.issueDate)],
+    ['Échéance', fmtDate(data.dueDate)],
   ]
-
-  let rowY = y + 4
-  for (const [label, value] of rows) {
-    text(page, label, labelX, rowY, fontRegular, 9, COLOR_GRAY)
-    text(page, value, valueX, rowY, fontBold, 9, COLOR_DARK, 'right')
-    rowY -= 14
+  let metaY = y + 6
+  for (const [label, value] of metaRows) {
+    txt(page, label,  metaLabelX, metaY, regular, 8, C_GRAY)
+    txt(page, value,  metaValueX, metaY, bold,    9, C_DARK, 'right')
+    metaY -= 14
   }
 
-  y -= 16
-  drawLine(page, y)
+  y -= 14
+  drawLine(page, M, y, PAGE_W - M, y)
   y -= 22
 
-  // ── ADDRESSES ────────────────────────────────────────────────────────────
-  const col2X = MARGIN + USABLE_W / 2 + 10
+  // ════════════════════════════════════════════════════════════════════════
+  // ADRESSES — 2 colonnes
+  // ════════════════════════════════════════════════════════════════════════
+  const col2X = M + W / 2 + 12
 
-  text(page, 'ÉMETTEUR', MARGIN, y, fontBold, 8, COLOR_GRAY)
-  text(page, 'FACTURER À', col2X, y, fontBold, 8, COLOR_GRAY)
-  y -= 16
+  // Labels colonnes
+  txt(page, 'DE',           M,     y, bold, 7, C_BLUE)
+  txt(page, 'FACTURER À',   col2X, y, bold, 7, C_BLUE)
+  y -= 14
 
-  text(page, companyName, MARGIN, y, fontBold, 10, COLOR_DARK)
-  text(page, data.companyName, col2X, y, fontBold, 10, COLOR_DARK)
+  // Émetteur (colonne gauche)
+  txt(page, emitterName,    M, y,      bold,    10, C_DARK)
+  txt(page, data.companyName, col2X, y, bold,   10, C_DARK)
   y -= 13
 
-  const emitterLines = companyAddress.split('\n')
+  const emitterLines = emitterAddress.split(',').map(s => s.trim()).filter(Boolean)
+  let leftY  = y
+  let rightY = y
+
   for (const line of emitterLines) {
-    text(page, line, MARGIN, y, fontRegular, 9, COLOR_DARK)
-    y -= 12
+    txt(page, line, M, leftY, regular, 9, C_DARK)
+    leftY -= 12
+  }
+  if (emitterSiret) {
+    txt(page, `SIRET : ${emitterSiret}`, M, leftY, regular, 8, C_GRAY)
+    leftY -= 12
   }
 
-  let clientY = y + emitterLines.length * 12 - 13
-  text(page, data.billingAddress, col2X, clientY, fontRegular, 9, COLOR_DARK); clientY -= 12
-  text(page, `${data.postalCode} ${data.city}`, col2X, clientY, fontRegular, 9, COLOR_DARK); clientY -= 12
-  text(page, data.country, col2X, clientY, fontRegular, 9, COLOR_DARK); clientY -= 12
-  text(page, `SIRET : ${data.siret}`, col2X, clientY, fontRegular, 9, COLOR_DARK)
+  txt(page, data.billingAddress, col2X, rightY, regular, 9, C_DARK); rightY -= 12
+  txt(page, `${data.postalCode} ${data.city}`, col2X, rightY, regular, 9, C_DARK); rightY -= 12
+  txt(page, data.country, col2X, rightY, regular, 9, C_DARK); rightY -= 12
+  txt(page, `SIRET : ${data.siret}`, col2X, rightY, regular, 8, C_GRAY)
 
-  y = Math.min(y, clientY) - 20
-  drawLine(page, y)
-  y -= 20
+  y = Math.min(leftY, rightY) - 20
+  drawLine(page, M, y, PAGE_W - M, y)
+  y -= 22
 
-  // ── TABLE HEADER ─────────────────────────────────────────────────────────
-  const colDesc   = MARGIN
-  const colQty    = MARGIN + USABLE_W * 0.58
-  const colUnitHt = MARGIN + USABLE_W * 0.70
-  const colTotal  = PAGE_W - MARGIN
+  // ════════════════════════════════════════════════════════════════════════
+  // TABLEAU — en-tête
+  // ════════════════════════════════════════════════════════════════════════
+  const colDesc  = M
+  const colQty   = M + W * 0.60
+  const colPu    = M + W * 0.73
+  const colTotal = PAGE_W - M
 
-  drawRect(page, MARGIN - 4, y - 4, USABLE_W + 8, 20, COLOR_LIGHT)
+  // Fond en-tête tableau
+  drawRect(page, M - 6, y - 6, W + 12, 22, C_LIGHT_BLUE)
 
-  text(page, 'DÉSIGNATION',  colDesc,   y + 5, fontBold, 8, COLOR_PRIMARY)
-  text(page, 'QTÉ',          colQty,    y + 5, fontBold, 8, COLOR_PRIMARY)
-  text(page, 'PU HT',        colUnitHt, y + 5, fontBold, 8, COLOR_PRIMARY)
-  text(page, 'TOTAL HT',     colTotal,  y + 5, fontBold, 8, COLOR_PRIMARY, 'right')
+  txt(page, 'DÉSIGNATION', colDesc,  y + 6, bold, 8, C_BLUE)
+  txt(page, 'QTÉ',         colQty,   y + 6, bold, 8, C_BLUE)
+  txt(page, 'PU HT',       colPu,    y + 6, bold, 8, C_BLUE)
+  txt(page, 'TOTAL HT',    colTotal, y + 6, bold, 8, C_BLUE, 'right')
 
   y -= 22
 
-  // ── TABLE ROW ─────────────────────────────────────────────────────────────
-  const designation = `Abonnement Talenth — Plan ${data.planName} (${data.billingCycleLabel})`
-  const subline     = 'Accès SaaS pilotage OETH'
+  // ── Ligne produit ────────────────────────────────────────────────────────
+  drawRect(page, M - 6, y - 14, W + 12, 32, C_WHITE)
 
-  text(page, designation, colDesc, y + 2, fontBold, 9, COLOR_DARK, 'left', colQty - colDesc - 10)
-  text(page, subline,     colDesc, y - 9,  fontRegular, 8, COLOR_GRAY)
-  text(page, '1',         colQty,    y + 2, fontRegular, 9, COLOR_DARK)
-  text(page, fmt(data.amountHt), colUnitHt, y + 2, fontRegular, 9, COLOR_DARK)
-  text(page, fmt(data.amountHt), colTotal,  y + 2, fontBold,    9, COLOR_DARK, 'right')
+  const designation = `Abonnement Talenth — Plan ${data.planName}`
+  const subline     = data.billingCycleLabel + ' · Accès SaaS pilotage OETH'
 
-  y -= 30
-  drawLine(page, y)
+  txt(page, designation, colDesc, y + 6,  bold,    9, C_DARK, 'left', colQty - colDesc - 10)
+  txt(page, subline,     colDesc, y - 5,  regular, 8, C_GRAY, 'left', colQty - colDesc - 10)
+  txt(page, '1',         colQty,  y + 6,  regular, 9, C_DARK)
+  txt(page, fmt(data.amountHt), colPu,    y + 6, regular, 9, C_DARK)
+  txt(page, fmt(data.amountHt), colTotal, y + 6, bold,    9, C_DARK, 'right')
+
+  y -= 28
+  drawLine(page, M - 6, y, PAGE_W - M + 6, y, C_BORDER)
   y -= 18
 
-  // ── TOTALS ───────────────────────────────────────────────────────────────
-  const totalLabelX = MARGIN + USABLE_W * 0.60
-  const totalValueX = PAGE_W - MARGIN
+  // ════════════════════════════════════════════════════════════════════════
+  // TOTAUX
+  // ════════════════════════════════════════════════════════════════════════
+  const totLabelX = M + W * 0.58
+  const totValueX = PAGE_W - M
 
-  const totals: [string, string, boolean][] = [
-    ['Total HT',  fmt(data.amountHt),  false],
-    ['TVA 20 %',  fmt(data.amountTva), false],
-    ['Total TTC', fmt(data.amountTtc), true],
-  ]
-
-  for (const [label, value, isTotal] of totals) {
-    if (isTotal) {
-      drawRect(page, totalLabelX - 8, y - 5, USABLE_W - (totalLabelX - MARGIN) + 8, 20, COLOR_PRIMARY)
-      text(page, label, totalLabelX, y + 5, fontBold, 10, COLOR_WHITE)
-      text(page, value, totalValueX, y + 5, fontBold, 12, COLOR_WHITE, 'right')
-    } else {
-      text(page, label, totalLabelX, y + 5, fontRegular, 9, COLOR_GRAY)
-      text(page, value, totalValueX, y + 5, fontRegular, 9, COLOR_DARK, 'right')
-    }
-    y -= 20
-  }
-
-  y -= 20
-  drawLine(page, y)
-  y -= 22
-
-  // ── PAYMENT INSTRUCTIONS ─────────────────────────────────────────────────
-  drawRect(page, MARGIN - 8, y - 4, USABLE_W + 16, 16, COLOR_LIGHT)
-  text(page, 'MODALITÉS DE PAIEMENT', MARGIN, y + 6, fontBold, 9, COLOR_PRIMARY)
-  y -= 22
-
-  const payLines: [string, string][] = [
-    ['Titulaire',   bankHolder],
-    ['IBAN',        iban],
-    ['BIC',         bic],
-    ['Référence',   data.invoiceNumber],
-    ['Échéance',    `${fmtDate(data.dueDate)} (30 jours net)`],
-  ]
-
-  for (const [label, value] of payLines) {
-    text(page, `${label} :`, MARGIN + 2, y, fontBold, 9, COLOR_DARK)
-    text(page, value, MARGIN + 80, y, fontRegular, 9, COLOR_DARK)
-    y -= 14
-  }
-
-  y -= 10
-  drawLine(page, y, rgb(0.88, 0.88, 0.88))
+  // Total HT
+  txt(page, 'Total HT',  totLabelX, y, regular, 9, C_GRAY)
+  txt(page, fmt(data.amountHt), totValueX, y, regular, 9, C_DARK, 'right')
   y -= 16
 
-  // ── LEGAL NOTICE ─────────────────────────────────────────────────────────
-  const legal1 = 'Conformément à l\'art. L441-10 du Code de commerce, tout retard entraîne des pénalités au taux légal + indemnité forfaitaire de 40 €.'
-  const legal2 = 'Paiement par virement bancaire uniquement. Pas d\'escompte pour paiement anticipé.'
+  // TVA
+  txt(page, 'TVA 20 %', totLabelX, y, regular, 9, C_GRAY)
+  txt(page, fmt(data.amountTva), totValueX, y, regular, 9, C_DARK, 'right')
+  y -= 10
 
-  text(page, legal1, MARGIN, y, fontRegular, 7, COLOR_GRAY, 'left', USABLE_W)
-  y -= 11
-  text(page, legal2, MARGIN, y, fontRegular, 7, COLOR_GRAY, 'left', USABLE_W)
+  drawLine(page, totLabelX, y, PAGE_W - M, y, C_BORDER)
+  y -= 14
 
-  // ── FOOTER ───────────────────────────────────────────────────────────────
-  const footerY = 24
-  drawRect(page, 0, 0, PAGE_W, footerY + 4, COLOR_LIGHT)
-  text(
-    page,
-    `${companyName} · ${companyAddress} · ${companyEmail}`,
-    PAGE_W / 2, footerY - 2,
-    fontRegular, 7, COLOR_GRAY, 'center',
-  )
+  // Total TTC — bande amber
+  const ttcBandH = 28
+  drawRect(page, totLabelX - 10, y - 6, PAGE_W - M - totLabelX + 16, ttcBandH, C_AMBER)
+  txt(page, 'TOTAL TTC', totLabelX, y + 8, bold, 10, C_WHITE)
+  txt(page, fmt(data.amountTtc), totValueX, y + 8, bold, 13, C_WHITE, 'right')
+
+  y -= ttcBandH + 16
+
+  // ════════════════════════════════════════════════════════════════════════
+  // MODALITÉS DE PAIEMENT
+  // ════════════════════════════════════════════════════════════════════════
+  y -= 10
+  drawRect(page, M - 6, y - 6, W + 12, 18, C_LIGHT_BLUE)
+  txt(page, 'MODALITÉS DE PAIEMENT', M, y + 6, bold, 8, C_BLUE)
+  y -= 22
+
+  const payRows: [string, string][] = [
+    ['Titulaire',   bankHolder],
+    ['IBAN',        iban],
+    ['BIC / SWIFT', bic],
+    ['Référence',   `${data.invoiceNumber} (à indiquer obligatoirement)`],
+    ['Délai',       '30 jours nets à compter de la date de facturation'],
+  ]
+
+  for (const [label, value] of payRows) {
+    // Fond alterné
+    const rowH = 14
+    txt(page, label + ' :', M, y, bold, 8, C_DARK)
+    txt(page, value, M + 90, y, regular, 8, C_DARK, 'left', PAGE_W - M - (M + 90) - 4)
+    y -= rowH
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // MENTIONS LÉGALES
+  // ════════════════════════════════════════════════════════════════════════
+  y -= 16
+  drawLine(page, M, y, PAGE_W - M, y, C_BORDER)
+  y -= 14
+
+  const legal = [
+    'Conformément à l\'art. L441-10 du Code de commerce, tout retard de paiement entraîne des pénalités de retard au taux légal en vigueur,',
+    'ainsi qu\'une indemnité forfaitaire de recouvrement de 40 €. Pas d\'escompte pour paiement anticipé.',
+  ]
+  for (const line of legal) {
+    txt(page, line, M, y, regular, 6.5, C_GRAY, 'left', W)
+    y -= 10
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // PIED DE PAGE
+  // ════════════════════════════════════════════════════════════════════════
+  const footerH = 32
+  drawRect(page, 0, 0, PAGE_W, footerH, C_BLUE_DARK)
+  drawRect(page, 0, footerH, PAGE_W, 2, C_AMBER)
+
+  // Logo miniature dans le footer
+  if (logo) {
+    page.drawImage(logo, { x: M, y: 7, width: 18, height: 18 })
+  }
+  const footerTextX = logo ? M + 24 : M
+  txt(page, `${emitterName} · ${emitterAddress} · ${emitterEmail}`, footerTextX, 13, regular, 7, rgb(0.65, 0.78, 0.92))
+  txt(page, data.invoiceNumber, PAGE_W - M, 13, bold, 7, C_AMBER, 'right')
 
   return doc.save()
 }
