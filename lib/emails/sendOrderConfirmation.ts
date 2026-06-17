@@ -25,8 +25,9 @@ export async function sendOrderConfirmation(params: OrderConfirmationParams): Pr
 
   const iban        = process.env.TALENTH_IBAN        ?? 'À renseigner'
   const companyName = process.env.TALENTH_COMPANY_NAME ?? 'Talenth'
-  const fromEmail   = process.env.TALENTH_EMAIL_FACTURATION ?? 'factures@talenth.fr'
-  const replyTo     = process.env.TALENTH_EMAIL_CONTACT     ?? 'contact@talenth.fr'
+  // Resend requiert un domaine vérifié pour le FROM — utilise onboarding@resend.dev si pas encore configuré
+  const fromEmail   = process.env.TALENTH_EMAIL_FROM ?? 'onboarding@resend.dev'
+  const replyTo     = process.env.TALENTH_EMAIL_CONTACT ?? 'talenthsupport@gmail.com'
 
   const htmlBody = `
 <!DOCTYPE html>

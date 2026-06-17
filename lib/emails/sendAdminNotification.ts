@@ -25,10 +25,10 @@ function fmt(n: number): string {
 }
 
 export async function sendAdminNotification(params: AdminNotificationParams): Promise<void> {
-  const adminEmail  = process.env.TALENTH_ADMIN_EMAIL      ?? 'sergiodeandrade14@gmail.com'
-  const appUrl      = process.env.NEXT_PUBLIC_APP_URL      ?? 'http://localhost:3000'
-  const fromEmail   = process.env.TALENTH_EMAIL_FACTURATION ?? 'factures@talenth.fr'
-  const companyName = process.env.TALENTH_COMPANY_NAME      ?? 'Talenth'
+  const adminEmail  = process.env.TALENTH_ADMIN_EMAIL  ?? 'talenthsupport@gmail.com'
+  const appUrl      = process.env.NEXT_PUBLIC_APP_URL  ?? 'http://localhost:3000'
+  const fromEmail   = process.env.TALENTH_EMAIL_FROM   ?? 'onboarding@resend.dev'
+  const companyName = process.env.TALENTH_COMPANY_NAME ?? 'Talenth'
 
   const activationUrl = `${appUrl}/admin/activer?token=${params.activationToken}`
 

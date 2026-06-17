@@ -12,9 +12,9 @@ export async function sendWelcome(params: WelcomeEmailParams): Promise<void> {
   const { to, firstname, tempPassword } = params
 
   const appUrl      = process.env.NEXT_PUBLIC_APP_URL      ?? 'http://localhost:3000'
-  const companyName = process.env.TALENTH_COMPANY_NAME      ?? 'Talenth'
-  const fromEmail   = process.env.TALENTH_EMAIL_FACTURATION ?? 'factures@talenth.fr'
-  const replyTo     = process.env.TALENTH_EMAIL_CONTACT     ?? 'contact@talenth.fr'
+  const companyName = process.env.TALENTH_COMPANY_NAME ?? 'Talenth'
+  const fromEmail   = process.env.TALENTH_EMAIL_FROM   ?? 'onboarding@resend.dev'
+  const replyTo     = process.env.TALENTH_EMAIL_CONTACT ?? 'talenthsupport@gmail.com'
 
   const htmlBody = `
 <!DOCTYPE html>
