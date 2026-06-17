@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, ArrowRight, Mail } from 'lucide-react'
+import { CheckCircle, ArrowRight, Mail, ShieldCheck, CreditCard, Building2, Clock } from 'lucide-react'
 import { PLANS, FEATURES, type PlanId, type BillingCycle } from '@/lib/plans'
 
 const PLAN_META: Record<PlanId, {
@@ -172,7 +172,7 @@ export function TarifsGrid() {
               </div>
 
               {/* CTA */}
-              <div className="mb-6">
+              <div className="mb-4 space-y-2">
                 <Link
                   href="/register"
                   className={`flex items-center justify-center gap-2 font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm w-full ${
@@ -184,7 +184,14 @@ export function TarifsGrid() {
                   Essai gratuit 10 jours
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
-                <p className="text-[10px] text-center text-[#9CA3AF] mt-1.5">Sans carte bancaire</p>
+                <p className="text-[10px] text-center text-[#9CA3AF]">Sans carte bancaire</p>
+                <Link
+                  href={`/commander?plan=${planId}&cycle=${cycle}`}
+                  className="flex items-center justify-center gap-2 font-medium px-4 py-2 rounded-xl border border-[#E2E8F0] text-[#6B7280] hover:border-[#1E4A8C] hover:text-[#1E4A8C] transition-colors text-xs w-full"
+                >
+                  Payer par virement / bon de commande
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
               </div>
 
               {/* Séparateur */}
@@ -202,6 +209,36 @@ export function TarifsGrid() {
             </div>
           )
         })}
+      </div>
+
+      {/* Bandeau modes de paiement */}
+      <div className="rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] p-6">
+        <div className="flex items-start gap-3 mb-4">
+          <ShieldCheck className="w-5 h-5 text-[#1E4A8C] shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold text-[#1A1A2E] mb-0.5">Modes de paiement acceptés</p>
+            <p className="text-xs text-[#6B7280] leading-relaxed">
+              Vous êtes une entreprise ? Procédez par virement bancaire sur facture. Simple, sécurisé, sans intermédiaire.
+              Votre accès est activé sous 24h ouvrées après réception du paiement.
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {[
+            { icon: CreditCard, label: 'Carte bancaire (via Stripe)', sub: 'Activation immédiate' },
+            { icon: Building2,  label: 'Virement bancaire sur facture', sub: 'Activation sous 24h ouvrées' },
+            { icon: ShieldCheck, label: 'Bon de commande', sub: 'Sur demande' },
+            { icon: Clock,       label: 'Paiement à 30 jours', sub: 'Sur devis pour les grands comptes' },
+          ].map(({ icon: Icon, label, sub }) => (
+            <div key={label} className="flex items-center gap-2.5 bg-white border border-[#E2E8F0] rounded-xl px-4 py-3">
+              <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-[#1A1A2E]">{label}</p>
+                <p className="text-[10px] text-[#9CA3AF]">{sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Bannière Groupe */}
