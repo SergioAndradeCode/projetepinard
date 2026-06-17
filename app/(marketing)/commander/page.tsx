@@ -140,8 +140,9 @@ export default function CommanderPage() {
               <p className="text-sm text-[#6B7280]">{pricing.cycleLabel}</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-black text-[#1A1A2E]">{fmt(amountTtc)}<span className="text-sm font-normal text-[#6B7280]"> TTC</span></p>
-              <p className="text-xs text-[#6B7280]">{fmt(amountHt)} HT + TVA 20 % ({fmt(amountTva)})</p>
+              <p className="text-2xl font-black text-[#1A1A2E]">{fmt(amountHt)}<span className="text-sm font-normal text-[#6B7280]"> HT</span></p>
+              <p className="text-xs text-[#6B7280]">TVA 20 % : {fmt(amountTva)}</p>
+              <p className="text-xs font-semibold text-[#1A1A2E] mt-0.5">Total TTC : {fmt(amountTtc)}</p>
             </div>
           </div>
         )}
@@ -392,8 +393,8 @@ export default function CommanderPage() {
           {pricing && (
             <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-sm text-[#6B7280]">
-                <span className="font-semibold text-[#1A1A2E] text-base">{fmt(amountTtc)} TTC</span>
-                {' '}({fmt(amountHt)} HT · TVA 20 %)
+                <span className="font-semibold text-[#1A1A2E] text-base">{fmt(amountHt)} HT</span>
+                {' '}· TVA 20 % ({fmt(amountTva)}) · Total TTC : <span className="font-semibold text-[#1A1A2E]">{fmt(amountTtc)}</span>
               </div>
               <Button
                 type="submit"

@@ -61,31 +61,33 @@ function formatPrice(planId: PlanId, cycle: BillingCycle): PriceInfo | null {
   if (cycle === 'annual_upfront') {
     const totalEuros = Math.round(amount / 100)
     const perMonth   = Math.round(totalEuros / 12)
+    const ttc        = Math.round(totalEuros * 1.2)
     const saving     = Math.round((plan.prices.monthly.amount - plan.prices.annual_monthly.amount) / 100 * 12)
     return {
       main:   totalEuros,
-      unit:   '€ / an',
-      note:   `Soit ${perMonth} €/mois, 1 seul paiement`,
+      unit:   '€ HT / an',
+      note:   `Soit ${perMonth} € HT/mois, 1 seul paiement · ${ttc} € TTC`,
       saving: `Économie de ${saving} € vs mensuel`,
     }
   }
 
   const euros = Math.round(amount / 100)
+  const ttc   = (euros * 1.2).toFixed(2).replace('.', ',')
 
   if (cycle === 'annual_monthly') {
     const saving = Math.round((plan.prices.monthly.amount - amount) / 100 * 12)
     return {
       main:   euros,
-      unit:   '€ / mois',
-      note:   'Facturé chaque mois',
-      saving: `Économie de ${saving} €/an`,
+      unit:   '€ HT / mois',
+      note:   `Soit ${ttc} € TTC · Économie de ${saving} € HT/an`,
+      saving: null,
     }
   }
 
   return {
     main:   euros,
-    unit:   '€ / mois',
-    note:   'Sans engagement',
+    unit:   '€ HT / mois',
+    note:   `Soit ${ttc} € TTC · Sans engagement`,
     saving: null,
   }
 }
@@ -161,11 +163,11 @@ export function TarifsGrid() {
 
               {/* Prix */}
               <div className="mb-6">
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline gap-1.5">
                   <span className="text-5xl font-black text-[#1A1A2E]">{priceInfo.main}</span>
                   <span className="text-base text-[#6B7280]">{priceInfo.unit}</span>
                 </div>
-                <p className="text-[11px] text-[#9CA3AF] mt-0.5">{priceInfo.note}</p>
+                <p className="text-[11px] text-[#9CA3AF] mt-1">{priceInfo.note}</p>
                 {priceInfo.saving && (
                   <p className="text-[11px] text-green-600 font-medium mt-1">{priceInfo.saving}</p>
                 )}
