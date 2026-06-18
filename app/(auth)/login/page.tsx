@@ -57,7 +57,7 @@ function LoginPageInner() {
     setLoading(false)
   }
 
-  const handleOAuth = async (provider: 'google' | 'azure') => {
+  const handleOAuth = async (provider: 'google') => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -99,21 +99,6 @@ function LoginPageInner() {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
             Continuer avec Google
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="w-full"
-            onClick={() => handleOAuth('azure')}
-          >
-            <svg className="w-4 h-4" viewBox="0 0 23 23">
-              <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
-              <path fill="#f35325" d="M1 1h10v10H1z"/>
-              <path fill="#81bc06" d="M12 1h10v10H12z"/>
-              <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-              <path fill="#ffba08" d="M12 12h10v10H12z"/>
-            </svg>
-            Continuer avec Microsoft
           </Button>
         </div>
 
