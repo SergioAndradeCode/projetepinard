@@ -40,11 +40,11 @@ const securityHeaders = [
 
 const nextConfig = {
   transpilePackages: ['recharts'],
+  serverExternalPackages: ['exceljs', '@napi-rs/canvas'],
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost:3000', 'localhost:3001', 'localhost:3002'],
+      allowedOrigins: ['localhost:3000', 'localhost:3001', 'localhost:3002', 'talenth.fr', 'www.talenth.fr'],
     },
-    serverComponentsExternalPackages: ['exceljs', '@napi-rs/canvas'],
   },
   async headers() {
     return [
