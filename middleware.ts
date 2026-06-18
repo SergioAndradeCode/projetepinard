@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  try {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -46,7 +47,7 @@ export async function middleware(request: NextRequest) {
   const adminOnlyRoutes = ['/doeth', '/etablissements']
   const adminOrChargeRoutes = ['/budget', '/parametres']
 
-  function normalizeRole(role: string | null | undefined): 'admin' | 'charge_site' | 'lecteur' {
+  const normalizeRole = (role: string | null | undefined): 'admin' | 'charge_site' | 'lecteur' => {
     if (role === 'admin') return 'admin'
     if (role === 'charge_site' || role === 'charge_mission' || role === 'referent') return 'charge_site'
     return 'lecteur'
@@ -137,6 +138,9 @@ export async function middleware(request: NextRequest) {
   }
 
   return supabaseResponse
+  } catch {
+    return NextResponse.next()
+  }
 }
 
 export const config = {
