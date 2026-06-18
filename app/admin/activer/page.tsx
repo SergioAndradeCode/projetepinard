@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle, XCircle, Loader2, AlertCircle, Building2, User, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -36,7 +36,7 @@ interface Order {
 
 type PageState = 'loading' | 'ready' | 'error' | 'done'
 
-export default function AdminActiverPage() {
+function AdminActiverPageInner() {
   const params = useSearchParams()
   const token  = params.get('token') ?? ''
 
@@ -228,3 +228,5 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
     </div>
   )
 }
+
+export default function AdminActiverPage() { return <Suspense><AdminActiverPageInner /></Suspense> }

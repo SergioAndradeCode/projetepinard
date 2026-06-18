@@ -17,6 +17,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { formatEuros } from '@/lib/utils'
 import type { MoisProjection } from '@/components/dashboard/CarteProjection'
+import type { Establishment, RQTHEmployee, ESATPurchase } from '@/types'
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
 
@@ -38,7 +39,8 @@ export default async function DashboardPage() {
   const scopedEstabId = isScoped ? (profile.establishment_id ?? null) : null
 
   // Helper : ajoute le filtre établissement si l'utilisateur est restreint
-  function withEstab<T>(q: T & { eq: (col: string, val: string) => T }): T {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function withEstab(q: any): any {
     return scopedEstabId ? q.eq('establishment_id', scopedEstabId) : q
   }
 
@@ -58,9 +60,9 @@ export default async function DashboardPage() {
     withEstab(supabase.from('budget_expenses').select('montant').eq('organization_id', orgId)),
   ])
 
-  const sites = etablissements ?? []
-  const sal = salaries ?? []
-  const ach = achats ?? []
+  const sites = (etablissements ?? []) as Establishment[]
+  const sal = (salaries ?? []) as RQTHEmployee[]
+  const ach = (achats ?? []) as ESATPurchase[]
   const allSettings = allSettingsData ?? []
   const settings = allSettings.find(s => s.annee === anneeActuelle) ?? null
 
@@ -154,7 +156,7 @@ export default async function DashboardPage() {
       }
     })
 
-  const depensesTotales = (budgetExpenses ?? []).reduce((s, e) => s + (e.montant ?? 0), 0)
+  const depensesTotales = (budgetExpenses ?? []).reduce((s: number, e: { montant?: number | null }) => s + (e.montant ?? 0), 0)
   const budgetTotal = budgetAlloc?.montant_total ?? 0
 
   // ── BOETH 50+ seniors (actifs uniquement) ────────────────────────────────

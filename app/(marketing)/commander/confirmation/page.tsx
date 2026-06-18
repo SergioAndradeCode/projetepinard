@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, ChevronDown, ArrowLeft } from 'lucide-react'
@@ -20,7 +20,7 @@ const FAQ = [
   },
 ]
 
-export default function ConfirmationPage() {
+function ConfirmationPageInner() {
   const params      = useSearchParams()
   const invoice     = params.get('invoice') ?? ''
   const planName    = params.get('plan')    ?? ''
@@ -117,3 +117,5 @@ export default function ConfirmationPage() {
     </div>
   )
 }
+
+export default function ConfirmationPage() { return <Suspense><ConfirmationPageInner /></Suspense> }

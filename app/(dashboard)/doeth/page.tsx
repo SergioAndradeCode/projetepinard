@@ -893,7 +893,7 @@ export default function DoethPage() {
                 ))}
               </div>
 
-              <Button variant="ghost" className="w-full gap-2 text-[#6B7280]" onClick={() => { setStep(0); setStagiaires(0); setDeductionESATManuel(0); setDeductionAccords(0); setDeductionAutres(0) }}>
+              <Button variant="ghost" className="w-full gap-2 text-[#6B7280]" onClick={() => { setStep(0); setDeductionESATManuel(0); setDeductionAccords(0); setDeductionAutres(0) }}>
                 <RotateCcw className="w-4 h-4" />
                 Recommencer une nouvelle déclaration
               </Button>

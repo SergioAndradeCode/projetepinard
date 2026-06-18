@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -67,7 +67,7 @@ function fmt(n: number): string {
   return n.toFixed(2).replace('.', ',') + ' €'
 }
 
-export default function CommanderPage() {
+function CommanderPageInner() {
   const params = useSearchParams()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -447,3 +447,5 @@ function Field({
     </div>
   )
 }
+
+export default function CommanderPage() { return <Suspense><CommanderPageInner /></Suspense> }

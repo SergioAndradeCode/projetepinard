@@ -30,8 +30,8 @@ const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', '
 const RADIAN = Math.PI / 180
 const renderPieLabel = ({
   cx, cy, midAngle, innerRadius, outerRadius, percent,
-}: { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number }) => {
-  if (percent < 0.05) return null
+}: { cx?: number; cy?: number; midAngle?: number; innerRadius?: number; outerRadius?: number; percent?: number }) => {
+  if (!cx || !cy || !midAngle || !innerRadius || !outerRadius || !percent || percent < 0.05) return null
   const radius = innerRadius + (outerRadius - innerRadius) * 0.58
   const x = cx + radius * Math.cos(-midAngle * RADIAN)
   const y = cy + radius * Math.sin(-midAngle * RADIAN)
