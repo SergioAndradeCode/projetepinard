@@ -7,7 +7,7 @@ import {
   ArrowLeft, Pencil, Trash2, Plus, Loader2, Heart,
   FileText, Upload, Download, FolderOpen, AlertCircle,
   UserCheck, Calendar, Briefcase, Building2, Clock,
-  CheckCircle2, XCircle, Wallet,
+  CheckCircle2, XCircle, Wallet, Archive, RotateCcw,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useProfile } from '@/contexts/ProfileContext'
@@ -21,12 +21,15 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { cn, formatDate } from '@/lib/utils'
 import { getStatutRQTH } from '@/lib/oeth/calculs'
 import type { RQTHEmployee, MaintienEmploi, RQTHDocument, TypeDocument, BudgetExpense } from '@/types'
 import {
   LABEL_RECONNAISSANCE, LABEL_TYPE_SITUATION, LABEL_STATUT_MAINTIEN,
   LABEL_TYPE_DOCUMENT, AMENAGEMENTS_OPTIONS, BUDGET_CATEGORIES_LABELS,
+  LABEL_TYPE_CONTRAT,
 } from '@/types'
 import { formatEuros } from '@/lib/utils'
 
@@ -83,6 +86,9 @@ export default function ProfilRQTHPage() {
   const [editEmployeeOpen, setEditEmployeeOpen]       = useState(false)
   const [deleteEmployeeOpen, setDeleteEmployeeOpen]   = useState(false)
   const [deletingEmployee, setDeletingEmployee]       = useState(false)
+  const [archiveOpen, setArchiveOpen]                 = useState(false)
+  const [archiveDate, setArchiveDate]                 = useState(new Date().toISOString().slice(0, 10))
+  const [archiving, setArchiving]                     = useState(false)
   const [formMaintienOpen, setFormMaintienOpen]       = useState(false)
   const [editSituation, setEditSituation]             = useState<MaintienEmploi | null>(null)
   const [deleteSituationId, setDeleteSituationId]     = useState<string | null>(null)
@@ -145,6 +151,36 @@ export default function ProfilRQTHPage() {
     Promise.all([loadEmployee(), loadSituations(), loadDocuments(), loadDepenses()])
       .finally(() => setLoading(false))
   }, [id, loadEmployee, loadSituations, loadDocuments, loadDepenses])
+
+  // ── Archivage salarié ─────────────────────────────────────────────────────
+  const handleArchive = async () => {
+    setArchiving(true)
+    const { error } = await supabase
+      .from('rqth_employees')
+      .update({ date_sortie_entreprise: archiveDate })
+      .eq('id', id)
+    if (error) {
+      toast.error("Erreur lors de l'archivage")
+    } else {
+      toast.success('Collaborateur archive, presence conservee dans les calculs DOETH')
+      setArchiveOpen(false)
+      await loadEmployee()
+    }
+    setArchiving(false)
+  }
+
+  const handleRestore = async () => {
+    const { error } = await supabase
+      .from('rqth_employees')
+      .update({ date_sortie_entreprise: null })
+      .eq('id', id)
+    if (error) {
+      toast.error('Erreur lors de la restauration')
+    } else {
+      toast.success('Collaborateur restauré dans l\'entreprise')
+      await loadEmployee()
+    }
+  }
 
   // ── Suppression salarié ───────────────────────────────────────────────────
   const handleDeleteEmployee = async () => {
@@ -270,7 +306,9 @@ export default function ProfilRQTHPage() {
     )
   }
 
-  const statut = getStatutRQTH(employee.date_fin, employee.est_permanent)
+  const statut   = getStatutRQTH(employee.date_fin, employee.est_permanent)
+  const isArchived = !!employee.date_sortie_entreprise &&
+    new Date(employee.date_sortie_entreprise) < new Date()
 
   // Calcul UB
   let age = 0
@@ -299,22 +337,52 @@ export default function ProfilRQTHPage() {
           Retour à la liste
         </button>
         {!isReadonly && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={() => setEditEmployeeOpen(true)} className="gap-1.5">
               <Pencil className="w-3.5 h-3.5" />
               Modifier
             </Button>
+            {isArchived ? (
+              <Button
+                variant="outline" size="sm"
+                onClick={handleRestore}
+                className="gap-1.5 border-green-200 text-[#2E7D32] hover:bg-green-50"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Restaurer dans l&apos;entreprise
+              </Button>
+            ) : (
+              <Button
+                variant="outline" size="sm"
+                onClick={() => { setArchiveDate(new Date().toISOString().slice(0, 10)); setArchiveOpen(true) }}
+                className="gap-1.5 border-amber-200 text-[#D97706] hover:bg-amber-50"
+              >
+                <Archive className="w-3.5 h-3.5" />
+                Archiver le départ
+              </Button>
+            )}
             <Button
               variant="outline" size="sm"
               onClick={() => setDeleteEmployeeOpen(true)}
               className="gap-1.5 border-red-200 text-[#B71C1C] hover:bg-red-50 hover:border-red-300"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Supprimer
+              Supprimer définitivement
             </Button>
           </div>
         )}
       </div>
+
+      {/* Banner archivage */}
+      {isArchived && (
+        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600">
+          <Archive className="w-4 h-4 shrink-0 text-gray-400" />
+          <span>
+            Ce collaborateur a quitté la structure le <strong>{formatDate(employee.date_sortie_entreprise!)}</strong>.
+            Sa présence reste comptabilisée dans les calculs DOETH des années antérieures.
+          </span>
+        </div>
+      )}
 
       {/* ── En-tête salarié ──────────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6">
@@ -432,6 +500,39 @@ export default function ProfilRQTHPage() {
               <div className="space-y-1">
                 <p className="text-[11px] text-[#9CA3AF] uppercase tracking-wide font-medium">Bâtiment</p>
                 <p className="text-sm font-medium text-[#1A1A2E]">{employee.batiment}</p>
+              </div>
+            )}
+
+            {/* Type de contrat */}
+            <div className="space-y-1">
+              <p className="text-[11px] text-[#9CA3AF] uppercase tracking-wide font-medium flex items-center gap-1.5">
+                <Briefcase className="w-3 h-3" />Type de contrat
+              </p>
+              <p className="text-sm font-medium text-[#1A1A2E]">
+                {LABEL_TYPE_CONTRAT[employee.type_contrat ?? 'cdi']}
+              </p>
+            </div>
+
+            {/* Date de fin de contrat */}
+            {employee.date_fin_contrat && (
+              <div className="space-y-1">
+                <p className="text-[11px] text-[#9CA3AF] uppercase tracking-wide font-medium flex items-center gap-1.5">
+                  <Calendar className="w-3 h-3" />Fin de contrat
+                </p>
+                {(() => {
+                  const fin = new Date(employee.date_fin_contrat + 'T00:00:00')
+                  const depasse = fin < new Date() && !isArchived
+                  return (
+                    <p className={`text-sm font-medium ${depasse ? 'text-red-600' : 'text-[#1A1A2E]'}`}>
+                      {formatDate(employee.date_fin_contrat)}
+                      {depasse && (
+                        <span className="ml-2 text-xs bg-red-50 border border-red-200 text-red-600 px-2 py-0.5 rounded-full">
+                          Contrat termine - a archiver
+                        </span>
+                      )}
+                    </p>
+                  )
+                })()}
               </div>
             )}
           </div>
@@ -670,14 +771,54 @@ export default function ProfilRQTHPage() {
         employee={employee}
       />
 
+      {/* Modal archivage */}
+      <Dialog open={archiveOpen} onOpenChange={(v) => !v && setArchiveOpen(false)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Archiver le départ</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-[#6B7280]">
+            <strong>{employee.prenom} {employee.nom}</strong> sera marqué(e) comme ayant quitté la structure.
+            Sa présence restera comptabilisée dans les calculs DOETH des années où il/elle était présent(e).
+          </p>
+          <div className="space-y-2 mt-2">
+            <Label htmlFor="archive-date-profile">Date de départ</Label>
+            <Input
+              id="archive-date-profile"
+              type="date"
+              value={archiveDate}
+              onChange={e => setArchiveDate(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-3 mt-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setArchiveOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              className="flex-1 bg-[#D97706] hover:bg-[#B45309] text-white gap-2"
+              onClick={handleArchive}
+              disabled={archiving || !archiveDate}
+            >
+              {archiving && <Loader2 className="w-4 h-4 animate-spin" />}
+              <Archive className="w-4 h-4" />
+              Archiver
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Suppression salarié */}
       <Dialog open={deleteEmployeeOpen} onOpenChange={(v) => !v && setDeleteEmployeeOpen(false)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Supprimer ce salarié ?</DialogTitle>
+            <DialogTitle>Suppression définitive</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-[#6B7280]">
-            La reconnaissance de <strong>{employee.prenom} {employee.nom}</strong> et tous ses documents seront supprimés. Cette action est irréversible.
+            La reconnaissance de <strong>{employee.prenom} {employee.nom}</strong> et tous ses documents seront supprimés.
+            Cette action est <strong>irréversible</strong> et efface les données des calculs DOETH historiques.
+          </p>
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-1">
+            Si ce salarié a simplement quitté l&apos;entreprise, utilisez <strong>Archiver le départ</strong> pour conserver l&apos;historique.
           </p>
           <div className="flex gap-3 mt-2">
             <Button variant="secondary" className="flex-1" onClick={() => setDeleteEmployeeOpen(false)}>
@@ -685,7 +826,7 @@ export default function ProfilRQTHPage() {
             </Button>
             <Button variant="destructive" className="flex-1" onClick={handleDeleteEmployee} disabled={deletingEmployee}>
               {deletingEmployee && <Loader2 className="w-4 h-4 animate-spin mr-1" />}
-              Supprimer
+              Supprimer définitivement
             </Button>
           </div>
         </DialogContent>

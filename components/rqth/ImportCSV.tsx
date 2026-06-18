@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import type { TypeReconnaissance } from '@/types'
+import type { TypeReconnaissance, TypeContrat } from '@/types'
 
 interface ImportCSVProps {
   open: boolean
@@ -31,11 +31,24 @@ interface LigneCSV {
   taux_temps_travail: string
   date_naissance: string
   matricule: string
-  etablissement: string        // nom saisi dans le CSV
-  etablissement_id: string | null  // ID résolu depuis le nom
+  etablissement: string
+  etablissement_id: string | null
+  type_contrat: string
   _valide: boolean
   _erreurs: string[]
 }
+
+// ─── Valeurs du menu déroulant « Type de contrat » ───────────────────────────
+const TYPES_CONTRAT_VALIDES: Record<string, TypeContrat> = {
+  'cdi': 'cdi', 'contrat a duree indeterminee': 'cdi',
+  'cdd': 'cdd', 'contrat a duree determinee': 'cdd',
+  'alternant': 'alternant', 'alternance': 'alternant', 'apprentissage': 'alternant',
+  'contrat de professionnalisation': 'alternant', 'contrat pro': 'alternant',
+  'stagiaire': 'stagiaire', 'stage': 'stagiaire',
+  'interimaire': 'interimaire', 'interim': 'interimaire', 'intérimaire': 'interimaire',
+  'autre': 'autre',
+}
+const TYPE_CONTRAT_OPTIONS = ['CDI', 'CDD', 'Alternant', 'Stagiaire', 'Interimaire', 'Autre'] as const
 
 // ─── Valeurs du menu déroulant « Type de reconnaissance » ─────────────────────
 const TYPE_RECO_OPTIONS = [
@@ -107,6 +120,9 @@ const HEADER_MAP: Record<string, string> = {
   // matricule
   'matricule': 'matricule', 'code_interne': 'matricule', 'code interne': 'matricule',
   'code interne / matricule': 'matricule', 'id': 'matricule', 'identifiant': 'matricule',
+  // type_contrat
+  'type_contrat': 'type_contrat', 'type contrat': 'type_contrat', 'contrat': 'type_contrat',
+  'type de contrat': 'type_contrat', 'nature contrat': 'type_contrat',
   // etablissement (centre) ← nouveau
   'etablissement': 'etablissement',
   'établissement': 'etablissement',
@@ -162,8 +178,9 @@ function parseCSV(
       prenom: '', nom: '', type_reconnaissance: '', date_debut: '',
       date_fin: '', est_permanent: '', taux_temps_travail: '',
       date_naissance: '', matricule: '', etablissement: '', etablissement_id: null,
+      type_contrat: '',
       _valide: false,
-      _erreurs: [`Colonnes non reconnues. En-têtes détectés : "${headers.join('", "')}". Utilisez le modèle fourni.`],
+      _erreurs: [`Colonnes non reconnues. En-tetes detectes : "${headers.join('", "')}". Utilisez le modele fourni.`],
     }]
   }
 
@@ -245,6 +262,7 @@ function parseCSV(
       matricule:           row['matricule'] ?? '',
       etablissement:       nomEtab,
       etablissement_id:    etablissementId,
+      type_contrat:        row['type_contrat'] ?? '',
       _valide:             erreurs.length === 0,
       _erreurs:            erreurs,
     }
@@ -279,6 +297,7 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
     { key: 'date_naissance',      width: 30 },
     { key: 'matricule',           width: 26 },
     { key: 'etablissement',       width: 30 },
+    { key: 'type_contrat',        width: 22 },
   ]
 
   // Ligne 1 — titres de colonnes
@@ -292,7 +311,8 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
     'Taux temps travail (%)',
     'Date de naissance (jj/mm/aaaa)',
     'Code interne / Matricule',
-    'Centre / Établissement',
+    'Centre / Etablissement',
+    'Type de contrat',
   ])
   headerRow.height = 34
   headerRow.eachCell(cell => {
@@ -313,19 +333,20 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
   const subRow = ws.addRow([
     '★ Obligatoire',
     '★ Obligatoire',
-    '★ Obligatoire, liste déroulante',
+    '★ Obligatoire, liste deroulante',
     '★ Obligatoire, JJ/MM/AAAA',
     'Optionnel, JJ/MM/AAAA',
     '★ Obligatoire, Oui / Non',
-    '★ Obligatoire (1–100)',
+    '★ Obligatoire (1-100)',
     '★ Obligatoire, JJ/MM/AAAA',
     '★ Obligatoire',
     etabSubLabel,
+    'Optionnel, liste deroulante (CDI par defaut)',
   ])
   subRow.height = 20
-  // Colonne 5 (date_fin) = optionnel → bleu ; toutes les autres → orange/requis
+  // Colonnes optionnelles : 5 (date_fin) et 11 (type_contrat)
   subRow.eachCell((cell, colNum) => {
-    const optional = colNum === 5
+    const optional = colNum === 5 || colNum === 11
     cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: optional ? 'FFEBF2FA' : 'FFFFF3E0' } }
     cell.font      = { size: 8.5, italic: true, name: 'Calibri',
                        color: { argb: optional ? 'FF1E4A8C' : 'FFB71C1C' } }
@@ -336,9 +357,9 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
   const ex1Etab = etabNames[0] ?? 'Siège social'
   const ex2Etab = etabNames[1] ?? etabNames[0] ?? 'Site Lyon'
   const examples = [
-    ['Marie',  'Dupont',  'RQTH',                     '15/01/2023', '14/01/2026', 'Non', 100, '20/06/1985', 'EMP001', ex1Etab],
-    ['Jean',   'Martin',  'AAH',                      '01/06/2022', '',           'Oui', 80,  '12/03/1970', 'EMP002', ex2Etab],
-    ['Sophie', 'Bernard', 'Pension invalidité 2e cat.','15/03/2024', '',           'Oui', 100, '08/11/1988', 'EMP003', ex1Etab],
+    ['Marie',  'Dupont',  'RQTH',                      '15/01/2023', '14/01/2026', 'Non', 100, '20/06/1985', 'EMP001', ex1Etab, 'CDI'],
+    ['Jean',   'Martin',  'AAH',                       '01/06/2022', '',           'Oui', 80,  '12/03/1970', 'EMP002', ex2Etab, 'CDI'],
+    ['Sophie', 'Bernard', 'Pension invalidite 2e cat.', '15/03/2024', '',           'Oui', 100, '08/11/1988', 'EMP003', ex1Etab, 'CDD'],
   ]
   examples.forEach((ex, idx) => {
     const row = ws.addRow(ex)
@@ -368,15 +389,23 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
       showErrorMessage: true, errorStyle: 'warning',
       errorTitle: 'Valeur invalide', error: 'Indiquez Oui ou Non',
     }
-    // Colonne J — établissement (si plusieurs)
+    // Colonne J - etablissement (si plusieurs)
     if (etabNames.length > 1) {
       ws.getCell(`J${r}`).dataValidation = {
         type: 'list', allowBlank: false,
         formulae: [`"${etabNames.join(',')}"`],
         showErrorMessage: true, errorStyle: 'warning',
         errorTitle: 'Centre inconnu',
-        error: `Sélectionnez parmi : ${etabNames.join(', ')}`,
+        error: `Selectionnez parmi : ${etabNames.join(', ')}`,
       }
+    }
+    // Colonne K - type de contrat (optionnel, CDI par defaut)
+    ws.getCell(`K${r}`).dataValidation = {
+      type: 'list', allowBlank: true,
+      formulae: [`"${TYPE_CONTRAT_OPTIONS.join(',')}"`],
+      showErrorMessage: true, errorStyle: 'warning',
+      errorTitle: 'Valeur inconnue',
+      error: `Selectionnez dans la liste : ${TYPE_CONTRAT_OPTIONS.join(', ')}`,
     }
   }
 
@@ -413,8 +442,10 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
     ['Taux temps travail (%)',         'Oui', 'Pourcentage du temps de travail contractuel',               '100 = temps plein · 80 · 50'],
     ['Date de naissance (jj/mm/aaaa)', 'Oui', 'Date de naissance du salarié',                             '20/06/1985, format JJ/MM/AAAA'],
     ['Code interne / Matricule',       'Oui', 'Matricule ou identifiant RH interne',                      'EMP001, M0042…'],
-    ['Centre / Établissement',         etabNames.length === 1 ? 'Auto' : 'Oui', etabDesc,
-      etabNames.length > 0 ? etabNames.join(' · ') : 'Nom exact tel qu\'enregistré dans Talenth'],
+    ['Centre / Etablissement',          etabNames.length === 1 ? 'Auto' : 'Oui', etabDesc,
+      etabNames.length > 0 ? etabNames.join(' · ') : 'Nom exact tel qu\'enregistre dans Talenth'],
+    ['Type de contrat',                 'Non', 'CDI par defaut si absent. Stagiaires et interimaires exclus des calculs OETH.',
+      TYPE_CONTRAT_OPTIONS.join(' · ')],
   ]
 
   lgData.forEach(([col, req, desc, ex], i) => {
@@ -430,9 +461,9 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
 
   lg.addRow([])
   const noteRow = lg.addRow([
-    "ℹ️  Seule la colonne « Date fin » est optionnelle. " +
-    "Toutes les autres colonnes sont obligatoires, les lignes incomplètes sont ignorées à l'import. " +
-    "Les dates sont acceptées au format JJ/MM/AAAA ou AAAA-MM-JJ.",
+    "Les colonnes « Date fin » et « Type de contrat » sont optionnelles. " +
+    "Toutes les autres colonnes sont obligatoires, les lignes incompletes sont ignorees a l'import. " +
+    "Les dates sont acceptees au format JJ/MM/AAAA ou AAAA-MM-JJ.",
   ])
   noteRow.getCell(1).font = { italic: true, color: { argb: 'FF6B7280' }, size: 9, name: 'Calibri' }
   lg.mergeCells(`A${noteRow.number}:D${noteRow.number}`)
@@ -518,6 +549,7 @@ export function ImportCSV({ open, onClose, onSuccess, organizationId }: ImportCS
         taux_temps_travail:  Math.min(100, Math.max(0, parseFloat(l.taux_temps_travail) || 100)),
         date_naissance:      parseDate(l.date_naissance) ?? null,
         matricule:           l.matricule.trim() || null,
+        type_contrat:        TYPES_CONTRAT_VALIDES[l.type_contrat.trim().toLowerCase()] ?? 'cdi',
       }))
 
       const { error } = await supabase.from('rqth_employees').insert(payload)

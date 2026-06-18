@@ -19,7 +19,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
 import type { RQTHEmployee, Establishment } from '@/types'
-import { LABEL_RECONNAISSANCE } from '@/types'
+import { LABEL_RECONNAISSANCE, LABEL_TYPE_CONTRAT } from '@/types'
 
 const schema = z.object({
   nom: z.string().min(1, 'Nom requis'),
@@ -31,6 +31,7 @@ const schema = z.object({
   batiment: z.string().nullable(),
   taux_temps_travail: z.number().int().min(1).max(100),
   establishment_id: z.string().nullable(),
+  type_contrat: z.enum(['cdi', 'cdd', 'alternant', 'stagiaire', 'interimaire', 'autre']),
   type_reconnaissance: z.enum([
     'rqth', 'pension_invalidite_2', 'pension_invalidite_3',
     'aah', 'carte_mobilite_invalidite', 'rente_at_mp',
@@ -38,6 +39,7 @@ const schema = z.object({
   date_debut: z.string().min(1, 'Date de début requise'),
   est_permanent: z.boolean(),
   date_fin: z.string().nullable(),
+  date_fin_contrat: z.string().nullable(),
   notes: z.string().nullable(),
 })
 type FormData = z.infer<typeof schema>
@@ -79,10 +81,12 @@ export function FormRQTH({ open, onClose, onSuccess, organizationId, employee, d
       batiment: null,
       taux_temps_travail: 100,
       establishment_id: defaultEstablishmentId ?? null,
+      type_contrat: 'cdi',
       type_reconnaissance: 'rqth',
       date_debut: '',
       est_permanent: false,
       date_fin: null,
+      date_fin_contrat: null,
       notes: null,
     },
   })
@@ -93,16 +97,18 @@ export function FormRQTH({ open, onClose, onSuccess, organizationId, employee, d
         nom: employee.nom,
         prenom: employee.prenom,
         matricule: employee.matricule,
-        date_naissance: employee.date_naissance ?? '',  // '' déclenchera la validation si absent
+        date_naissance: employee.date_naissance ?? '',
         service: employee.service,
         poste: employee.poste,
         batiment: employee.batiment ?? null,
         taux_temps_travail: employee.taux_temps_travail ?? 100,
         establishment_id: employee.establishment_id ?? null,
+        type_contrat: employee.type_contrat ?? 'cdi',
         type_reconnaissance: employee.type_reconnaissance,
         date_debut: employee.date_debut,
         est_permanent: employee.est_permanent,
         date_fin: employee.date_fin,
+        date_fin_contrat: employee.date_fin_contrat ?? null,
         notes: employee.notes,
       })
     } else {
@@ -116,18 +122,21 @@ export function FormRQTH({ open, onClose, onSuccess, organizationId, employee, d
         batiment: null,
         taux_temps_travail: 100,
         establishment_id: defaultEstablishmentId ?? null,
+        type_contrat: 'cdi',
         type_reconnaissance: 'rqth',
         date_debut: '',
         est_permanent: false,
         date_fin: null,
+        date_fin_contrat: null,
         notes: null,
       })
     }
   }, [employee, reset, open, defaultEstablishmentId])
 
-  const estPermanent = watch('est_permanent')
-  const tauxTemps = watch('taux_temps_travail')
+  const estPermanent  = watch('est_permanent')
+  const tauxTemps    = watch('taux_temps_travail')
   const dateNaissance = watch('date_naissance')
+  const typeContrat  = watch('type_contrat')
 
   // Calcul live du coefficient senior et de l'aperçu UB
   const seniorInfo = useMemo(() => {
@@ -147,6 +156,7 @@ export function FormRQTH({ open, onClose, onSuccess, organizationId, employee, d
 
   const onSubmit = async (data: FormData) => {
     setLoading(true)
+    const typesSansFinContrat = new Set(['cdi'])
     const payload: Record<string, unknown> = {
       ...data,
       matricule: data.matricule || null,
@@ -156,6 +166,7 @@ export function FormRQTH({ open, onClose, onSuccess, organizationId, employee, d
       notes: data.notes || null,
       establishment_id: data.establishment_id || null,
       date_fin: data.est_permanent ? null : data.date_fin,
+      date_fin_contrat: typesSansFinContrat.has(data.type_contrat) ? null : (data.date_fin_contrat || null),
       organization_id: organizationId,
     }
 
@@ -293,6 +304,74 @@ export function FormRQTH({ open, onClose, onSuccess, organizationId, employee, d
                 )}
               </div>
               <p className="text-xs text-[#6B7280]">Un temps partiel réduit proportionnellement les unités bénéficiaires</p>
+            </div>
+          </div>
+
+          {/* Type de contrat */}
+          <div className="border-t border-[#E2E8F0] pt-4">
+            <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3">Type de contrat</p>
+            <div className="space-y-2">
+              <Select
+                defaultValue={employee?.type_contrat ?? 'cdi'}
+                onValueChange={(v) => setValue('type_contrat', v as FormData['type_contrat'])}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(LABEL_TYPE_CONTRAT).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {typeContrat === 'stagiaire' && (
+                <div className="bg-[#EBF2FA] border border-[#1E4A8C]/20 rounded-lg px-3 py-2.5 text-xs text-[#1E4A8C] space-y-1">
+                  <p><strong>Suivi interne uniquement - non comptabilisé OETH</strong></p>
+                  <p>
+                    Les stagiaires ne sont pas des salariés au sens du Code du travail (pas de contrat de travail).
+                    Depuis la réforme de 2020, ils sont exclus du calcul des unités bénéficiaires et de l&apos;effectif d&apos;assujettissement OETH.
+                  </p>
+                  <p>
+                    Vous pouvez les enregistrer ici pour piloter votre politique handicap en interne (suivi des reconnaissances, alertes de renouvellement),
+                    mais ce collaborateur n&apos;apparaîtra pas dans vos calculs DOETH ni dans votre déclaration.
+                  </p>
+                </div>
+              )}
+
+              {typeContrat === 'alternant' && (
+                <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2.5 text-xs text-green-800 space-y-1">
+                  <p><strong>Comptabilise comme salarie BOETH dans votre DOETH</strong></p>
+                  <p>
+                    Les alternants (apprentissage ou professionnalisation) sont des salariés à part entière titulaires d&apos;un contrat de travail.
+                    Ils sont inclus dans l&apos;effectif d&apos;assujettissement et comptent normalement dans vos unités bénéficiaires OETH, comme tout autre salarié.
+                  </p>
+                  <p>
+                    Ce collaborateur sera automatiquement pris en compte dans vos calculs DOETH, proratisé selon ses mois de présence et son taux de temps de travail.
+                  </p>
+                </div>
+              )}
+
+              {typeContrat === 'interimaire' && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-xs text-amber-800">
+                  <strong>Important :</strong> Pour les intérimaires, l&apos;Obligation d&apos;Emploi des Travailleurs Handicapés (OETH)
+                  incombe à l&apos;entreprise de travail temporaire (l&apos;agence), pas à votre entreprise.
+                  Ce collaborateur peut être enregistré pour votre suivi interne, mais ne sera pas comptabilisé
+                  dans vos unités bénéficiaires ni dans votre DOETH.
+                </div>
+              )}
+
+              {typeContrat !== 'cdi' && (
+                <div className="space-y-1.5 pt-1">
+                  <Label>Date de fin de contrat <span className="text-[#6B7280] font-normal">(optionnel)</span></Label>
+                  <Input type="date" className="w-44" {...register('date_fin_contrat')} />
+                  <p className="text-xs text-[#6B7280]">
+                    {typeContrat === 'interimaire'
+                      ? "Date de fin de mission. Ne remplace pas l'archivage lors du départ effectif."
+                      : "Utile pour les alertes calendrier et les extractions. Ne remplace pas l'archivage lors du départ effectif."}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

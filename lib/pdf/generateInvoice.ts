@@ -216,7 +216,7 @@ export async function generateInvoice(data: InvoiceData): Promise<Uint8Array> {
   // ── Ligne produit ────────────────────────────────────────────────────────
   drawRect(page, M - 6, y - 14, W + 12, 32, C_WHITE)
 
-  const designation = `Abonnement Talenth — Plan ${data.planName}`
+  const designation = `Abonnement Talenth - Plan ${data.planName}`
   const subline     = data.billingCycleLabel + ' · Accès SaaS pilotage OETH'
 
   txt(page, designation, colDesc, y + 6,  bold,    9, C_DARK, 'left', colQty - colDesc - 10)

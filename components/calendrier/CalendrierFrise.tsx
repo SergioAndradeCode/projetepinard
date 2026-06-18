@@ -132,6 +132,11 @@ const TYPE_CONFIG: Record<TypeEvenement, { label: string; color: string; icon: R
     color: 'bg-red-50 text-[#B71C1C] border border-red-200',
     icon: <Star className="w-3.5 h-3.5" />,
   },
+  fin_contrat: {
+    label: 'Fin de contrat',
+    color: 'bg-orange-50 text-orange-700 border border-orange-200',
+    icon: <FileText className="w-3.5 h-3.5" />,
+  },
 }
 
 const EVENEMENTS_PRIORITAIRES = ['SEEPH', 'DuoDay', 'Journée mondiale']

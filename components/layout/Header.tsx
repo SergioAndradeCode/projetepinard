@@ -1,7 +1,6 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { EtablissementSelector } from './EtablissementSelector'
 
 const PAGE_TITLES: Record<string, { title: string; description: string }> = {
   '/dashboard': { title: 'Tableau de bord', description: "Vue d'ensemble de votre conformité OETH" },
@@ -22,16 +21,11 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 bg-[#F8FAFC]/95 backdrop-blur border-b border-[#E2E8F0] px-6 py-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-[22px] font-semibold text-[#1A1A2E] truncate">{page.title}</h1>
-          {page.description && (
-            <p className="text-sm text-[#6B7280] mt-0.5">{page.description}</p>
-          )}
-        </div>
-        <div className="shrink-0">
-          <EtablissementSelector />
-        </div>
+      <div className="min-w-0">
+        <h1 className="text-[22px] font-semibold text-[#1A1A2E] truncate">{page.title}</h1>
+        {page.description && (
+          <p className="text-sm text-[#6B7280] mt-0.5">{page.description}</p>
+        )}
       </div>
     </header>
   )

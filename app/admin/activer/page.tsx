@@ -104,7 +104,7 @@ export default function AdminActiverPage() {
         {/* Header */}
         <div className="text-center mb-6">
           <p className="text-lg font-bold text-[#1E4A8C]">Talenth</p>
-          <p className="text-xs text-[#6B7280]">Interface d&apos;activation — Accès admin</p>
+          <p className="text-xs text-[#6B7280]">Interface d&apos;activation : Accès admin</p>
         </div>
 
         {state === 'loading' && (

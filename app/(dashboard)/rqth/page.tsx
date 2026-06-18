@@ -60,14 +60,34 @@ export default function RQTHPage() {
 
   // Profil national = pas d'établissement lié dans le profil
   const isNational = !establishmentId
-  const [filtreEtab, setFiltreEtab] = useState<string>('')
+  const [filtreEtab, setFiltreEtab]             = useState<string>('')
+  const [filtrePresence, setFiltrePresence]       = useState<'presents' | 'archives' | 'tous'>('presents')
 
   const filtered = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
     let list = salaries
     if (selectedEstablishmentId) list = list.filter(s => s.establishment_id === selectedEstablishmentId)
     if (filtreEtab)              list = list.filter(s => s.establishment_id === filtreEtab)
+    if (filtrePresence === 'presents') {
+      list = list.filter(s => !s.date_sortie_entreprise || new Date(s.date_sortie_entreprise) >= today)
+    } else if (filtrePresence === 'archives') {
+      list = list.filter(s => !!s.date_sortie_entreprise && new Date(s.date_sortie_entreprise) < today)
+    }
     return list
-  }, [salaries, selectedEstablishmentId, filtreEtab])
+  }, [salaries, selectedEstablishmentId, filtreEtab, filtrePresence])
+
+  const countPresents = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return salaries.filter(s => !s.date_sortie_entreprise || new Date(s.date_sortie_entreprise) >= today).length
+  }, [salaries])
+
+  const countArchives = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return salaries.filter(s => !!s.date_sortie_entreprise && new Date(s.date_sortie_entreprise) < today).length
+  }, [salaries])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = useMemo(
@@ -108,14 +128,14 @@ export default function RQTHPage() {
               try {
                 await triggerExport({
                   type: 'rqth',
-                  data: { orgName: '', salaries, etablissements },
-                  filename: `Talenth_RQTH_${new Date().toISOString().slice(0, 10)}.xlsx`,
+                  data: { orgName: '', salaries: filtered, etablissements },
+                  filename: `Talenth_RQTH_${filtrePresence}_${new Date().toISOString().slice(0, 10)}.xlsx`,
                 })
               } catch { toast.error("Erreur lors de l'export") }
               finally { setExporting(false) }
             }}>
             {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            Excel
+            Excel {filtrePresence === 'archives' ? '(archivés)' : filtrePresence === 'tous' ? '(tous)' : ''}
           </Button>
           {profile?.role !== 'lecteur' && (
             <>
@@ -133,6 +153,32 @@ export default function RQTHPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
+
+        {/* Filtre présence */}
+        <div className="flex items-center gap-2 mb-5 pb-4 border-b border-[#E2E8F0]">
+          {([
+            { key: 'presents', label: 'Présents', count: countPresents },
+            { key: 'archives', label: 'Archivés (partis)', count: countArchives },
+            { key: 'tous',     label: 'Tous',     count: salaries.length },
+          ] as const).map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setFiltrePresence(key)}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+                filtrePresence === key
+                  ? 'bg-[#1E4A8C] text-white'
+                  : 'bg-[#F1F5F9] text-[#6B7280] hover:bg-[#E2E8F0]'
+              }`}
+            >
+              {label}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                filtrePresence === key ? 'bg-white/20 text-white' : 'bg-white text-[#6B7280]'
+              }`}>
+                {count}
+              </span>
+            </button>
+          ))}
+        </div>
 
         {/* Filtre Site, profil national uniquement, si plusieurs établissements */}
         {isNational && etablissements.length > 1 && (

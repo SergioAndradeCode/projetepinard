@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { CheckCircle, Loader2, ExternalLink, Zap, Shield, Users, Building2 } from 'lucide-react'
+import { CheckCircle, Loader2, ExternalLink, Zap, Shield, Users, Building2, ArrowRight, Building } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useSubscription } from '@/contexts/SubscriptionContext'
@@ -42,9 +43,16 @@ export default function BillingPage() {
   const [loadingPlan, setLoadingPlan]     = useState<string | null>(null)
   const [loadingPortal, setLoadingPortal] = useState(false)
   const [syncing, setSyncing]             = useState(false)
+  const [userEmail, setUserEmail]         = useState<string | null>(null)
   const searchParams = useSearchParams()
   const router       = useRouter()
   const syncDone     = useRef(false)
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email ?? null)
+    })
+  }, [])
 
   // ── Synchronisation après retour du checkout Stripe ──────────────────────
   useEffect(() => {
@@ -237,28 +245,31 @@ export default function BillingPage() {
               <div className="mb-4">
                 {selectedCycle === 'annual_upfront' ? (
                   <>
-                    <span className="text-3xl font-extrabold text-[#1A1A2E]">
-                      {(amount / 100).toFixed(0)}€
-                    </span>
-                    <span className="text-sm text-[#6B7280]">/an</span>
-                    <p className="text-xs text-[#6B7280] mt-0.5">
-                      1 paiement · 12 mois d&apos;accès
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-[#1A1A2E]">
+                        {(amount / 100).toFixed(0)}€
+                      </span>
+                      <span className="text-sm text-[#6B7280]">HT / an</span>
+                    </div>
+                    <p className="text-xs text-[#9CA3AF] mt-0.5">
+                      soit {(amount / 100 * 1.2).toFixed(0)}€ TTC · 1 paiement · 12 mois
                     </p>
                     <p className="text-xs text-green-600 font-medium mt-0.5">
-                      Soit {Math.round(amount / 100 / 12)}€/mois effectif
+                      Soit {Math.round(amount / 100 / 12)}€ HT/mois effectif
                     </p>
                   </>
                 ) : (
                   <>
-                    <span className="text-3xl font-extrabold text-[#1A1A2E]">
-                      {(amount / 100).toFixed(0)}€
-                    </span>
-                    <span className="text-sm text-[#6B7280]">/mois</span>
-                    {selectedCycle === 'annual_monthly' && (
-                      <p className="text-xs text-[#6B7280] mt-0.5">
-                        Engagement 12 mois · paiement mensuel
-                      </p>
-                    )}
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-[#1A1A2E]">
+                        {(amount / 100).toFixed(0)}€
+                      </span>
+                      <span className="text-sm text-[#6B7280]">HT / mois</span>
+                    </div>
+                    <p className="text-xs text-[#9CA3AF] mt-0.5">
+                      soit {(amount / 100 * 1.2).toFixed(2)}€ TTC
+                      {selectedCycle === 'annual_monthly' ? ' · Engagement 12 mois' : ' · Sans engagement'}
+                    </p>
                   </>
                 )}
               </div>
@@ -296,9 +307,19 @@ export default function BillingPage() {
                 ) : loadingPlan === id ? (
                   <><Loader2 className="w-4 h-4 animate-spin mr-2" />Chargement…</>
                 ) : (
-                  'Choisir ce plan'
+                  'Payer par carte bancaire'
                 )}
               </Button>
+              {!isCurrentPlan && (
+                <a
+                  href={`/commander?plan=${id}&cycle=${selectedCycle}${userEmail ? `&email=${encodeURIComponent(userEmail)}` : ''}`}
+                  className="flex items-center justify-center gap-1.5 w-full mt-2 px-3 py-2 rounded-lg border border-[#E2E8F0] text-xs font-medium text-[#6B7280] hover:border-[#1E4A8C] hover:text-[#1E4A8C] transition-colors"
+                >
+                  <Building className="w-3.5 h-3.5 shrink-0" />
+                  Payer par virement / bon de commande
+                  <ArrowRight className="w-3 h-3 ml-auto" />
+                </a>
+              )}
             </div>
           )
         })}
@@ -331,11 +352,12 @@ export default function BillingPage() {
         </a>
       </div>
 
-      {/* Note TVA */}
-      <p className="text-xs text-[#6B7280] text-center">
-        Tarifs HT, TVA 20% applicable. Paiement par carte bancaire ou prélèvement SEPA.
-        Factures PDF disponibles dans l&apos;espace client Stripe.
-      </p>
+      {/* Note TVA + virement */}
+      <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 text-xs text-[#6B7280] space-y-1.5">
+        <p><strong className="text-[#1A1A2E]">Tarifs affichés hors taxes (HT).</strong> TVA 20% applicable. Le montant TTC est indiqué sous chaque prix.</p>
+        <p>Paiement par carte bancaire via Stripe (activation immédiate) ou par virement bancaire sur facture (activation sous 24h ouvrées).</p>
+        <p>Pour le virement, utilisez bien <strong className="text-[#1A1A2E]">la même adresse email que votre compte Talenth</strong> lors de la commande, cela permet de lier automatiquement le paiement a votre espace.</p>
+      </div>
     </div>
   )
 }

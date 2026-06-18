@@ -21,11 +21,23 @@ export function CalendrierWrapper({ evenementsOrg, salaries, establishments, can
   const [activeTab, setActiveTab] = useState<Tab>('calendrier')
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const nbExpirantBientot = salaries.filter((s) => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const presents = salaries.filter(s => !s.date_sortie_entreprise || new Date(s.date_sortie_entreprise) >= today)
+
+  const nbExpirantBientot = presents.filter((s) => {
     if (s.est_permanent || !s.date_fin) return false
     const j = joursRestants(s.date_fin)
     return j >= 0 && j <= 90
   }).length
+
+  const nbFinContratBientot = presents.filter((s) => {
+    if (!s.date_fin_contrat) return false
+    const j = joursRestants(s.date_fin_contrat)
+    return j >= 0 && j <= 30
+  }).length
+
+  const nbAlertes = nbExpirantBientot + nbFinContratBientot
 
   return (
     <div>
@@ -65,10 +77,10 @@ export function CalendrierWrapper({ evenementsOrg, salaries, establishments, can
           }`}
         >
           <Users className="w-4 h-4" />
-          Suivi validité RQTH
-          {nbExpirantBientot > 0 && (
+          Suivi validite / Contrats
+          {nbAlertes > 0 && (
             <span className="bg-red-100 text-red-700 text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">
-              {nbExpirantBientot}
+              {nbAlertes}
             </span>
           )}
         </button>

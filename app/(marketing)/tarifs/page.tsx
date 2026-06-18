@@ -1,11 +1,11 @@
 import Link from 'next/link'
-import { CheckCircle, ArrowRight, HelpCircle } from 'lucide-react'
+import { CheckCircle, ArrowRight, HelpCircle, UserPlus, PlayCircle, CreditCard } from 'lucide-react'
 import { TarifsGrid } from '@/components/marketing/TarifsGrid'
 import { FEATURES } from '@/lib/plans'
 
 export const metadata = {
   title: 'Tarifs | Talenth',
-  description: 'Des tarifs simples et transparents pour gérer votre conformité OETH. Essai gratuit 10 jours, sans carte bancaire.',
+  description: 'Des tarifs simples et transparents pour gérer votre conformité OETH. Essai gratuit 10 jours, sans carte bancaire. Tous les tarifs sont affichés hors taxes (HT).',
 }
 
 const FAQ = [
@@ -61,9 +61,39 @@ export default function TarifsPage() {
         </div>
       </section>
 
-      {/* Plans grid */}
+      {/* Bannière HT + comment souscrire */}
+      <section className="max-w-4xl mx-auto px-6 mb-10">
+        <div className="bg-[#EBF2FA] border border-[#1E4A8C]/20 rounded-2xl p-6">
+          <p className="text-xs font-bold text-[#1E4A8C] uppercase tracking-widest mb-4">Comment souscrire</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { icon: UserPlus,    step: '1', title: 'Créez votre compte', desc: 'Essai gratuit 10 jours, sans carte bancaire. Votre espace est opérationnel en 5 minutes.' },
+              { icon: PlayCircle,  step: '2', title: 'Explorez Talenth', desc: 'Configurez vos établissements, importez vos données, découvrez toutes les fonctionnalités.' },
+              { icon: CreditCard,  step: '3', title: 'Activez votre abonnement', desc: 'Depuis votre espace, onglet Paramètres > Abonnement. Paiement par carte ou virement bancaire.' },
+            ].map(({ icon: Icon, step, title, desc }) => (
+              <div key={step} className="flex gap-3">
+                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1E4A8C] text-white text-xs font-bold flex items-center justify-center mt-0.5">
+                  {step}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Icon className="w-3.5 h-3.5 text-[#1E4A8C]" />
+                    <p className="text-sm font-semibold text-[#1A1A2E]">{title}</p>
+                  </div>
+                  <p className="text-xs text-[#6B7280] leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="text-center text-xs text-[#9CA3AF] mt-3">
+          Tous les tarifs ci-dessous sont affichés <strong className="text-[#6B7280]">hors taxes (HT)</strong>. TVA 20% applicable.
+        </p>
+      </section>
+
+      {/* Plans grid — mode informatif uniquement */}
       <section className="max-w-6xl mx-auto px-6 mb-20">
-        <TarifsGrid />
+        <TarifsGrid infoOnly />
       </section>
 
       {/* Tout inclus, liste complète */}
@@ -92,23 +122,26 @@ export default function TarifsPage() {
           <h2 className="text-2xl font-black mb-3">
             Prêts à donner à votre mission handicap les outils qu&apos;elle mérite ?
           </h2>
-          <p className="text-white/70 leading-relaxed max-w-2xl mx-auto mb-6">
-            10 jours d&apos;essai gratuit, sans carte bancaire. Opérationnel en moins de 10 minutes.
+          <p className="text-white/70 leading-relaxed max-w-2xl mx-auto mb-2">
+            Créez votre compte gratuit en 2 minutes. Votre abonnement se choisit ensuite directement depuis votre espace, dans l&apos;onglet <strong className="text-white">Paramètres &rsaquo; Abonnement</strong>.
+          </p>
+          <p className="text-white/50 text-xs mb-8">
+            Paiement par carte bancaire ou virement bancaire sur facture. Activation immédiate ou sous 24h ouvrées.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/register"
               className="inline-flex items-center justify-center gap-2 bg-[#F59E0B] text-white font-bold px-7 py-3 rounded-xl hover:bg-[#D97706] transition-colors text-sm"
             >
-              Commencer l&apos;essai gratuit
+              Créer mon compte gratuit
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <a
-              href="mailto:contact@talenth.fr?subject=Question tarifs Talenth"
+            <Link
+              href="/login"
               className="inline-flex items-center justify-center border border-white/20 text-white font-medium px-7 py-3 rounded-xl hover:bg-white/10 transition-colors text-sm"
             >
-              Nous contacter
-            </a>
+              J&apos;ai déjà un compte
+            </Link>
           </div>
         </div>
       </section>

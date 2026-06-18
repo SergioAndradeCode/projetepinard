@@ -15,6 +15,23 @@ function generateTempPassword(): string {
   return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
+// orders.billing_cycle → organizations.billing_cycle (contrainte différente)
+function mapBillingCycle(cycle: string): string {
+  if (cycle === 'annual_upfront') return 'annual_prepaid'
+  return cycle
+}
+
+// Date de fin d'abonnement selon le cycle
+function calcPeriodEnd(cycle: string): string {
+  const d = new Date()
+  if (cycle === 'monthly') {
+    d.setMonth(d.getMonth() + 1)
+  } else {
+    d.setFullYear(d.getFullYear() + 1)
+  }
+  return d.toISOString()
+}
+
 export async function POST(req: NextRequest) {
   let body: { token?: string; action?: 'activate' | 'cancel' }
   try {
@@ -30,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   const supabase = getAdminClient()
 
-  // ── Récupérer la commande par token ───────────────────────────────────────
+  // ── Récupérer la commande par token ──────────────────────────────────────
   const { data: order, error: fetchError } = await supabase
     .from('orders')
     .select('*')
@@ -50,7 +67,6 @@ export async function POST(req: NextRequest) {
       .from('orders')
       .update({ status: 'cancelled', activation_token: null })
       .eq('id', order.id)
-
     return NextResponse.json({ success: true, action: 'cancelled' })
   }
 
@@ -58,8 +74,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Action inconnue.' }, { status: 400 })
   }
 
-  // ── Activation ────────────────────────────────────────────────────────────
-  // 1. Invalider le token + passer le statut à active
+  // ── 1. Invalider le token + passer la commande à active ──────────────────
   const { error: updateError } = await supabase
     .from('orders')
     .update({
@@ -71,58 +86,135 @@ export async function POST(req: NextRequest) {
 
   if (updateError) {
     console.error('[activer] Erreur mise à jour ordre:', updateError)
-    return NextResponse.json({ error: 'Erreur lors de l\'activation.' }, { status: 500 })
+    return NextResponse.json({ error: "Erreur lors de l'activation." }, { status: 500 })
   }
 
-  // 2. Créer l'utilisateur dans Supabase Auth
+  // ── 2. Créer ou récupérer l'utilisateur Auth ─────────────────────────────
   const tempPassword = generateTempPassword()
+  const fullName = `${order.contact_firstname} ${order.contact_lastname}`
+
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email:             order.contact_email,
-    password:          tempPassword,
-    email_confirm:     true,
-    user_metadata: {
-      full_name: `${order.contact_firstname} ${order.contact_lastname}`,
-    },
+    email:          order.contact_email,
+    password:       tempPassword,
+    email_confirm:  true,
+    user_metadata:  { full_name: fullName },
   })
 
+  let userId = authData?.user?.id
+  let isExistingUser = false
+
   if (authError) {
-    // Si l'utilisateur existe déjà (email déjà inscrit via essai gratuit), on continue sans erreur fatale
     if (authError.message?.includes('already been registered')) {
-      console.warn('[activer] Utilisateur déjà existant:', order.contact_email)
+      // Utilisateur existant (ex: avait un essai gratuit) — retrouver son ID
+      isExistingUser = true
+      const { data: userList } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+      userId = userList?.users?.find(u => u.email === order.contact_email)?.id
     } else {
       console.error('[activer] Erreur création utilisateur Auth:', authError)
       return NextResponse.json({ error: 'Erreur lors de la création du compte.' }, { status: 500 })
     }
   }
 
-  const userId = authData?.user?.id
-
-  // 3. Créer le profil si l'utilisateur a bien été créé
-  if (userId) {
-    await supabase.from('profiles').upsert(
-      { id: userId, full_name: `${order.contact_firstname} ${order.contact_lastname}` },
-      { onConflict: 'id' },
-    )
+  if (!userId) {
+    console.error('[activer] Impossible de déterminer userId pour', order.contact_email)
+    return NextResponse.json({ error: 'Erreur de résolution du compte utilisateur.' }, { status: 500 })
   }
 
-  // 4. Envoyer email de bienvenue
+  // ── 3. Organisation + profil ─────────────────────────────────────────────
+  const billingCycle  = mapBillingCycle(order.billing_cycle)
+  const periodEnd     = calcPeriodEnd(order.billing_cycle)
+
+  if (isExistingUser) {
+    // L'utilisateur avait déjà un compte (trial) — mettre à jour son organisation existante
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', userId)
+      .single()
+
+    if (existingProfile?.organization_id) {
+      // Mettre l'org existante en active avec le bon plan
+      await supabase
+        .from('organizations')
+        .update({
+          subscription_status: 'active',
+          plan_id:             order.plan,
+          billing_cycle:       billingCycle,
+          current_period_end:  periodEnd,
+          trial_ends_at:       null,
+        })
+        .eq('id', existingProfile.organization_id)
+
+      // S'assurer que le profil est admin
+      await supabase
+        .from('profiles')
+        .update({ full_name: fullName, role: 'admin' })
+        .eq('id', userId)
+    } else {
+      // Utilisateur existant mais sans org — lui en créer une
+      await createOrgAndLinkProfile(supabase, userId, fullName, String(order.company_name), String(order.plan), billingCycle, periodEnd)
+    }
+  } else {
+    // Nouvel utilisateur — créer org + profil complet
+    await createOrgAndLinkProfile(supabase, userId, fullName, String(order.company_name), String(order.plan), billingCycle, periodEnd)
+  }
+
+  // ── 4. Email de bienvenue ────────────────────────────────────────────────
   try {
     await sendWelcome({
       to:           order.contact_email,
       firstname:    order.contact_firstname,
-      tempPassword: authError ? '[utilisez votre mot de passe existant]' : tempPassword,
+      tempPassword: isExistingUser ? '[utilisez votre mot de passe existant]' : tempPassword,
     })
   } catch (err) {
     console.error('[activer] Erreur email bienvenue:', err)
-    // Non-fatal : le compte est activé même si l'email échoue
   }
 
   return NextResponse.json({
-    success:  true,
-    action:   'activated',
-    email:    order.contact_email,
-    company:  order.company_name,
+    success: true,
+    action:  'activated',
+    email:   order.contact_email,
+    company: order.company_name,
   })
+}
+
+async function createOrgAndLinkProfile(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId:       string,
+  fullName:     string,
+  orgName:      string,
+  planId:       string,
+  billingCycle: string,
+  periodEnd:    string,
+) {
+  const { data: newOrg, error: orgError } = await supabase
+    .from('organizations')
+    .insert({
+      name:                orgName,
+      plan_id:             planId,
+      billing_cycle:       billingCycle,
+      subscription_status: 'active',
+      current_period_end:  periodEnd,
+      trial_ends_at:       null,
+    })
+    .select('id')
+    .single()
+
+  if (orgError || !newOrg) {
+    console.error('[activer] Erreur création organisation:', orgError)
+    return
+  }
+
+  await supabase.from('profiles').upsert(
+    {
+      id:              userId,
+      full_name:       fullName,
+      organization_id: newOrg.id,
+      role:            'admin',
+    },
+    { onConflict: 'id' },
+  )
 }
 
 export async function GET(req: NextRequest) {

@@ -67,7 +67,6 @@ export default function DoethPage() {
   const [dbError, setDbError] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [oethSettings, setOethSettings] = useState<{ smic_horaire_ref: number; effectif_brut?: number; effectif_ecap?: number; effectif_assujettissement?: number } | null>(null)
-  const [stagiaires, setStagiaires] = useState(0)
   // deductionESAT est calculé automatiquement depuis le tableau des achats de l'année
   // deductionESATManuel est le fallback si aucun achat n'est enregistré
   const [deductionESATManuel, setDeductionESATManuel] = useState(0)
@@ -129,6 +128,8 @@ export default function DoethPage() {
 
   const salariesAnnee = useMemo(() => filtrerSalariesPourAnnee(salaries, annee), [salaries, annee])
   const ubRQTH = useMemo(() => calculerUBRQTHPourAnnee(salariesAnnee, annee), [salariesAnnee, annee])
+  const nbAlternants = useMemo(() => salariesAnnee.filter(s => s.type_contrat === 'alternant').length, [salariesAnnee])
+  const nbStagiaires = useMemo(() => salaries.filter(s => s.type_contrat === 'stagiaire' && !s.date_sortie_entreprise).length, [salaries])
 
   // Achats ESAT/EA filtrés sur l'année de déclaration
   const achatsAnnee = useMemo(
@@ -166,8 +167,7 @@ export default function DoethPage() {
     if (error) toast.error("Erreur lors de l'enregistrement de l'attestation")
     setSavingAttestation(null)
   }, [supabase])
-  const ubStagiaires = stagiaires * 1
-  const ubTotales = ubRQTH + ubStagiaires
+  const ubTotales = ubRQTH
   const quotaTheorique = effectifTotal * QUOTA_LEGAL
   const deficit = Math.max(0, quotaTheorique - ubTotales)
   const contributionBrute = deficit * coefficient * smicRef
@@ -217,7 +217,7 @@ export default function DoethPage() {
     try {
       await triggerExport({
         type: 'doeth',
-        data: { orgName, annee, etablissements, salaries, achats, stagiaires, deductionESAT, deductionAccords, deductionAutres, ecapTotal },
+        data: { orgName, annee, etablissements, salaries, achats, deductionESAT, deductionAccords, deductionAutres, ecapTotal },
         filename: `Talenth_DOETH_${orgName}_${annee}.xlsx`,
       })
     } catch {
@@ -440,22 +440,13 @@ export default function DoethPage() {
                         <td className="px-4 py-3 text-sm font-medium text-[#1A1A2E]">{ub.toFixed(2)}</td>
                       </tr>
                     ))}
-                    <tr className="bg-white border-t border-dashed border-[#E2E8F0]">
-                      <td className="px-4 py-3 text-sm text-[#1A1A2E]">Stagiaires / alternants handicapés</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Input type="number" min={0} value={stagiaires} onChange={e => setStagiaires(Number(e.target.value))} className="w-20 h-7 text-sm" />
-                          <span className="text-xs text-[#6B7280]">pers. × 1 UB</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm font-medium text-[#1A1A2E]">{ubStagiaires.toFixed(2)}</td>
-                    </tr>
                   </tbody>
                   <tfoot>
                     <tr className={`border-t-2 ${conforme ? 'bg-green-50 border-green-200' : 'bg-[#EBF2FA] border-[#1E4A8C]/20'}`}>
                       <td className={`px-4 py-3 text-sm font-bold ${conforme ? 'text-[#2E7D32]' : 'text-[#1E4A8C]'}`}>TOTAL UB BOETH</td>
                       <td className={`px-4 py-3 text-sm ${conforme ? 'text-[#2E7D32]' : 'text-[#6B7280]'}`}>
-                        {salariesAnnee.length} salarié{salariesAnnee.length > 1 ? 's' : ''} + {stagiaires} stagiaire{stagiaires > 1 ? 's' : ''}
+                        {salariesAnnee.length} salarié{salariesAnnee.length > 1 ? 's' : ''} BOETH
+                        {nbAlternants > 0 && <span className="ml-1 text-xs opacity-75">(dont {nbAlternants} alternant{nbAlternants > 1 ? 's' : ''})</span>}
                       </td>
                       <td className={`px-4 py-3 text-lg font-bold ${conforme ? 'text-[#2E7D32]' : 'text-[#1E4A8C]'}`}>
                         {ubTotales.toFixed(2)}
@@ -464,6 +455,36 @@ export default function DoethPage() {
                     </tr>
                   </tfoot>
                 </table>
+              </div>
+
+              {/* Information alternants / stagiaires */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex gap-2.5 p-3.5 rounded-lg border bg-green-50 border-green-200 text-sm text-green-800">
+                  <BadgeCheck className="w-4 h-4 shrink-0 mt-0.5 text-green-600" />
+                  <div className="space-y-0.5">
+                    <p className="font-semibold">Alternants : comptabilises automatiquement</p>
+                    <p className="text-xs">
+                      {nbAlternants > 0
+                        ? <>{nbAlternants} alternant{nbAlternants > 1 ? 's' : ''} BOETH present{nbAlternants > 1 ? 's' : ''} en {annee}, inclus dans les UB ci-dessus.</>
+                        : <>Aucun alternant BOETH enregistre pour {annee}.</>
+                      }
+                      {' '}Les alternants (apprentissage ou professionnalisation) sont des salaries a part entiere : ils sont pris en compte dans votre DOETH comme tout autre salarie BOETH.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2.5 p-3.5 rounded-lg border bg-[#EBF2FA] border-[#1E4A8C]/20 text-sm text-[#1E4A8C]">
+                  <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <p className="font-semibold">Stagiaires : suivi interne uniquement</p>
+                    <p className="text-xs">
+                      {nbStagiaires > 0
+                        ? <>{nbStagiaires} stagiaire{nbStagiaires > 1 ? 's' : ''} BOETH suivi{nbStagiaires > 1 ? 's' : ''} dans votre espace.</>
+                        : <>Aucun stagiaire BOETH enregistre.</>
+                      }
+                      {' '}Depuis la reforme OETH 2020, les stagiaires ne sont pas des salaries et n&apos;entrent pas dans le calcul des unites beneficiaires ni de l&apos;effectif. Ils sont visibles dans votre tableau de bord pour votre politique handicap interne uniquement.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Détail par salarié (expandable) */}
@@ -833,7 +854,7 @@ export default function DoethPage() {
                   ['Année de déclaration', String(annee)],
                   ['Effectif total', `${effectifTotal} salariés`],
                   ['Quota théorique (6%)', `${quotaTheorique.toFixed(2)} UB`],
-                  ['UB BOETH comptabilisées', `${ubTotales.toFixed(2)} UB (${salariesAnnee.length} sal. + ${stagiaires} stag.)`],
+                  ['UB BOETH comptabilisées', `${ubTotales.toFixed(2)} UB (${salariesAnnee.length} sal. BOETH)`],
                   ['Taux d\'emploi BOETH', `${tauxActuel.toFixed(2)}%`],
                   ['Déficit', `${deficit.toFixed(2)} UB`],
                   ['Contribution brute', formatEuros(contributionBrute)],

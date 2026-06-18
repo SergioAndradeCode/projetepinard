@@ -1,5 +1,23 @@
 export type UserRole = 'admin' | 'charge_site' | 'charge_mission' | 'lecteur'
 export type OrgType = 'entreprise' | 'cabinet'
+
+export type TypeContrat =
+  | 'cdi'
+  | 'cdd'
+  | 'alternant'
+  | 'stagiaire'
+  | 'interimaire'
+  | 'autre'
+
+export const LABEL_TYPE_CONTRAT: Record<TypeContrat, string> = {
+  cdi:        'CDI',
+  cdd:        'CDD',
+  alternant:  'Alternant (apprentissage / pro)',
+  stagiaire:  'Stagiaire',
+  interimaire:'Intérimaire',
+  autre:      'Autre',
+}
+
 export type TypeReconnaissance =
   | 'rqth'
   | 'pension_invalidite_2'
@@ -8,7 +26,7 @@ export type TypeReconnaissance =
   | 'carte_mobilite_invalidite'
   | 'rente_at_mp'
 export type StatutRQTH = 'actif' | 'expire_bientot' | 'expire'
-export type TypeEvenement = 'obligation' | 'evenement' | 'alerte_rqth'
+export type TypeEvenement = 'obligation' | 'evenement' | 'alerte_rqth' | 'fin_contrat'
 export type Recurrence = 'annuelle' | 'mensuelle'
 export type BudgetCategorie =
   | 'esat_ea'
@@ -76,9 +94,12 @@ export interface RQTHEmployee {
   taux_temps_travail: number
   date_naissance: string | null
   type_reconnaissance: TypeReconnaissance
+  type_contrat: TypeContrat
   date_debut: string
   date_fin: string | null
   est_permanent: boolean
+  date_sortie_entreprise: string | null
+  date_fin_contrat: string | null
   notes: string | null
   created_at: string
 }

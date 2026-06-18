@@ -20,6 +20,7 @@ import {
 import {
   BUDGET_CATEGORIES_LABELS,
   LABEL_RECONNAISSANCE,
+  LABEL_TYPE_CONTRAT,
   type BudgetAllocation,
   type BudgetExpense,
   type Establishment,
@@ -353,6 +354,7 @@ function buildRQTHExport(
       joursRestants,
       etablissementName: etablissements.find(e => e.id === s.establishment_id)?.name ?? '-',
       typeLabel: LABEL_RECONNAISSANCE[s.type_reconnaissance]?.split(', ')[0] ?? s.type_reconnaissance,
+      typeContratLabel: LABEL_TYPE_CONTRAT[s.type_contrat ?? 'cdi'] ?? (s.type_contrat ?? 'CDI'),
     }
   })
 
@@ -366,6 +368,8 @@ function buildRQTHExport(
       { header: 'Matricule', key: 'matricule', align: 'center', width: 14 },
       { header: 'Établissement', key: 'etablissementName', align: 'left' },
       { header: 'Bâtiment / Lieu', key: 'batiment', align: 'left', width: 20 },
+      { header: 'Type de contrat', key: 'typeContratLabel', align: 'left', width: 22 },
+      { header: 'Fin de contrat', key: 'date_fin_contrat', format: 'date', align: 'center', width: 16 },
       { header: 'Type de reconnaissance', key: 'typeLabel', align: 'left', width: 28 },
       { header: 'Date début', key: 'date_debut', format: 'date', align: 'center', width: 13 },
       { header: 'Date fin', key: 'date_fin', format: 'date', align: 'center', width: 13 },
@@ -378,6 +382,8 @@ function buildRQTHExport(
       matricule: s.matricule ?? '-',
       etablissementName: s.etablissementName,
       batiment: s.batiment ?? '-',
+      typeContratLabel: s.typeContratLabel,
+      date_fin_contrat: s.date_fin_contrat ?? '-',
       typeLabel: s.typeLabel,
       date_debut: s.date_debut,
       date_fin: s.est_permanent ? 'Permanente' : (s.date_fin ?? '-'),
@@ -386,10 +392,10 @@ function buildRQTHExport(
     }))
   )
 
-  // Colorisation conditionnelle du statut (colonne I = index 9, batiment décale d'une position)
+  // Colorisation conditionnelle du statut (colonne 11 : prenom, nom, matricule, etab, batiment, typeContrat, finContrat, typeLabel, dateDebut, dateFin, statut)
   ws1.eachRow((row, rowNumber) => {
     if (rowNumber <= 5) return
-    const statutCell = row.getCell(9)
+    const statutCell = row.getCell(11)
     const val = String(statutCell.value ?? '')
     if (val === 'Expiré') {
       statutCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + EXCEL_THEME.dangerLight } }
@@ -592,13 +598,12 @@ function buildDOETHExport(
     etablissements: Establishment[]
     salaries: RQTHEmployee[]
     achats: ESATPurchase[]
-    stagiaires: number
     deductionESAT: number
     deductionAccords: number
     deductionAutres: number
   },
 ) {
-  const { orgName, annee, etablissements, salaries, achats, stagiaires, deductionESAT, deductionAccords, deductionAutres } = data
+  const { orgName, annee, etablissements, salaries, achats, deductionESAT, deductionAccords, deductionAutres } = data
 
   const smicRef = etablissements[0]?.smic_horaire_ref ?? 11.88
   const effectifTotal = etablissements.reduce((s, e) => s + e.effectif_assujettissement, 0)
@@ -606,8 +611,7 @@ function buildDOETHExport(
   // Filtrer et proratiser les UB par année de référence
   const salActifs = filtrerSalariesPourAnnee(salaries, annee)
   const ubRQTH = calculerUBRQTHPourAnnee(salaries, annee)
-  const ubStagiaires = stagiaires
-  const ubTotales = ubRQTH + ubStagiaires
+  const ubTotales = ubRQTH
   const quotaTheorique = effectifTotal * 0.06
   const deficit = Math.max(0, quotaTheorique - ubTotales)
   const coefficient = getCoefficientContribution(effectifTotal)
@@ -689,8 +693,6 @@ function buildDOETHExport(
       row.getCell(2).alignment = { horizontal: 'right' }
     }
   })
-  addSection('UB stagiaires / alternants handicapés', ubStagiaires.toFixed(2))
-
   const totalUBRow = addSection('TOTAL UB BOETH', ubTotales.toFixed(4), true,
     conforme ? EXCEL_THEME.successLight : EXCEL_THEME.warningLight,
     conforme ? EXCEL_THEME.success : EXCEL_THEME.warning
@@ -787,6 +789,8 @@ function buildDOETHExport(
       { header: 'Nom', key: 'nom', align: 'left' },
       { header: 'Matricule', key: 'matricule', align: 'center', width: 14 },
       { header: 'Établissement', key: 'etablissementName', align: 'left' },
+      { header: 'Type de contrat', key: 'typeContratLabel', align: 'left', width: 22 },
+      { header: 'Fin de contrat', key: 'date_fin_contrat', format: 'date', align: 'center', width: 16 },
       { header: 'Type de reconnaissance', key: 'typeLabel', align: 'left', width: 30 },
       { header: 'Début reconnaissance', key: 'date_debut', format: 'date', align: 'center', width: 20 },
       { header: 'Fin / Permanente', key: 'date_fin_label', align: 'center', width: 18 },
@@ -799,6 +803,8 @@ function buildDOETHExport(
       nom: s.nom,
       matricule: s.matricule ?? '-',
       etablissementName: etablissements.find(e => e.id === s.establishment_id)?.name ?? '-',
+      typeContratLabel: LABEL_TYPE_CONTRAT[s.type_contrat ?? 'cdi'] ?? (s.type_contrat ?? 'CDI'),
+      date_fin_contrat: s.date_fin_contrat ?? '-',
       typeLabel: LABEL_RECONNAISSANCE[s.type_reconnaissance]?.split(', ')[0] ?? s.type_reconnaissance,
       date_debut: s.date_debut,
       date_fin_label: s.est_permanent ? 'Permanente' : (s.date_fin ?? '-'),
@@ -807,7 +813,8 @@ function buildDOETHExport(
       ub: parseFloat(getUBProratee(s, annee).toFixed(4)),
     })),
     {
-      prenom: '', nom: '', matricule: '', etablissementName: '', typeLabel: '',
+      prenom: '', nom: '', matricule: '', etablissementName: '', typeContratLabel: '',
+      date_fin_contrat: '', typeLabel: '',
       date_debut: '', date_fin_label: `TOTAL, ${salActifs.length} BOETH`,
       moisPresence: '', taux: '', ub: parseFloat(ubRQTH.toFixed(4)),
     }
@@ -916,8 +923,8 @@ function buildDOETHExport(
 
   // ── UB ──
   addDSNSection('UNITÉS BÉNÉFICIAIRES (EMPLOI DIRECT)')
-  addDSNRow('Total UB emploi direct', ubTotales.toFixed(4), 'S21.G00.83.002', `UB BOETH proratisées par mois de présence : ${ubRQTH.toFixed(4)} UB (RQTH) + ${ubStagiaires} UB (stagiaires)`)
-  addDSNRow('Nb de BOETH distincts employés', `${salActifs.length + stagiaires} personnes`, 'S21.G00.83.004', `Nombre de travailleurs handicapés différents ayant été présents en ${annee}`)
+  addDSNRow('Total UB emploi direct', ubTotales.toFixed(4), 'S21.G00.83.002', `UB BOETH proratisées par mois de présence : ${ubRQTH.toFixed(4)} UB (alternants et salaries inclus, stagiaires exclus - reforme 2020)`)
+  addDSNRow('Nb de BOETH distincts employes', `${salActifs.length} personnes`, 'S21.G00.83.004', `Nombre de travailleurs handicapés differents (salaries + alternants) ayant ete presents en ${annee}`)
   addDSNRow('Taux d\'emploi BOETH', `${tauxActuel.toFixed(2)} %`, '-', `${ubTotales.toFixed(4)} / ${effectifTotal} × 100 = ${tauxActuel.toFixed(2)}%`)
   ws5.addRow([])
 

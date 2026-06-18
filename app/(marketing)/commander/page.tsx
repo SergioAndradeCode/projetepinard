@@ -304,9 +304,9 @@ export default function CommanderPage() {
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     {...register('plan')}
                   >
-                    <option value="essentiel">Essentiel — 1 utilisateur</option>
-                    <option value="equipe">Équipe — 5 utilisateurs</option>
-                    <option value="organisation">Organisation — 15 utilisateurs</option>
+                    <option value="essentiel">Essentiel (1 utilisateur)</option>
+                    <option value="equipe">Equipe (5 utilisateurs)</option>
+                    <option value="organisation">Organisation (15 utilisateurs)</option>
                   </select>
                 </Field>
 
@@ -324,7 +324,7 @@ export default function CommanderPage() {
               </div>
 
               <Field label="N° bon de commande interne" error={undefined}
-                help="Optionnel — mentionnez-le dans votre virement">
+                help="Optionnel, mentionnez-le dans votre virement">
                 <Input
                   id="purchaseOrderNumber"
                   placeholder="BDC-2026-XXXX"

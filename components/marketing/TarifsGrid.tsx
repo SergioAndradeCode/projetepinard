@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, ArrowRight, Mail, ShieldCheck, CreditCard, Building2, Clock } from 'lucide-react'
+import { CheckCircle, ArrowRight, Mail, ShieldCheck, CreditCard, Building2, Clock, LogIn } from 'lucide-react'
 import { PLANS, FEATURES, type PlanId, type BillingCycle } from '@/lib/plans'
 
 const PLAN_META: Record<PlanId, {
@@ -92,7 +92,7 @@ function formatPrice(planId: PlanId, cycle: BillingCycle): PriceInfo | null {
   }
 }
 
-export function TarifsGrid() {
+export function TarifsGrid({ infoOnly = false }: { infoOnly?: boolean }) {
   const [cycle, setCycle] = useState<BillingCycle>('annual_upfront')
 
   const activeOpt = CYCLE_OPTIONS.find(o => o.cycle === cycle)!
@@ -175,25 +175,44 @@ export function TarifsGrid() {
 
               {/* CTA */}
               <div className="mb-4 space-y-2">
-                <Link
-                  href="/register"
-                  className={`flex items-center justify-center gap-2 font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm w-full ${
-                    meta.recommended
-                      ? 'bg-[#F59E0B] text-white hover:bg-[#D97706]'
-                      : 'bg-[#EBF2FA] text-[#1E4A8C] hover:bg-[#d8e8f7]'
-                  }`}
-                >
-                  Essai gratuit 10 jours
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-                <p className="text-[10px] text-center text-[#9CA3AF]">Sans carte bancaire</p>
-                <Link
-                  href={`/commander?plan=${planId}&cycle=${cycle}`}
-                  className="flex items-center justify-center gap-2 font-medium px-4 py-2 rounded-xl border border-[#E2E8F0] text-[#6B7280] hover:border-[#1E4A8C] hover:text-[#1E4A8C] transition-colors text-xs w-full"
-                >
-                  Payer par virement / bon de commande
-                  <ArrowRight className="w-3 h-3" />
-                </Link>
+                {infoOnly ? (
+                  <>
+                    <Link
+                      href="/register"
+                      className={`flex items-center justify-center gap-2 font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm w-full ${
+                        meta.recommended
+                          ? 'bg-[#F59E0B] text-white hover:bg-[#D97706]'
+                          : 'bg-[#EBF2FA] text-[#1E4A8C] hover:bg-[#d8e8f7]'
+                      }`}
+                    >
+                      Créer un compte gratuit
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <p className="text-[10px] text-center text-[#9CA3AF]">L&apos;abonnement se souscrit depuis votre compte</p>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/register"
+                      className={`flex items-center justify-center gap-2 font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm w-full ${
+                        meta.recommended
+                          ? 'bg-[#F59E0B] text-white hover:bg-[#D97706]'
+                          : 'bg-[#EBF2FA] text-[#1E4A8C] hover:bg-[#d8e8f7]'
+                      }`}
+                    >
+                      Essai gratuit 10 jours
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <p className="text-[10px] text-center text-[#9CA3AF]">Sans carte bancaire</p>
+                    <Link
+                      href={`/commander?plan=${planId}&cycle=${cycle}`}
+                      className="flex items-center justify-center gap-2 font-medium px-4 py-2 rounded-xl border border-[#E2E8F0] text-[#6B7280] hover:border-[#1E4A8C] hover:text-[#1E4A8C] transition-colors text-xs w-full"
+                    >
+                      Payer par virement / bon de commande
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </>
+                )}
               </div>
 
               {/* Séparateur */}

@@ -101,30 +101,12 @@ export function FormMaintien({
     })
   }, [open, isEdit, supabase, organizationId, establishmentId])
 
-  // Si un employé est pré-sélectionné depuis l'extérieur → passer directement à l'étape 2
-  // et injecter ses données dans le formulaire (sans ça, prenom/nom restent vides
-  // et la validation Zod échoue silencieusement)
-  useEffect(() => {
-    if (preselectedEmployee) {
-      setSelectedEmployee(preselectedEmployee)
-      setValue('prenom', preselectedEmployee.prenom)
-      setValue('nom', preselectedEmployee.nom)
-      setValue('poste', preselectedEmployee.poste ?? '')
-      setValue('code_interne', preselectedEmployee.matricule ?? '')
-      setStep(2)
-    }
-  }, [preselectedEmployee, setValue])
-
   // Réinitialisation à la fermeture
   useEffect(() => {
     if (!open) {
-      if (!isEdit) {
-        setStep(preselectedEmployee ? 2 : 1)
-        setSelectedEmployee(preselectedEmployee ?? null)
-        setRqthSearch('')
-      }
+      setRqthSearch('')
     }
-  }, [open, isEdit, preselectedEmployee])
+  }, [open])
 
   // ── Filtrage temps réel ────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -139,8 +121,10 @@ export function FormMaintien({
     )
   }, [rqthEmployees, rqthSearch])
 
-  // Pré-remplissage en mode édition
+  // Initialisation du formulaire à l'ouverture — inclut toujours prenom/nom
+  // (évite que reset() n'écrase les setValue appelés pour preselectedEmployee)
   useEffect(() => {
+    if (!open) return
     if (situation) {
       reset({
         prenom:                situation.prenom,
@@ -160,6 +144,10 @@ export function FormMaintien({
       setAmenagementsList(situation.amenagements ?? [])
     } else {
       reset({
+        prenom:                preselectedEmployee?.prenom ?? '',
+        nom:                   preselectedEmployee?.nom ?? '',
+        poste:                 preselectedEmployee?.poste ?? '',
+        code_interne:          preselectedEmployee?.matricule ?? '',
         statut:                'en_cours',
         type_situation:        'at_mp',
         medecin_travail_saisi: false,
@@ -167,8 +155,10 @@ export function FormMaintien({
         cap_emploi_saisi:      false,
       })
       setAmenagementsList([])
+      setSelectedEmployee(preselectedEmployee ?? null)
+      setStep(preselectedEmployee ? 2 : 1)
     }
-  }, [situation, reset])
+  }, [open, situation, reset, preselectedEmployee])
 
   // Quand un employé est sélectionné → injecter ses données dans le formulaire
   const confirmSelection = (emp: RQTHEmployee) => {

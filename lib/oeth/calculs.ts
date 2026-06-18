@@ -51,19 +51,28 @@ export function getCoeffAgeCourant(dateNaissance: string | null): 1 | 1.5 {
   return age >= 50 ? 1.5 : 1
 }
 
+// Types exclus des calculs OETH :
+// - stagiaire : pas un salarié au sens légal, non comptabilisé dans l'effectif ni les UB
+// - interimaire : l'obligation porte sur l'agence d'intérim, pas sur l'entreprise utilisatrice
+const TYPES_HORS_OETH = new Set(['stagiaire', 'interimaire'])
+
+function estPresentAujourdhui(s: RQTHEmployee, today: Date): boolean {
+  if (TYPES_HORS_OETH.has(s.type_contrat ?? 'cdi')) return false
+  if (s.date_sortie_entreprise && new Date(s.date_sortie_entreprise) < today) return false
+  if (s.est_permanent) return true
+  if (!s.date_fin) return true
+  return new Date(s.date_fin) >= today
+}
+
 // ─── UB RQTH (temps réel — dashboard) ──────────────────────────────────────
 // Chaque BOETH compte pour (taux_temps_travail / 100) × coeffAge UB.
-// Les RQTH expirées (non permanentes, date_fin dans le passé) sont exclues.
+// Exclus : stagiaires, intérimaires, salariés ayant quitté la structure.
 
 export function calculerUBRQTH(salaries: RQTHEmployee[]): number {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   return salaries
-    .filter((s) => {
-      if (s.est_permanent) return true
-      if (!s.date_fin) return true
-      return new Date(s.date_fin) >= today
-    })
+    .filter((s) => estPresentAujourdhui(s, today))
     .reduce((total, s) => {
       const coeff = getCoeffAgeCourant(s.date_naissance)
       return total + (s.taux_temps_travail ?? 100) / 100 * coeff
@@ -73,27 +82,37 @@ export function calculerUBRQTH(salaries: RQTHEmployee[]): number {
 export function compterRQTHActifs(salaries: RQTHEmployee[]): number {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  return salaries.filter((s) => {
-    if (s.est_permanent) return true
-    if (!s.date_fin) return true
-    return new Date(s.date_fin) >= today
-  }).length
+  return salaries.filter((s) => estPresentAujourdhui(s, today)).length
 }
 
 // ─── UB RQTH pour une année DOETH (proratisées par mois de présence) ─────────
 // Formule légale : (nb_mois_présence_dans_l_année / 12) × (taux_temps_travail / 100)
 // Un mois commencé compte entier. La présence est bornée à l'année de référence.
+// La borne de fin = MIN(date_fin_rqth, date_sortie_entreprise).
 
 export function getMoisPresencePourAnnee(s: RQTHEmployee, annee: number): number {
+  if (TYPES_HORS_OETH.has(s.type_contrat ?? 'cdi')) return 0
+
   const yearStart = new Date(annee, 0, 1)
-  const yearEnd = new Date(annee, 11, 31)
-  const debut = new Date(s.date_debut)
-  const fin = s.est_permanent || !s.date_fin ? new Date(annee + 50, 0, 1) : new Date(s.date_fin)
+  const yearEnd   = new Date(annee, 11, 31)
+  const debut     = new Date(s.date_debut)
+
+  // Borne de fin RQTH
+  const rqthFin = s.est_permanent || !s.date_fin
+    ? new Date(annee + 50, 0, 1)
+    : new Date(s.date_fin)
+  // Borne de fin entreprise (départ)
+  const sortieFin = s.date_sortie_entreprise
+    ? new Date(s.date_sortie_entreprise)
+    : new Date(annee + 50, 0, 1)
+  // Fin effective = minimum des deux bornes
+  const fin = rqthFin < sortieFin ? rqthFin : sortieFin
+
   if (debut > yearEnd || fin < yearStart) return 0
   const presenceStart = debut < yearStart ? yearStart : debut
-  const presenceEnd = fin > yearEnd ? yearEnd : fin
+  const presenceEnd   = fin > yearEnd ? yearEnd : fin
   const mStart = presenceStart.getFullYear() * 12 + presenceStart.getMonth()
-  const mEnd = presenceEnd.getFullYear() * 12 + presenceEnd.getMonth()
+  const mEnd   = presenceEnd.getFullYear() * 12 + presenceEnd.getMonth()
   return Math.min(mEnd - mStart + 1, 12)
 }
 
@@ -110,10 +129,13 @@ export function calculerUBRQTHPourAnnee(salaries: RQTHEmployee[], annee: number)
 
 export function filtrerSalariesPourAnnee(salaries: RQTHEmployee[], annee: number): RQTHEmployee[] {
   const yearStart = new Date(annee, 0, 1)
-  const yearEnd = new Date(annee, 11, 31)
+  const yearEnd   = new Date(annee, 11, 31)
   return salaries.filter((s) => {
-    const debut = new Date(s.date_debut)
-    const fin = s.est_permanent || !s.date_fin ? new Date(annee + 50, 0, 1) : new Date(s.date_fin)
+    if (TYPES_HORS_OETH.has(s.type_contrat ?? 'cdi')) return false
+    const debut     = new Date(s.date_debut)
+    const rqthFin   = s.est_permanent || !s.date_fin ? new Date(annee + 50, 0, 1) : new Date(s.date_fin)
+    const sortieFin = s.date_sortie_entreprise ? new Date(s.date_sortie_entreprise) : new Date(annee + 50, 0, 1)
+    const fin       = rqthFin < sortieFin ? rqthFin : sortieFin
     return debut <= yearEnd && fin >= yearStart
   })
 }

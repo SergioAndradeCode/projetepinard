@@ -7,7 +7,6 @@ import {
 import { NavMarketing } from '@/components/marketing/NavMarketing'
 import { FooterMarketing } from '@/components/marketing/FooterMarketing'
 import { MockupDashboard, MockupRQTH, MockupDOETH } from '@/components/marketing/MockupDashboard'
-import { LandingPricing } from '@/components/marketing/LandingPricing'
 
 export default function LandingPage() {
   return (
@@ -461,8 +460,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      <LandingPricing />
 
       {/* ── CTA FINAL ────────────────────────────────────────────────── */}
       <section className="py-24 bg-[#0F1F3A] relative overflow-hidden">
