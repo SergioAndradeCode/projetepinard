@@ -46,6 +46,12 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', 'localhost:3001', 'localhost:3002', 'talenth.fr', 'www.talenth.fr'],
     },
   },
+  webpack(config, { isServer }) {
+    if (isServer) {
+      config.externals = [...(config.externals ?? []), '@napi-rs/canvas']
+    }
+    return config
+  },
   async headers() {
     return [
       {
