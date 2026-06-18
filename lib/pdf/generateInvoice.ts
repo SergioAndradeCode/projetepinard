@@ -28,7 +28,7 @@ const C_GRAY       = rgb(0.420, 0.447, 0.502)  // #6B7280
 const C_LIGHT_BLUE = rgb(0.922, 0.949, 0.980)  // #EBF2FA
 const C_WHITE      = rgb(1, 1, 1)
 const C_BORDER     = rgb(0.886, 0.910, 0.941)  // #E2E8F0
-const C_BG         = rgb(0.973, 0.980, 0.988)  // #F8FAFC
+
 
 const PAGE_W = 595.28
 const PAGE_H = 841.89

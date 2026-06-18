@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, ArrowRight, Mail, ShieldCheck, CreditCard, Building2, Clock, LogIn } from 'lucide-react'
+import { CheckCircle, ArrowRight, Mail, ShieldCheck, CreditCard, Building2, Clock } from 'lucide-react'
 import { PLANS, FEATURES, type PlanId, type BillingCycle } from '@/lib/plans'
 
 const PLAN_META: Record<PlanId, {
@@ -250,7 +250,7 @@ export function TarifsGrid({ infoOnly = false }: { infoOnly?: boolean }) {
             { icon: Building2,  label: 'Virement bancaire sur facture', sub: 'Activation sous 24h ouvrées' },
             { icon: ShieldCheck, label: 'Bon de commande', sub: 'Sur demande' },
             { icon: Clock,       label: 'Paiement à 30 jours', sub: 'Sur devis pour les grands comptes' },
-          ].map(({ icon: Icon, label, sub }) => (
+          ].map(({ label, sub }) => (
             <div key={label} className="flex items-center gap-2.5 bg-white border border-[#E2E8F0] rounded-xl px-4 py-3">
               <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
               <div>

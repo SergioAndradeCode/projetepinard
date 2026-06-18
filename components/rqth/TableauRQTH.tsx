@@ -14,7 +14,7 @@ import { DocumentsRQTH } from './DocumentsRQTH'
 import { formatDate } from '@/lib/utils'
 import { getStatutRQTH } from '@/lib/oeth/calculs'
 import type { RQTHEmployee, Establishment } from '@/types'
-import { LABEL_RECONNAISSANCE, LABEL_TYPE_CONTRAT } from '@/types'
+import { LABEL_RECONNAISSANCE } from '@/types'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
