@@ -18,7 +18,7 @@ const SECTIONS = [
               ['Dénomination sociale', 'Talenth'],
               ['Nom de l\'exploitant', 'Sergio De Andrade'],
               ['Forme juridique', 'Entreprise individuelle'],
-              ['Siège social', '12 rue Georges Brassens (code postal et ville à compléter)'],
+              ['Siège social', '12 rue Georges Brassens, 91100 Corbeil-Essonnes'],
               ['SIRET', '99469898300024'],
               ['N° TVA intracommunautaire', 'FR19994698983'],
               ['Directeur de la publication', 'Sergio De Andrade'],
