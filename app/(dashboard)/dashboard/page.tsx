@@ -11,6 +11,7 @@ import { CarteEtablissements } from '@/components/dashboard/CarteEtablissements'
 import { CarteTypesReconnaissance } from '@/components/dashboard/CarteTypesReconnaissance'
 import { CarteHistorique, type AnneeHistorique } from '@/components/dashboard/CarteHistorique'
 import { CarteSimulation } from '@/components/dashboard/CarteSimulation'
+import { InfoTooltip } from '@/components/dashboard/InfoTooltip'
 import { calculerStats, getStatutRQTH, getCoeffAgeCourant } from '@/lib/oeth/calculs'
 import { Users, AlertTriangle, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
@@ -20,6 +21,38 @@ import type { MoisProjection } from '@/components/dashboard/CarteProjection'
 import type { Establishment, RQTHEmployee, ESATPurchase } from '@/types'
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
+
+function buildProjectionAnnee(
+  annee: number,
+  sal: RQTHEmployee[],
+  effectif: number,
+  anneeActuelle: number,
+  moisActuel: number,
+): MoisProjection[] {
+  return MOIS.map((mois, m) => {
+    const endOfMonth = new Date(annee, m + 1, 0)
+    endOfMonth.setHours(23, 59, 59, 999)
+    const startOfMonth = new Date(annee, m, 1)
+
+    const actifsAuMois = sal.filter(s => {
+      const debut = new Date(s.date_debut)
+      if (debut > endOfMonth) return false
+      if (s.est_permanent || !s.date_fin) return true
+      return new Date(s.date_fin) >= startOfMonth
+    })
+
+    const ubMois = actifsAuMois.reduce((sum, s) => {
+      const coeff = getCoeffAgeCourant(s.date_naissance)
+      return sum + (s.taux_temps_travail ?? 100) / 100 * coeff
+    }, 0)
+    const tauxMois = effectif > 0 ? (ubMois / effectif) * 100 : 0
+
+    if (annee > anneeActuelle) return { mois, taux: tauxMois, type: 'projection' }
+    if (m < moisActuel) return { mois, taux: tauxMois, type: 'passe' }
+    if (m === moisActuel) return { mois, taux: tauxMois, type: 'actuel' }
+    return { mois, taux: tauxMois, type: 'projection' }
+  })
+}
 
 export default async function DashboardPage() {
   const supabase = createClient()
@@ -67,9 +100,6 @@ export default async function DashboardPage() {
   const settings = allSettings.find(s => s.annee === anneeActuelle) ?? null
 
   // ── Consolidation multi-sites ─────────────────────────────────────────────
-  // Règle unique : les établissements sont la source de vérité pour l'effectif.
-  // Fallback sur oeth_settings uniquement si aucun établissement n'a d'effectif renseigné
-  // (rétrocompatibilité pour les organisations sans établissements configurés).
   const totalBrutSites = sites.reduce((s, e) => s + (e.effectif_brut || 0), 0)
   const totalEcapSites = sites.reduce((s, e) => s + (e.effectif_ecap || 0), 0)
 
@@ -88,36 +118,12 @@ export default async function DashboardPage() {
 
   const stats = calculerStats(sal, ach, effectifBrut, effectifEcap, smicRef)
 
-  // ── Projection mensuelle réelle ───────────────────────────────────────────
-  // Pour chaque mois (passé ou futur) on calcule les UB à partir des reconnaissances
-  // actives à la FIN de ce mois (date_debut <= fin du mois ET pas encore expirée).
-  // Cela garantit que les mois passés restent stables : modifier une RQTH qui démarre
-  // aujourd'hui ne modifie pas les barres des mois précédents.
+  // ── Projection mensuelle N, N+1, N+2 ─────────────────────────────────────
   const effectif = stats.effectif
 
-  const projectionData: MoisProjection[] = MOIS.map((mois, m) => {
-    const endOfMonth = new Date(anneeActuelle, m + 1, 0)   // dernier jour du mois
-    endOfMonth.setHours(23, 59, 59, 999)
-    const startOfMonth = new Date(anneeActuelle, m, 1)
-
-    // Employés actifs à la fin de ce mois spécifique
-    const actifsAuMois = sal.filter(s => {
-      const debut = new Date(s.date_debut)
-      if (debut > endOfMonth) return false           // pas encore commencé
-      if (s.est_permanent || !s.date_fin) return true
-      return new Date(s.date_fin) >= startOfMonth    // actif au moins 1 jour du mois
-    })
-
-    const ubMois = actifsAuMois.reduce((sum, s) => {
-      const coeff = getCoeffAgeCourant(s.date_naissance)
-      return sum + (s.taux_temps_travail ?? 100) / 100 * coeff
-    }, 0)
-    const tauxMois = effectif > 0 ? (ubMois / effectif) * 100 : 0
-
-    if (m < moisActuel) return { mois, taux: tauxMois, type: 'passe' }
-    if (m === moisActuel) return { mois, taux: tauxMois, type: 'actuel' }
-    return { mois, taux: tauxMois, type: 'projection' }
-  })
+  const projectionData = buildProjectionAnnee(anneeActuelle, sal, effectif, anneeActuelle, moisActuel)
+  const projectionDataN1 = buildProjectionAnnee(anneeActuelle + 1, sal, effectif, anneeActuelle, moisActuel)
+  const projectionDataN2 = buildProjectionAnnee(anneeActuelle + 2, sal, effectif, anneeActuelle, moisActuel)
 
   const tauxFinAnnee = projectionData[11]?.taux ?? stats.taux
   const ubManquantesFin = Math.max(0, stats.quotaTheorique - (effectif > 0 ? tauxFinAnnee / 100 * effectif : 0))
@@ -177,7 +183,10 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-[15px]">Taux OETH {anneeActuelle}</CardTitle>
+            <div className="flex items-center">
+              <CardTitle className="text-[15px]">Taux OETH {anneeActuelle}</CardTitle>
+              <InfoTooltip content="Rapport entre les Unités Bénéficiaires (UB) générées par vos salariés BOETH et votre effectif d'assujettissement. L'objectif légal est 6%. Chaque salarié BOETH temps plein vaut 1 UB (1,5 si 50 ans et plus)." />
+            </div>
           </CardHeader>
           <CardContent>
             <JaugeOETH stats={stats} />
@@ -186,7 +195,10 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-[15px]">Gap à combler</CardTitle>
+            <div className="flex items-center">
+              <CardTitle className="text-[15px]">Gap à combler</CardTitle>
+              <InfoTooltip content="Nombre d'Unités Bénéficiaires manquantes pour atteindre les 6%. Correspond au nombre de recrutements BOETH équivalent temps plein nécessaires pour être en conformité." />
+            </div>
           </CardHeader>
           <CardContent>
             <CarteGap stats={stats} />
@@ -195,7 +207,10 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-[15px]">Contribution AGEFIPH</CardTitle>
+            <div className="flex items-center">
+              <CardTitle className="text-[15px]">Contribution AGEFIPH</CardTitle>
+              <InfoTooltip content="Montant dû à l'AGEFIPH si le quota de 6% n'est pas atteint. Calculé sur la base : UB manquantes × SMIC horaire de référence × coefficient selon effectif (400 / 500 / 600). Déductible des achats ESAT/EA." />
+            </div>
           </CardHeader>
           <CardContent>
             <CarteContribution stats={stats} />
@@ -208,21 +223,33 @@ export default async function DashboardPage() {
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-[15px]">Projection fin d&apos;année</CardTitle>
+              <div className="flex items-center">
+                <CardTitle className="text-[15px]">Projection fin d&apos;année</CardTitle>
+                <InfoTooltip content="Évolution mensuelle du taux OETH. Les barres pleines sont les données réelles (mois passés), les barres claires sont la projection basée sur vos reconnaissances actuellement actives. Les onglets N+1 / N+2 simulent la trajectoire future en supposant les reconnaissances actuelles maintenues." />
+              </div>
               <span className="text-[10px] text-[#6B7280] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-1 rounded-full">
-                Basée sur les reconnaissances actives
+                Reconnaissances actives
               </span>
             </div>
           </CardHeader>
           <CardContent>
-            <CarteProjection data={projectionData} ubManquantes={ubManquantesFin} />
+            <CarteProjection
+              data={projectionData}
+              dataN1={projectionDataN1}
+              dataN2={projectionDataN2}
+              ubManquantes={ubManquantesFin}
+              annee={anneeActuelle}
+            />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-[15px]">Alertes prioritaires</CardTitle>
+              <div className="flex items-center">
+                <CardTitle className="text-[15px]">Alertes prioritaires</CardTitle>
+                <InfoTooltip content="Reconnaissances RQTH/BOETH arrivant à expiration dans les 90 prochains jours ou déjà expirées. Un salarié dont la reconnaissance expire perd ses UB à compter du mois suivant. Agissez avant expiration pour maintenir votre taux." />
+              </div>
               {sal.filter(s => getStatutRQTH(s.date_fin, s.est_permanent) !== 'actif').length > 0 && (
                 <span className="w-5 h-5 bg-[#B71C1C] text-white text-xs rounded-full flex items-center justify-center font-bold">
                   {sal.filter(s => getStatutRQTH(s.date_fin, s.est_permanent) !== 'actif').length}
@@ -241,7 +268,10 @@ export default async function DashboardPage() {
         {/* BOETH actifs */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-[15px]">Salariés BOETH</CardTitle>
+            <div className="flex items-center">
+              <CardTitle className="text-[15px]">Salariés BOETH</CardTitle>
+              <InfoTooltip content="Bénéficiaires de l'Obligation d'Emploi des Travailleurs Handicapés. Comptent dans le quota OETH : salariés RQTH, AAH, invalidité catégorie 2 ou 3, etc. Les alternants comptent, les stagiaires et intérimaires sont exclus (réforme 2020)." />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4">
@@ -275,7 +305,7 @@ export default async function DashboardPage() {
                     {nbSeniors.length}
                   </p>
                   <p className={`text-[10px] mt-0.5 ${nbSeniors.length > 0 ? 'text-amber-600' : 'text-[#9CA3AF]'}`}>
-                    {nbSeniors.length > 0 ? 'coefficient ×1,5 UB appliqué' : 'aucun coefficient majoré'}
+                    {nbSeniors.length > 0 ? 'coefficient x1,5 UB appliqué' : 'aucun coefficient majoré'}
                   </p>
                 </div>
 
@@ -305,7 +335,10 @@ export default async function DashboardPage() {
         {/* Types de reconnaissance */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-[15px]">Types de reconnaissance</CardTitle>
+            <div className="flex items-center">
+              <CardTitle className="text-[15px]">Types de reconnaissance</CardTitle>
+              <InfoTooltip content="Répartition des salariés BOETH par catégorie de reconnaissance : RQTH (Reconnaissance Qualité Travailleur Handicapé), AAH (Allocation Adulte Handicapé), invalidité catégorie 2 ou 3, victimes d'accidents du travail avec incapacité permanente, etc." />
+            </div>
           </CardHeader>
           <CardContent>
             <CarteTypesReconnaissance salaries={sal} />
@@ -317,7 +350,10 @@ export default async function DashboardPage() {
       {sites.length > 1 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-[15px]">Répartition par établissement</CardTitle>
+            <div className="flex items-center">
+              <CardTitle className="text-[15px]">Répartition par établissement</CardTitle>
+              <InfoTooltip content="Vue consolidée de vos établissements assujettis. L'obligation OETH s'apprécie au niveau de l'entreprise mais chaque établissement contribue à l'effectif global. Chaque site affiche son effectif et le nombre de BOETH déclarés." />
+            </div>
           </CardHeader>
           <CardContent>
             <CarteEtablissements etablissements={sites} salaries={sal} />
@@ -328,7 +364,10 @@ export default async function DashboardPage() {
       {/* Ligne 5 : Simulation interactive */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-[15px]">Simuler des actions</CardTitle>
+          <div className="flex items-center">
+            <CardTitle className="text-[15px]">Simuler des actions</CardTitle>
+            <InfoTooltip content="Outil de simulation OETH : testez l'impact de recrutements BOETH, d'achats ESAT/EA ou d'un accord agréé sur votre taux et votre contribution. Les montants ESAT sont acceptés en format francais (ex : 12 000 ou 12.000 ou 12,000)." />
+          </div>
         </CardHeader>
         <CardContent>
           <CarteSimulation
@@ -351,7 +390,10 @@ export default async function DashboardPage() {
           {achatsAnnee.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-[15px]">Achats ESAT / EA {anneeActuelle}</CardTitle>
+                <div className="flex items-center">
+                  <CardTitle className="text-[15px]">Achats ESAT / EA {anneeActuelle}</CardTitle>
+                  <InfoTooltip content="Les achats de prestations auprès d'ESAT (Établissements et Services d'Aide par le Travail) ou d'EA (Entreprises Adaptées) permettent une déduction de la contribution AGEFIPH : 30% du montant HT, plafonnée à 50% de votre contribution brute." />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col gap-3">
@@ -398,7 +440,10 @@ export default async function DashboardPage() {
           {budgetTotal > 0 && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-[15px]">Budget Handicap {anneeActuelle}</CardTitle>
+                <div className="flex items-center">
+                  <CardTitle className="text-[15px]">Budget Handicap {anneeActuelle}</CardTitle>
+                  <InfoTooltip content="Suivi du budget dédié à la politique Handicap de votre organisation (formations, aménagements de poste, sensibilisation, etc.). Ce budget est distinct de la contribution AGEFIPH." />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -442,7 +487,10 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-[15px]">Historique OETH</CardTitle>
+              <div className="flex items-center">
+                <CardTitle className="text-[15px]">Historique OETH</CardTitle>
+                <InfoTooltip content="Évolution de votre taux OETH sur les années précédentes, basée sur les paramètres enregistrés (effectif, SMIC de référence) et les reconnaissances actives chaque année. Une barre verte indique la conformité (taux >= 6%)." />
+              </div>
               <span className="text-[10px] text-[#6B7280] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-1 rounded-full">
                 {donneesHistoriques.length} année{donneesHistoriques.length > 1 ? 's' : ''} de données
               </span>

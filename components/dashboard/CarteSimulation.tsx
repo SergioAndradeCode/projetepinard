@@ -39,10 +39,18 @@ export function CarteSimulation({ stats, smicRef }: CarteSimulationProps) {
   const contributionBruteSimulee = deficit * smicRef * coefficient
 
   // Déduction ESAT simulée : min(montant * 0.3, plafond 50 % contribution brute)
-  const montantEsatNum =
-    parseFloat(montantEsat.replace(/\s/g, '').replace(',', '.')) || 0
+  // Le parsing gère les formats français : espaces et points = séparateur milliers,
+  // virgule = séparateur décimal. Ex: "100.000" ou "100 000" → 100000
+  const montantEsatNum = (() => {
+    const raw = montantEsat
+      .replace(/\s/g, '')   // "100 000" → "100000"
+      .replace(/\./g, '')   // "100.000" → "100000" (point = milliers en fr)
+      .replace(',', '.')    // "100,5"   → "100.5"
+    return parseFloat(raw) || 0
+  })()
+  const deductionBrute30 = montantEsatNum * 0.3
   const plafondDeduction = contributionBruteSimulee * 0.5
-  const deductionEsatSimulee = Math.min(montantEsatNum * 0.3, plafondDeduction)
+  const deductionEsatSimulee = Math.min(deductionBrute30, plafondDeduction)
 
   // Réduction accord agréé : −10 % de la contribution brute
   const reductionAccord = accord ? contributionBruteSimulee * 0.1 : 0
@@ -129,6 +137,8 @@ export function CarteSimulation({ stats, smicRef }: CarteSimulationProps) {
           <p className="text-xs text-[#1E4A8C] font-medium">
             {montantEsatNum === 0
               ? 'Aucun achat ESAT/EA simulé'
+              : deductionEsatSimulee < deductionBrute30
+              ? `Déduction : ${formatEuros(deductionEsatSimulee)} (plafonnée à 50%)`
               : `Déduction estimée : ${formatEuros(deductionEsatSimulee)}`}
           </p>
         </div>
