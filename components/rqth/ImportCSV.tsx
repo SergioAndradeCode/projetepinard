@@ -34,6 +34,7 @@ interface LigneCSV {
   etablissement: string
   etablissement_id: string | null
   type_contrat: string
+  date_fin_contrat: string
   _valide: boolean
   _erreurs: string[]
 }
@@ -123,7 +124,12 @@ const HEADER_MAP: Record<string, string> = {
   // type_contrat
   'type_contrat': 'type_contrat', 'type contrat': 'type_contrat', 'contrat': 'type_contrat',
   'type de contrat': 'type_contrat', 'nature contrat': 'type_contrat',
-  // etablissement (centre) ← nouveau
+  // date_fin_contrat
+  'date_fin_contrat': 'date_fin_contrat', 'date fin contrat': 'date_fin_contrat',
+  'date de fin de contrat': 'date_fin_contrat', 'fin de contrat': 'date_fin_contrat',
+  'fin contrat': 'date_fin_contrat', 'date fin de contrat': 'date_fin_contrat',
+  'date fin de contrat (jj/mm/aaaa)': 'date_fin_contrat',
+  // etablissement (centre)
   'etablissement': 'etablissement',
   'établissement': 'etablissement',
   'centre': 'etablissement',
@@ -178,7 +184,7 @@ function parseCSV(
       prenom: '', nom: '', type_reconnaissance: '', date_debut: '',
       date_fin: '', est_permanent: '', taux_temps_travail: '',
       date_naissance: '', matricule: '', etablissement: '', etablissement_id: null,
-      type_contrat: '',
+      type_contrat: '', date_fin_contrat: '',
       _valide: false,
       _erreurs: [`Colonnes non reconnues. En-tetes detectes : "${headers.join('", "')}". Utilisez le modele fourni.`],
     }]
@@ -229,6 +235,15 @@ function parseCSV(
 
     if (!row['matricule']) erreurs.push('Matricule / Code interne manquant')
 
+    // date_fin_contrat obligatoire pour CDD, alternant, autre
+    const resolvedTypeContrat = TYPES_CONTRAT_VALIDES[row['type_contrat']?.trim().toLowerCase()] ?? 'cdi'
+    const dateFinContratRaw = row['date_fin_contrat'] ?? ''
+    if (['cdd', 'alternant', 'autre'].includes(resolvedTypeContrat) && !parseDate(dateFinContratRaw)) {
+      erreurs.push(`Date de fin de contrat requise pour un ${resolvedTypeContrat} (colonne "Date fin de contrat")`)
+    } else if (dateFinContratRaw && !parseDate(dateFinContratRaw)) {
+      erreurs.push('Date de fin de contrat invalide (format attendu : JJ/MM/AAAA)')
+    }
+
     // ── Établissement ──────────────────────────────────────────────────────────
     let etablissementId: string | null = autoEtabId  // par défaut : site unique auto-assigné
     const nomEtab = row['etablissement'] ?? ''
@@ -263,6 +278,7 @@ function parseCSV(
       etablissement:       nomEtab,
       etablissement_id:    etablissementId,
       type_contrat:        row['type_contrat'] ?? '',
+      date_fin_contrat:    row['date_fin_contrat'] ?? '',
       _valide:             erreurs.length === 0,
       _erreurs:            erreurs,
     }
@@ -298,6 +314,7 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
     { key: 'matricule',           width: 26 },
     { key: 'etablissement',       width: 30 },
     { key: 'type_contrat',        width: 22 },
+    { key: 'date_fin_contrat',    width: 30 },
   ]
 
   // Ligne 1 — titres de colonnes
@@ -313,6 +330,7 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
     'Code interne / Matricule',
     'Centre / Etablissement',
     'Type de contrat',
+    'Date fin de contrat (jj/mm/aaaa)',
   ])
   headerRow.height = 34
   headerRow.eachCell(cell => {
@@ -342,14 +360,18 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
     '★ Obligatoire',
     etabSubLabel,
     'Optionnel, liste deroulante (CDI par defaut)',
+    '★ Requis si CDD/Alternant, JJ/MM/AAAA',
   ])
   subRow.height = 20
-  // Colonnes optionnelles : 5 (date_fin) et 11 (type_contrat)
+  // Colonnes optionnelles : 5 (date_fin RQTH) et 11 (type_contrat)
+  // Colonne 12 (date_fin_contrat) : obligatoire conditionnel → orange
   subRow.eachCell((cell, colNum) => {
-    const optional = colNum === 5 || colNum === 11
-    cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: optional ? 'FFEBF2FA' : 'FFFFF3E0' } }
+    const optional     = colNum === 5 || colNum === 11
+    const conditional  = colNum === 12
+    cell.fill      = { type: 'pattern', pattern: 'solid',
+                       fgColor: { argb: optional ? 'FFEBF2FA' : conditional ? 'FFFFF8E1' : 'FFFFF3E0' } }
     cell.font      = { size: 8.5, italic: true, name: 'Calibri',
-                       color: { argb: optional ? 'FF1E4A8C' : 'FFB71C1C' } }
+                       color: { argb: optional ? 'FF1E4A8C' : conditional ? 'FFB45309' : 'FFB71C1C' } }
     cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }
   })
 
@@ -357,9 +379,9 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
   const ex1Etab = etabNames[0] ?? 'Siège social'
   const ex2Etab = etabNames[1] ?? etabNames[0] ?? 'Site Lyon'
   const examples = [
-    ['Marie',  'Dupont',  'RQTH',                      '15/01/2023', '14/01/2026', 'Non', 100, '20/06/1985', 'EMP001', ex1Etab, 'CDI'],
-    ['Jean',   'Martin',  'AAH',                       '01/06/2022', '',           'Oui', 80,  '12/03/1970', 'EMP002', ex2Etab, 'CDI'],
-    ['Sophie', 'Bernard', 'Pension invalidite 2e cat.', '15/03/2024', '',           'Oui', 100, '08/11/1988', 'EMP003', ex1Etab, 'CDD'],
+    ['Marie',  'Dupont',  'RQTH',                      '15/01/2023', '14/01/2026', 'Non', 100, '20/06/1985', 'EMP001', ex1Etab, 'CDI', ''],
+    ['Jean',   'Martin',  'AAH',                       '01/06/2022', '',           'Oui', 80,  '12/03/1970', 'EMP002', ex2Etab, 'CDI', ''],
+    ['Sophie', 'Bernard', 'Pension invalidite 2e cat.', '15/03/2024', '',           'Oui', 100, '08/11/1988', 'EMP003', ex1Etab, 'CDD', '31/08/2025'],
   ]
   examples.forEach((ex, idx) => {
     const row = ws.addRow(ex)
@@ -446,6 +468,10 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
       etabNames.length > 0 ? etabNames.join(' · ') : 'Nom exact tel qu\'enregistre dans Talenth'],
     ['Type de contrat',                 'Non', 'CDI par defaut si absent. Stagiaires et interimaires exclus des calculs OETH.',
       TYPE_CONTRAT_OPTIONS.join(' · ')],
+    ['Date fin de contrat (jj/mm/aaaa)', 'Requis si CDD/Alternant',
+      'Borne de depart utilisee dans les calculs OETH (projection, jauge, DOETH). ' +
+      'Sans cette date, le salarie reste compte comme actif jusqu\'a expiration de sa RQTH, meme apres depart.',
+      '31/08/2025 · 30/06/2026'],
   ]
 
   lgData.forEach(([col, req, desc, ex], i) => {
@@ -456,14 +482,16 @@ async function generateTemplateXlsx(etablissements: Etablissement[]): Promise<Bl
       cell.alignment = { vertical: 'middle', wrapText: true }
       if (i % 2 === 0) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEBF2FA' } }
       if (colNum === 2 && req === 'Oui') cell.font = { size: 10, name: 'Calibri', bold: true, color: { argb: 'FFB71C1C' } }
+      if (colNum === 2 && req === 'Requis si CDD/Alternant') cell.font = { size: 10, name: 'Calibri', bold: true, color: { argb: 'FFB45309' } }
     })
   })
 
   lg.addRow([])
   const noteRow = lg.addRow([
-    "Les colonnes « Date fin » et « Type de contrat » sont optionnelles. " +
-    "Toutes les autres colonnes sont obligatoires, les lignes incompletes sont ignorees a l'import. " +
-    "Les dates sont acceptees au format JJ/MM/AAAA ou AAAA-MM-JJ.",
+    "Colonnes optionnelles : Date fin RQTH, Type de contrat. " +
+    "Date fin de contrat : obligatoire pour CDD, Alternant, Autre (utilisee dans les calculs OETH). " +
+    "Toutes les autres colonnes sont obligatoires, les lignes incompletes sont ignorees. " +
+    "Dates acceptees : JJ/MM/AAAA ou AAAA-MM-JJ.",
   ])
   noteRow.getCell(1).font = { italic: true, color: { argb: 'FF6B7280' }, size: 9, name: 'Calibri' }
   lg.mergeCells(`A${noteRow.number}:D${noteRow.number}`)
@@ -537,20 +565,25 @@ export function ImportCSV({ open, onClose, onSuccess, organizationId }: ImportCS
     if (lignesValides.length === 0) return
     setImporting(true)
     try {
-      const payload = lignesValides.map(l => ({
-        organization_id:     organizationId,
-        establishment_id:    l.etablissement_id,
-        prenom:              l.prenom.trim(),
-        nom:                 l.nom.trim(),
-        type_reconnaissance: TYPES_VALIDES[l.type_reconnaissance.toLowerCase()],
-        date_debut:          parseDate(l.date_debut),
-        date_fin:            parseDate(l.date_fin) ?? null,
-        est_permanent:       parseBoolFr(l.est_permanent) || !parseDate(l.date_fin),
-        taux_temps_travail:  Math.min(100, Math.max(0, parseFloat(l.taux_temps_travail) || 100)),
-        date_naissance:      parseDate(l.date_naissance) ?? null,
-        matricule:           l.matricule.trim() || null,
-        type_contrat:        TYPES_CONTRAT_VALIDES[l.type_contrat.trim().toLowerCase()] ?? 'cdi',
-      }))
+      const payload = lignesValides.map(l => {
+        const resolvedContrat = TYPES_CONTRAT_VALIDES[l.type_contrat.trim().toLowerCase()] ?? 'cdi'
+        return {
+          organization_id:     organizationId,
+          establishment_id:    l.etablissement_id,
+          prenom:              l.prenom.trim(),
+          nom:                 l.nom.trim(),
+          type_reconnaissance: TYPES_VALIDES[l.type_reconnaissance.toLowerCase()],
+          date_debut:          parseDate(l.date_debut),
+          date_fin:            parseDate(l.date_fin) ?? null,
+          est_permanent:       parseBoolFr(l.est_permanent) || !parseDate(l.date_fin),
+          taux_temps_travail:  Math.min(100, Math.max(0, parseFloat(l.taux_temps_travail) || 100)),
+          date_naissance:      parseDate(l.date_naissance) ?? null,
+          matricule:           l.matricule.trim() || null,
+          type_contrat:        resolvedContrat,
+          // Pour CDI : jamais de date de fin de contrat
+          date_fin_contrat:    resolvedContrat === 'cdi' ? null : (parseDate(l.date_fin_contrat) ?? null),
+        }
+      })
 
       const { error } = await supabase.from('rqth_employees').insert(payload)
       if (error) throw error

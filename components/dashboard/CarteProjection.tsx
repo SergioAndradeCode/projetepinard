@@ -18,12 +18,19 @@ interface CarteProjectionProps {
   dataN2: MoisProjection[]
   ubManquantes: number
   annee: number
+  tauxAujourdhui: number  // valeur exacte de la jauge — même calcul, même filtre
 }
 
-export function CarteProjection({ data, dataN1, dataN2, ubManquantes, annee }: CarteProjectionProps) {
+export function CarteProjection({ data, dataN1, dataN2, ubManquantes, annee, tauxAujourdhui }: CarteProjectionProps) {
   const [decalage, setDecalage] = useState<0 | 1 | 2>(0)
 
-  const jeux = [data, dataN1, dataN2]
+  // Pour N, on force la barre du mois actuel à la valeur exacte de la jauge
+  // afin d'éliminer toute divergence due aux filtres de date différents
+  const dataNcorrige = data.map(m =>
+    m.type === 'actuel' ? { ...m, taux: tauxAujourdhui } : m
+  )
+
+  const jeux = [dataNcorrige, dataN1, dataN2]
   const activeData = jeux[decalage]
   const activeAnnee = annee + decalage
 
@@ -121,8 +128,17 @@ export function CarteProjection({ data, dataN1, dataN2, ubManquantes, annee }: C
             y={6}
             stroke="#2E7D32"
             strokeDasharray="4 4"
-            label={{ value: '6%', position: 'insideTopRight', fontSize: 10, fill: '#2E7D32' }}
+            label={{ value: 'Objectif 6%', position: 'insideTopRight', fontSize: 10, fill: '#2E7D32' }}
           />
+          {decalage === 0 && (
+            <ReferenceLine
+              y={tauxAujourdhui}
+              stroke="#1E4A8C"
+              strokeDasharray="2 3"
+              strokeWidth={1.5}
+              label={{ value: `Actuel ${tauxAujourdhui.toFixed(1)}%`, position: 'insideBottomRight', fontSize: 9, fill: '#1E4A8C' }}
+            />
+          )}
           <Bar dataKey="taux" radius={[3, 3, 0, 0]}>
             {activeData.map((entry, i) => (
               <Cell

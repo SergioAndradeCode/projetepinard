@@ -21,6 +21,10 @@ import {
 import type { RQTHEmployee, Establishment } from '@/types'
 import { LABEL_RECONNAISSANCE, LABEL_TYPE_CONTRAT } from '@/types'
 
+// Contrats à durée limitée : la date de fin de contrat est obligatoire
+// car elle sert de borne de départ dans les calculs OETH (projection, jauge, DOETH)
+const CONTRATS_AVEC_DATE_FIN = ['cdd', 'alternant', 'autre'] as const
+
 const schema = z.object({
   nom: z.string().min(1, 'Nom requis'),
   prenom: z.string().min(1, 'Prénom requis'),
@@ -41,6 +45,14 @@ const schema = z.object({
   date_fin: z.string().nullable(),
   date_fin_contrat: z.string().nullable(),
   notes: z.string().nullable(),
+}).superRefine((data, ctx) => {
+  if ((CONTRATS_AVEC_DATE_FIN as readonly string[]).includes(data.type_contrat) && !data.date_fin_contrat) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Date de fin de contrat requise pour ce type de contrat',
+      path: ['date_fin_contrat'],
+    })
+  }
 })
 type FormData = z.infer<typeof schema>
 
@@ -363,12 +375,21 @@ export function FormRQTH({ open, onClose, onSuccess, organizationId, employee, d
 
               {typeContrat !== 'cdi' && (
                 <div className="space-y-1.5 pt-1">
-                  <Label>Date de fin de contrat <span className="text-[#6B7280] font-normal">(optionnel)</span></Label>
+                  <Label>
+                    Date de fin de contrat{' '}
+                    {(CONTRATS_AVEC_DATE_FIN as readonly string[]).includes(typeContrat)
+                      ? <span className="text-[#B71C1C]">*</span>
+                      : <span className="text-[#6B7280] font-normal">(optionnel)</span>
+                    }
+                  </Label>
                   <Input type="date" className="w-44" {...register('date_fin_contrat')} />
+                  {errors.date_fin_contrat && (
+                    <p className="text-xs text-[#B71C1C]">{errors.date_fin_contrat.message}</p>
+                  )}
                   <p className="text-xs text-[#6B7280]">
                     {typeContrat === 'interimaire'
-                      ? "Date de fin de mission. Ne remplace pas l'archivage lors du départ effectif."
-                      : "Utile pour les alertes calendrier et les extractions. Ne remplace pas l'archivage lors du départ effectif."}
+                      ? "Date de fin de mission (optionnelle pour les intérimaires, exclus des calculs OETH)."
+                      : "Utilisée dans la projection OETH : le salarié cesse de générer des UB à partir de cette date."}
                   </p>
                 </div>
               )}

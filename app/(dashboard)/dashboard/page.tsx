@@ -12,7 +12,7 @@ import { CarteTypesReconnaissance } from '@/components/dashboard/CarteTypesRecon
 import { CarteHistorique, type AnneeHistorique } from '@/components/dashboard/CarteHistorique'
 import { CarteSimulation } from '@/components/dashboard/CarteSimulation'
 import { InfoTooltip } from '@/components/dashboard/InfoTooltip'
-import { calculerStats, getStatutRQTH, getCoeffAgeCourant } from '@/lib/oeth/calculs'
+import { calculerStats, getStatutRQTH, getCoeffAgeCourant, getDateFinEffective, TYPES_HORS_OETH } from '@/lib/oeth/calculs'
 import { Users, AlertTriangle, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -30,15 +30,17 @@ function buildProjectionAnnee(
   moisActuel: number,
 ): MoisProjection[] {
   return MOIS.map((mois, m) => {
-    const endOfMonth = new Date(annee, m + 1, 0)
-    endOfMonth.setHours(23, 59, 59, 999)
     const startOfMonth = new Date(annee, m, 1)
+    const endOfMonth   = new Date(annee, m + 1, 0, 23, 59, 59, 999)
 
     const actifsAuMois = sal.filter(s => {
+      // Mêmes règles que la jauge : types exclus, départ entreprise, fin contrat
+      if (TYPES_HORS_OETH.has(s.type_contrat ?? 'cdi')) return false
       const debut = new Date(s.date_debut)
       if (debut > endOfMonth) return false
-      if (s.est_permanent || !s.date_fin) return true
-      return new Date(s.date_fin) >= startOfMonth
+      // Fin effective = min(date_fin RQTH, date_sortie_entreprise, date_fin_contrat)
+      const fin = getDateFinEffective(s)
+      return fin >= startOfMonth
     })
 
     const ubMois = actifsAuMois.reduce((sum, s) => {
@@ -239,6 +241,7 @@ export default async function DashboardPage() {
               dataN2={projectionDataN2}
               ubManquantes={ubManquantesFin}
               annee={anneeActuelle}
+              tauxAujourdhui={stats.taux}
             />
           </CardContent>
         </Card>
