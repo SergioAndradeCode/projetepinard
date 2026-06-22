@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, ArrowRight, Mail, ShieldCheck, CreditCard, Building2, Clock } from 'lucide-react'
+import { CheckCircle, ArrowRight, Mail, ShieldCheck, CreditCard, Building2, Clock, MessageCircle } from 'lucide-react'
 import { PLANS, FEATURES, type PlanId, type BillingCycle } from '@/lib/plans'
 
 const PLAN_META: Record<PlanId, {
@@ -230,6 +230,23 @@ export function TarifsGrid({ infoOnly = false }: { infoOnly?: boolean }) {
             </div>
           )
         })}
+      </div>
+
+      {/* Bannière support */}
+      <div className="rounded-2xl bg-green-50 border border-green-200 p-5 flex flex-col sm:flex-row items-center gap-4">
+        <div className="w-10 h-10 rounded-xl bg-white border border-green-200 flex items-center justify-center shrink-0">
+          <MessageCircle className="w-5 h-5 text-green-700" />
+        </div>
+        <div className="flex-1 min-w-0 text-center sm:text-left">
+          <p className="text-sm font-bold text-green-900 mb-0.5">Un problème ? Je suis là.</p>
+          <p className="text-xs text-green-800 leading-relaxed">
+            Le support est inclus dans tous les plans. Écrivez-nous à{' '}
+            <a href="mailto:contact@talenth.fr" className="font-semibold underline hover:no-underline">
+              contact@talenth.fr
+            </a>{' '}
+            et nous répondons sous 48h ouvrées.
+          </p>
+        </div>
       </div>
 
       {/* Bandeau modes de paiement */}

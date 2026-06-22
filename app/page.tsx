@@ -2,11 +2,12 @@ import Link from 'next/link'
 import {
   ArrowRight, CheckCircle, BarChart3, Users, FileText,
   ShieldCheck, TrendingUp, Building2,
-  Heart, Wallet, UserCog,
+  Heart, Wallet, UserCog, PlayCircle, CalendarDays,
 } from 'lucide-react'
 import { NavMarketing } from '@/components/marketing/NavMarketing'
 import { FooterMarketing } from '@/components/marketing/FooterMarketing'
 import { MockupDashboard, MockupRQTH, MockupDOETH } from '@/components/marketing/MockupDashboard'
+import { FormDemo } from '@/components/marketing/FormDemo'
 
 export default function LandingPage() {
   return (
@@ -48,7 +49,7 @@ export default function LandingPage() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a
-                  href="mailto:contact@talenth.fr"
+                  href="#demo"
                   className="inline-flex items-center justify-center gap-2 border border-white/20 text-white/75 font-medium px-8 py-4 rounded-xl hover:bg-white/5 transition-colors text-sm"
                 >
                   Demander une démonstration
@@ -457,6 +458,79 @@ export default function LandingPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── DÉMO / FORMATION ─────────────────────────────────────────── */}
+      <section id="demo" className="py-20 bg-[#FEFCF8] border-y border-[#F0EBE3]">
+        <div className="max-w-[1600px] mx-auto px-10">
+          <div className="text-center mb-14">
+            <p className="text-sm font-semibold text-[#D97706] uppercase tracking-widest mb-4">Démonstration</p>
+            <h2 className="text-3xl xl:text-4xl font-black text-[#1A1A2E] mb-4">
+              Vous préférez voir avant de vous lancer ?
+            </h2>
+            <p className="text-[#6B7280] max-w-xl mx-auto text-lg">
+              Rien de mieux qu&apos;une démonstration sur mesure pour comprendre comment Talenth
+              s&apos;adapte à votre organisation.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20 items-start">
+
+            {/* Colonne gauche : formulaire */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-[#EBF2FA] border border-blue-100 flex items-center justify-center shrink-0">
+                  <CalendarDays className="w-5 h-5 text-[#1E4A8C]" />
+                </div>
+                <div>
+                  <p className="font-bold text-[#1A1A2E]">Planifier une démonstration</p>
+                  <p className="text-sm text-[#6B7280]">En visio ou en présentiel, selon vos disponibilités</p>
+                </div>
+              </div>
+
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-7 shadow-sm">
+                <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
+                  Décrivez-nous votre contexte en quelques mots et je vous recontacte
+                  rapidement, généralement dans la journée, pour convenir d&apos;un créneau
+                  adapté à votre agenda.
+                </p>
+                <FormDemo />
+              </div>
+            </div>
+
+            {/* Colonne droite : placeholder vidéo + points forts */}
+            <div className="flex flex-col gap-6">
+              <div className="relative bg-[#0F1F3A] rounded-2xl overflow-hidden aspect-video flex items-center justify-center border border-white/10">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#1E4A8C]/30 via-transparent to-transparent pointer-events-none" />
+                <div className="relative text-center px-8">
+                  <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto mb-4">
+                    <PlayCircle className="w-8 h-8 text-white/60" />
+                  </div>
+                  <p className="text-white/70 font-semibold text-base mb-1">Vidéo de démonstration</p>
+                  <p className="text-white/35 text-sm">Disponible prochainement</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  { title: 'Sur mesure', desc: 'On part de votre contexte, vos établissements, vos données réelles.' },
+                  { title: 'Sans engagement', desc: '30 minutes suffisent pour avoir une vision complète de l\'outil.' },
+                  { title: 'Toute l\'équipe', desc: 'Invitez vos chargés de mission ou votre DRH, c\'est ouvert.' },
+                  { title: 'Accompagnement', desc: 'Je reste disponible par email après la démo pour toute question.' },
+                ].map(({ title, desc }) => (
+                  <div key={title} className="bg-white border border-[#F0EBE3] rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
+                      <p className="text-sm font-semibold text-[#1A1A2E]">{title}</p>
+                    </div>
+                    <p className="text-xs text-[#6B7280] leading-relaxed">{desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

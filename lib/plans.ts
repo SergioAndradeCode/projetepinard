@@ -14,6 +14,7 @@ export const FEATURES = {
   export_excel:          'Exports Excel',
   alerts_expiration:     'Alertes expiration reconnaissances',
   multi_roles:           'Gestion multi-rôles équipe',
+  support_email:         'Support par email inclus',
 } as const
 
 export type FeatureKey = keyof typeof FEATURES

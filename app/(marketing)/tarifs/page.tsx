@@ -37,6 +37,18 @@ const FAQ = [
     q: 'Quel plan choisir pour un cabinet RH gérant plusieurs entreprises clientes ?',
     a: 'Le plan Groupe est fait pour vous. Contactez-nous à contact@talenth.fr pour une offre personnalisée adaptée à votre activité multi-clients.',
   },
+  {
+    q: 'Que deviennent mes données si je résilie mon abonnement ?',
+    a: 'Vos données restent accessibles en lecture seule pendant 30 jours après la résiliation, le temps de les exporter si vous le souhaitez. Passé ce délai, vous pouvez demander leur suppression définitive par email à contact@talenth.fr. Nous traitons toute demande de suppression sous 30 jours, conformément au RGPD. Vous restez propriétaire de vos données à tout moment.',
+  },
+  {
+    q: 'Un membre de l\'équipe peut-il supprimer des données par erreur ?',
+    a: 'Talenth distingue clairement les rôles. Un lecteur ne peut rien modifier ni supprimer. Un chargé de mission peut supprimer uniquement les salariés de son propre établissement. Seul l\'administrateur a accès à l\'ensemble des données de l\'organisation. En cas de suppression accidentelle, contactez-nous à contact@talenth.fr : nous pouvons vérifier ce qui s\'est passé et vous accompagner.',
+  },
+  {
+    q: 'Y a-t-il un support disponible si j\'ai un problème avec l\'outil ?',
+    a: 'Oui, le support est inclus dans tous les plans, sans exception. Si vous rencontrez un problème technique ou une question sur l\'utilisation, écrivez-nous à contact@talenth.fr. Nous répondons généralement sous 48h ouvrées. Pour les comptes Groupe, un accompagnement dédié est prévu dès la souscription.',
+  },
 ]
 
 export default function TarifsPage() {
