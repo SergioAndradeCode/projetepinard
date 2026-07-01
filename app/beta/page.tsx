@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
 
-const spotsLeft = 3
+const spotsLeft = 4
 const totalSpots = 5
 const filledPct  = ((totalSpots - spotsLeft) / totalSpots) * 100
 
