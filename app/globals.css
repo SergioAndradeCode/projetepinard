@@ -30,41 +30,51 @@ body {
   animation: beta-pulse 2s infinite;
 }
 
-.beta-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 32px;
+.beta-main-grid {
+  flex-direction: row;
 }
 
-.beta-cards {
+.beta-exchange-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 48px;
 }
 
-.beta-form {
-  display: flex;
-  gap: 10px;
+@media (max-width: 1024px) {
+  .beta-main-grid {
+    flex-direction: column;
+  }
+
+  .beta-left {
+    border-right: none !important;
+    border-bottom: 0.5px solid rgba(255,255,255,0.08);
+    padding: 48px 32px !important;
+  }
+
+  .beta-left h1 {
+    font-size: 38px !important;
+  }
+
+  .beta-right {
+    padding: 48px 32px !important;
+  }
 }
 
 @media (max-width: 640px) {
-  .beta-hero {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .beta-cards {
+  .beta-exchange-grid {
     grid-template-columns: 1fr;
+    gap: 32px;
   }
 
-  .beta-form {
-    flex-direction: column;
+  .beta-left {
+    padding: 40px 20px !important;
   }
 
-  .beta-form button {
-    width: 100%;
-    height: 44px;
+  .beta-left h1 {
+    font-size: 30px !important;
+  }
+
+  .beta-right {
+    padding: 40px 20px !important;
   }
 }

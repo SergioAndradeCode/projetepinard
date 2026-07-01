@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Programme bêta — Talenth.fr',
+  title: 'Offre de lancement — Talenth.fr',
   description: "Rejoignez les 5 entreprises qui testent Talenth.fr en avant-première et obtenez l'abonnement annuel divisé par 2.",
   robots: 'noindex',
 }
