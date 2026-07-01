@@ -53,6 +53,13 @@ export function NavMarketing() {
         {/* CTA buttons */}
         <div className="hidden md:flex items-center gap-3">
           <Link
+            href="/beta"
+            className="text-sm font-medium px-3 py-1.5 rounded-full border transition-colors"
+            style={{ color: '#5DCAA5', borderColor: '#5DCAA5', fontSize: '13px' }}
+          >
+            Programme bêta
+          </Link>
+          <Link
             href="/login"
             className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${scrolled ? 'text-[#1E4A8C] hover:bg-[#EBF2FA]' : 'text-white/90 hover:text-white'}`}
           >
@@ -88,6 +95,9 @@ export function NavMarketing() {
             </Link>
           ))}
           <div className="pt-3 border-t border-[#E2E8F0] flex flex-col gap-2">
+            <Link href="/beta" className="text-center text-sm font-medium py-2.5 rounded-full border" style={{ color: '#5DCAA5', borderColor: '#5DCAA5' }} onClick={() => setMenuOpen(false)}>
+              Programme bêta
+            </Link>
             <Link href="/login" className="text-center text-sm font-medium text-[#1E4A8C] py-2.5 rounded-lg border border-[#1E4A8C]/20 hover:bg-[#EBF2FA]">
               Se connecter
             </Link>
