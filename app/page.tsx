@@ -2,7 +2,7 @@ import Link from 'next/link'
 import {
   ArrowRight, CheckCircle, BarChart3, Users, FileText,
   ShieldCheck, TrendingUp, Building2,
-  Heart, Wallet, UserCog, PlayCircle, CalendarDays,
+  Heart, Wallet, UserCog, CalendarDays,
 } from 'lucide-react'
 import { NavMarketing } from '@/components/marketing/NavMarketing'
 import { FooterMarketing } from '@/components/marketing/FooterMarketing'
@@ -502,15 +502,15 @@ export default function LandingPage() {
 
             {/* Colonne droite : placeholder vidéo + points forts */}
             <div className="flex flex-col gap-6">
-              <div className="relative bg-[#0F1F3A] rounded-2xl overflow-hidden aspect-video flex items-center justify-center border border-white/10">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#1E4A8C]/30 via-transparent to-transparent pointer-events-none" />
-                <div className="relative text-center px-8">
-                  <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto mb-4">
-                    <PlayCircle className="w-8 h-8 text-white/60" />
-                  </div>
-                  <p className="text-white/70 font-semibold text-base mb-1">Vidéo de démonstration</p>
-                  <p className="text-white/35 text-sm">Disponible prochainement</p>
-                </div>
+              <div className="relative bg-[#0F1F3A] rounded-2xl overflow-hidden aspect-video border border-white/10">
+                <video
+                  className="w-full h-full"
+                  controls
+                  preload="metadata"
+                  poster="/video/talenth-demo-poster.jpg"
+                >
+                  <source src="/video/talenth-demo.mp4" type="video/mp4" />
+                </video>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
