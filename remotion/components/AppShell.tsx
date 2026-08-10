@@ -12,6 +12,7 @@ import {
   Settings,
   CreditCard,
   LogOut,
+  type LucideIcon,
 } from "lucide-react";
 import { COLORS, FONT, SIDEBAR_WIDTH } from "../theme";
 
@@ -33,7 +34,7 @@ export const ADMIN_NAV_ITEMS = [
 
 const NavRow: React.FC<{
   label: string;
-  Icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+  Icon: LucideIcon;
   active?: boolean;
 }> = ({ label, Icon, active }) => (
   <div
