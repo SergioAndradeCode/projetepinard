@@ -38,3 +38,7 @@ next-env.d.ts
 # Outils locaux
 .claude/
 .vite/
+
+# Remotion
+/remotion/out/
+/public/audio/
