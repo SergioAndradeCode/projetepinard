@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import {
   ArrowRight, CheckCircle, BarChart3, Users, FileText,
@@ -9,9 +10,52 @@ import { FooterMarketing } from '@/components/marketing/FooterMarketing'
 import { MockupDashboard, MockupRQTH, MockupDOETH } from '@/components/marketing/MockupDashboard'
 import { FormDemo } from '@/components/marketing/FormDemo'
 
+export const metadata: Metadata = {
+  title: "Logiciel OETH - Pilotage et suivi BOETH pour equipes RH",
+  description: "Talenth simplifie le pilotage OETH : tableau de bord en temps reel, suivi BOETH, calcul unites beneficiaires, preparation DOETH et gestion mission handicap. Essai gratuit 10 jours.",
+  openGraph: {
+    title: "Talenth | Logiciel OETH - Pilotage OETH simplifie",
+    description: "Tableau de bord OETH, suivi BOETH, calcul unites beneficiaires et preparation DOETH. Pour les equipes RH qui gerent l'obligation emploi travailleurs handicapes.",
+    url: 'https://talenth.fr',
+  },
+}
+
+const ldJson = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://talenth.fr/#organization",
+      "name": "Talenth",
+      "url": "https://talenth.fr",
+      "logo": { "@type": "ImageObject", "url": "https://talenth.fr/logo.png" },
+      "contactPoint": { "@type": "ContactPoint", "email": "contact@talenth.fr", "contactType": "customer service" },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Talenth",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "url": "https://talenth.fr",
+      "description": "Logiciel OETH de pilotage de l'Obligation d'Emploi des Travailleurs Handicapes. Tableau de bord OETH, suivi BOETH, calcul unites beneficiaires, DOETH.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR",
+        "description": "Essai gratuit 10 jours sans carte bancaire",
+      },
+      "publisher": { "@id": "https://talenth.fr/#organization" },
+    },
+  ],
+}
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }}
+      />
       <NavMarketing />
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}

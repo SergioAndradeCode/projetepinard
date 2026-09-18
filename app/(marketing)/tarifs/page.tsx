@@ -4,8 +4,45 @@ import { TarifsGrid } from '@/components/marketing/TarifsGrid'
 import { FEATURES } from '@/lib/plans'
 
 export const metadata = {
-  title: 'Tarifs | Talenth',
-  description: 'Des tarifs simples et transparents pour gérer votre conformité OETH. Essai gratuit 10 jours, sans carte bancaire. Tous les tarifs sont affichés hors taxes (HT).',
+  title: 'Tarifs logiciel OETH - Pilotage OETH sans engagement',
+  description: 'Des tarifs simples et transparents pour gerer votre conformite OETH. Tableau de bord OETH, suivi BOETH, DOETH inclus. Essai gratuit 10 jours, sans carte bancaire.',
+  openGraph: {
+    title: 'Tarifs | Talenth - Logiciel OETH',
+    description: 'Pilotage OETH complet : tableau de bord, suivi BOETH, calcul unites beneficiaires, DOETH. Essai gratuit 10 jours sans engagement.',
+    url: 'https://talenth.fr/tarifs',
+  },
+}
+
+const faqLdJson = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "L'essai gratuit est-il vraiment sans engagement ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Oui. 10 jours complets, sans carte bancaire. A l'issue de la periode d'essai, vous choisissez un plan ou votre compte passe en lecture seule. Aucun prelevement automatique." },
+    },
+    {
+      "@type": "Question",
+      "name": "Toutes les fonctionnalites sont-elles vraiment incluses dans chaque plan ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Oui, sans exception. Quel que soit votre plan, vous accedez a l'integralite de Talenth : tableau de bord OETH, suivi BOETH, maintien dans l'emploi, DOETH, budget, achats ESAT, exports Excel et gestion d'equipe." },
+    },
+    {
+      "@type": "Question",
+      "name": "Est-il possible de payer par bon de commande ou virement bancaire ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Oui, l'option Annuel en 1 fois est specialement concue pour les organisations qui fonctionnent par bon de commande. Stripe accepte la carte bancaire et le virement SEPA." },
+    },
+    {
+      "@type": "Question",
+      "name": "Les donnees sont-elles securisees ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Vos donnees sont hebergees en France, chiffrees en transit et au repos. Talenth est conforme au RGPD. Vous restez proprietaire de vos donnees et pouvez les exporter a tout moment." },
+    },
+    {
+      "@type": "Question",
+      "name": "Que deviennent mes donnees si je resilie mon abonnement ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Vos donnees restent accessibles en lecture seule pendant 30 jours apres la resiliation. Passe ce delai, vous pouvez demander leur suppression definitive. Nous traitons toute demande sous 30 jours, conformement au RGPD." },
+    },
+  ],
 }
 
 const FAQ = [
@@ -54,6 +91,10 @@ const FAQ = [
 export default function TarifsPage() {
   return (
     <div className="pt-24 pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLdJson) }}
+      />
 
       {/* Hero */}
       <section className="py-16 text-center">
