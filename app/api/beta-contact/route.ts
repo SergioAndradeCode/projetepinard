@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { z } from 'zod'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 
 const schema = z.object({
   email: z.string().email(),
@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
   const fromEmail    = process.env.TALENTH_EMAIL_FROM    ?? 'onboarding@resend.dev'
   const contactEmail = process.env.TALENTH_EMAIL_CONTACT ?? 'contact@talenth.fr'
 
+  const resend = getResend()
   await resend.emails.send({
     from:    `Talenth <${fromEmail}>`,
     to:      [contactEmail],
