@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 
 interface WelcomeEmailParams {
   to:            string
@@ -113,7 +113,7 @@ export async function sendWelcome(params: WelcomeEmailParams): Promise<void> {
 </body>
 </html>`
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from:    `${companyName} <${fromEmail}>`,
     to:      [to],
     replyTo: replyTo,
