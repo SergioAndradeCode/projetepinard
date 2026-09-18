@@ -633,6 +633,43 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── FONDATEUR ─────────────────────────────────────────────── */}
+      <section className="py-20 bg-white border-t border-[#E2E8F0]">
+        <div className="max-w-3xl mx-auto px-6 flex flex-col sm:flex-row items-center sm:items-start gap-10">
+
+          <div className="flex-shrink-0">
+            <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-[#EBF2FA] shadow-md">
+              <img
+                src="/founder.jpeg"
+                alt="Sergio De Andrade, fondateur de Talenth.fr"
+                className="w-full h-full object-cover object-top"
+              />
+            </div>
+          </div>
+
+          <div className="text-center sm:text-left">
+            <p className="text-xs font-semibold text-[#D97706] uppercase tracking-widest mb-2">Derrière l&apos;outil</p>
+            <h2 className="text-2xl font-bold text-[#1A1A2E] mb-1">Sergio De Andrade</h2>
+            <p className="text-sm font-medium text-[#1E4A8C] mb-4">Fondateur de Talenth.fr</p>
+            <p className="text-[#4B5563] text-base leading-relaxed mb-6 max-w-xl">
+              J&apos;ai construit Talenth.fr parce que j&apos;ai vu des équipes RH passer des heures sur Excel à recalculer leur OETH chaque année. Mon objectif : un outil simple, fiable, et fait pour les professionnels du handicap en entreprise. Je réponds personnellement à chaque message.
+            </p>
+            <a
+              href="https://www.linkedin.com/in/sergio-de-andrade-748334195/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-lg bg-[#0A66C2] text-white text-sm font-semibold hover:bg-[#0958a8] transition-colors shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+              Me retrouver sur LinkedIn
+            </a>
+          </div>
+
+        </div>
+      </section>
+
       <FooterMarketing />
     </div>
   )
