@@ -61,14 +61,16 @@ export default function LandingPage() {
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section className="relative bg-[#0F1F3A] pt-16 overflow-hidden">
-        {/* Warm gradient overlay */}
+        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#2d0f00]/25 via-transparent to-[#0a1a30]/60 pointer-events-none" />
-        {/* Floating orbs */}
-        <div className="hero-orb   absolute top-20  left-[10%]  w-72 h-72  rounded-full bg-[#F59E0B]/5  blur-3xl pointer-events-none" />
-        <div className="hero-orb-2 absolute top-40  right-[8%]  w-96 h-96  rounded-full bg-[#1E4A8C]/8  blur-3xl pointer-events-none" />
-        <div className="hero-orb-3 absolute bottom-10 left-[35%] w-64 h-64  rounded-full bg-[#F59E0B]/4  blur-2xl pointer-events-none" />
+        {/* Aurora derrière le titre (colonne gauche) */}
+        <div className="aurora-1 absolute top-[15%] left-[2%]  w-[480px] h-[480px] rounded-full bg-[#F59E0B] opacity-[0.07] blur-[90px] pointer-events-none" />
+        <div className="aurora-2 absolute top-[35%] left-[18%] w-[360px] h-[360px] rounded-full bg-[#1E4A8C] opacity-[0.10] blur-[70px] pointer-events-none" />
+        <div className="aurora-3 absolute top-[5%]  left-[12%] w-[280px] h-[280px] rounded-full bg-[#F59E0B] opacity-[0.05] blur-[60px] pointer-events-none" />
+        {/* Orbe droite */}
+        <div className="hero-orb-2 absolute top-20 right-[6%] w-96 h-96 rounded-full bg-[#1E4A8C]/6 blur-3xl pointer-events-none" />
 
-        <div className="max-w-[1600px] mx-auto px-10 w-full py-16 xl:py-24 min-h-[calc(100vh-220px)] flex items-center">
+        <div className="max-w-[1600px] mx-auto px-10 w-full py-16 xl:py-24 min-h-[88vh] flex items-center relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-[54%_46%] gap-12 xl:gap-20 items-center">
 
             <div>
@@ -161,11 +163,6 @@ export default function LandingPage() {
       {/* ── VIDÉO DÉMO ──────────────────────────────────────────────── */}
       <section className="bg-[#0F1F3A] pb-16">
         <div className="max-w-[1600px] mx-auto px-6 lg:px-10">
-          <div className="flex items-center justify-center gap-3 pb-6 text-white/35 text-xs font-medium">
-            <ChevronDown className="w-4 h-4 bounce-soft" />
-            <span>Découvrez Talenth en action</span>
-            <ChevronDown className="w-4 h-4 bounce-soft" />
-          </div>
           <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
             <video
               className="w-full"
@@ -534,93 +531,6 @@ export default function LandingPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── À PROPOS ─────────────────────────────────────────────────── */}
-      <section className="py-20 bg-[#0F1F3A] relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2d0f00]/15 via-transparent to-transparent pointer-events-none" />
-        <div className="hero-orb-2 absolute -top-20 right-[5%] w-80 h-80 rounded-full bg-[#1E4A8C]/10 blur-3xl pointer-events-none" />
-
-        <div className="max-w-[1600px] mx-auto px-10 relative">
-
-          <AnimateIn>
-            <div className="text-center mb-16">
-              <p className="text-xs font-semibold text-[#F59E0B] uppercase tracking-widest mb-4">L&apos;équipe</p>
-              <h2 className="text-3xl xl:text-4xl font-black text-white mb-4 leading-tight">
-                Des personnes engagées,<br />un outil construit avec intention.
-              </h2>
-              <p className="text-white/50 text-lg max-w-2xl mx-auto leading-relaxed">
-                Talenth.fr est né du terrain. Voici l&apos;équipe qui le conçoit et le maintient.
-              </p>
-            </div>
-          </AnimateIn>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-            {/* Sergio */}
-            <AnimateIn delay={0}>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 flex flex-col h-full hover:bg-white/8 transition-colors">
-                <div className="flex items-start gap-5 mb-6">
-                  <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[#F59E0B]/30 flex-shrink-0">
-                    <img
-                      src="/founder.jpeg"
-                      alt="Sergio De Andrade"
-                      className="w-full h-full object-cover object-top"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-bold text-xl mb-0.5">Sergio De Andrade</h3>
-                    <p className="text-[#F59E0B] text-sm font-medium">Fondateur de Talenth.fr</p>
-                  </div>
-                </div>
-                <p className="text-white/60 text-base leading-relaxed flex-1 mb-7">
-                  J&apos;ai construit Talenth.fr parce que j&apos;ai vu des équipes mission handicap passer des heures sur Excel à recalculer leur OETH chaque année. Mon objectif : un outil simple, fiable, centré sur les personnes, pas sur la conformité seule. Je réponds personnellement à chaque message.
-                </p>
-                <a
-                  href="https://www.linkedin.com/in/sergio-de-andrade-748334195/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-[#0A66C2] text-white text-sm font-semibold hover:bg-[#0958a8] transition-colors self-start"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                  </svg>
-                  Me retrouver sur LinkedIn
-                </a>
-              </div>
-            </AnimateIn>
-
-            {/* Zippytal */}
-            <AnimateIn delay={150}>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 flex flex-col h-full hover:bg-white/8 transition-colors">
-                <div className="flex items-start gap-5 mb-6">
-                  <div className="w-16 h-16 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/15">
-                    <span className="text-white font-black text-lg tracking-tight">Z</span>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-bold text-xl mb-0.5">Zippytal</h3>
-                    <p className="text-[#5DCAA5] text-sm font-medium">Partenaire technique</p>
-                  </div>
-                </div>
-                <p className="text-white/60 text-base leading-relaxed flex-1 mb-7">
-                  Zippytal connecte et automatise les outils de gestion pour les PME de service : les clients entrent, les relances partent, les fichiers sont livrés, l&apos;équipe est informée, sans ressaisie. Ensemble, nous formons l&apos;équipe qui développe et maintient Talenth.fr.
-                </p>
-                <a
-                  href="https://zippytal.com/en"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-semibold hover:bg-white/15 transition-colors self-start"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                  </svg>
-                  Découvrir Zippytal
-                </a>
-              </div>
-            </AnimateIn>
-
           </div>
         </div>
       </section>
