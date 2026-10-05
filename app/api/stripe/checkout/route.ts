@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { PLANS, type PlanId, type BillingCycle } from '@/lib/plans'
+import type Stripe from 'stripe'
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   let customerId = org?.stripe_customer_id ?? null
   if (!customerId) {
-    const customer = await stripe.customers.create({
+    const customer = await getStripe().customers.create({
       email: user.email,
       name: org?.name ?? undefined,
       metadata: { organization_id: orgId },
@@ -53,9 +54,9 @@ export async function POST(req: NextRequest) {
   //   - monthly        : prix mensuel récurrent
   //   - annual_monthly : prix mensuel récurrent sur 12 mois
   //   - annual_upfront : prix annuel récurrent (interval: year) — 1 paiement/an
-  let session: Awaited<ReturnType<typeof stripe.checkout.sessions.create>>
+  let session: Stripe.Checkout.Session
   try {
-    session = await stripe.checkout.sessions.create({
+    session = await getStripe().checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card', 'sepa_debit'],
       line_items: [{ price: price.stripePriceId, quantity: 1 }],

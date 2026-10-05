@@ -3,7 +3,7 @@ import Link from 'next/link'
 import {
   ArrowRight, CheckCircle, BarChart3, Users, FileText,
   ShieldCheck, TrendingUp, Building2,
-  Heart, Wallet, UserCog, CalendarDays, ChevronDown,
+  Heart, Wallet, UserCog, CalendarDays,
 } from 'lucide-react'
 import { NavMarketing } from '@/components/marketing/NavMarketing'
 import { FooterMarketing } from '@/components/marketing/FooterMarketing'
