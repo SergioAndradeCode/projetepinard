@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type Stripe from 'stripe'
 
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+    event = getStripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
   } catch (err) {
     console.error('[Stripe webhook] Signature invalide:', err)
     return NextResponse.json({ error: 'Signature invalide' }, { status: 400 })
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         let periodEnd: string | null = null
 
         if (subscriptionId) {
-          const sub = await stripe.subscriptions.retrieve(subscriptionId)
+          const sub = await getStripe().subscriptions.retrieve(subscriptionId)
           periodEnd = new Date(sub.items.data[0].current_period_end * 1000).toISOString()
         } else {
           // Paiement unique annuel

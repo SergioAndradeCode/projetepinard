@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import type Stripe from 'stripe'
 
 /**
  * POST /api/stripe/sync
@@ -19,9 +20,9 @@ export async function POST(req: NextRequest) {
   if (!sessionId) return NextResponse.json({ error: 'session_id requis' }, { status: 400 })
 
   // Récupère la session Stripe avec l'abonnement étendu
-  let session: Awaited<ReturnType<typeof stripe.checkout.sessions.retrieve>>
+  let session: Stripe.Checkout.Session
   try {
-    session = await stripe.checkout.sessions.retrieve(sessionId, {
+    session = await getStripe().checkout.sessions.retrieve(sessionId, {
       expand: ['subscription'],
     })
   } catch (err) {
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
 
   let periodEnd: string | null = null
   if (subscriptionId) {
-    const sub = await stripe.subscriptions.retrieve(subscriptionId)
+    const sub = await getStripe().subscriptions.retrieve(subscriptionId)
     periodEnd = new Date(sub.items.data[0].current_period_end * 1000).toISOString()
   } else {
     // Fallback : pas de subscription Stripe (cas exceptionnel)

@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 
 interface AdminNotificationParams {
   invoiceNumber:     string
@@ -111,7 +111,7 @@ export async function sendAdminNotification(params: AdminNotificationParams): Pr
 </body>
 </html>`
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from:    `${companyName} <${fromEmail}>`,
     to:      [adminEmail],
     subject: `Nouvelle commande - ${params.companyName} - Plan ${params.planName}`,
