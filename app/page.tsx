@@ -10,6 +10,7 @@ import { FooterMarketing } from '@/components/marketing/FooterMarketing'
 import { MockupDashboard, MockupRQTH, MockupDOETH } from '@/components/marketing/MockupDashboard'
 import { FormDemo } from '@/components/marketing/FormDemo'
 import { AnimateIn } from '@/components/marketing/AnimateIn'
+import { HeroParticles } from '@/components/marketing/HeroParticles'
 
 export const metadata: Metadata = {
   title: "Logiciel OETH - Pilotage et suivi BOETH pour equipes RH",
@@ -63,12 +64,8 @@ export default function LandingPage() {
       <section className="relative bg-[#0F1F3A] pt-16 overflow-hidden">
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#2d0f00]/25 via-transparent to-[#0a1a30]/60 pointer-events-none" />
-        {/* Aurora derrière le titre (colonne gauche) */}
-        <div className="aurora-1 absolute top-[15%] left-[2%]  w-[480px] h-[480px] rounded-full bg-[#F59E0B] opacity-[0.07] blur-[90px] pointer-events-none" />
-        <div className="aurora-2 absolute top-[35%] left-[18%] w-[360px] h-[360px] rounded-full bg-[#1E4A8C] opacity-[0.10] blur-[70px] pointer-events-none" />
-        <div className="aurora-3 absolute top-[5%]  left-[12%] w-[280px] h-[280px] rounded-full bg-[#F59E0B] opacity-[0.05] blur-[60px] pointer-events-none" />
-        {/* Orbe droite */}
-        <div className="hero-orb-2 absolute top-20 right-[6%] w-96 h-96 rounded-full bg-[#1E4A8C]/6 blur-3xl pointer-events-none" />
+        {/* Cercles animés dérivant en diagonale */}
+        <HeroParticles />
 
         <div className="max-w-[1600px] mx-auto px-10 w-full py-16 xl:py-24 min-h-[88vh] flex items-center relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-[54%_46%] gap-12 xl:gap-20 items-center">
