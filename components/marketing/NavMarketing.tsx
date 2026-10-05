@@ -39,6 +39,7 @@ export function NavMarketing() {
             { label: 'Fonctionnalités', href: '/#fonctionnalites' },
             { label: 'Comment ça marche', href: '/#fonctionnement' },
             { label: 'Tarifs', href: '/tarifs' },
+            { label: 'À propos', href: '/about' },
           ].map(({ label, href }) => (
             <Link
               key={label}
@@ -89,6 +90,7 @@ export function NavMarketing() {
             { label: 'Fonctionnalités', href: '/#fonctionnalites' },
             { label: 'Comment ça marche', href: '/#fonctionnement' },
             { label: 'Tarifs', href: '/tarifs' },
+            { label: 'À propos', href: '/about' },
           ].map(({ label, href }) => (
             <Link key={label} href={href} className="block text-sm font-medium text-[#6B7280] py-1.5" onClick={() => setMenuOpen(false)}>
               {label}
