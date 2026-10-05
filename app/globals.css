@@ -107,20 +107,26 @@ body {
 }
 .bounce-soft { animation: bounce-soft 1.8s ease-in-out infinite; }
 
-/* ── Aurora hero background ── */
-@keyframes aurora-1 {
-  0%,100% { opacity: 0.07; transform: translate(0,   0)   scale(1); }
-  50%      { opacity: 0.11; transform: translate(60px, -45px) scale(1.18); }
+/* ── Hero particles — cercles dérivant en diagonale (gauche→droite + bas) ── */
+/* slow  = petits / loin,  medium = taille moyenne,  fast = grands / proches */
+@keyframes pdrift-slow {
+  0%   { transform: translate(0, 0);         opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translate(110px, 220px); opacity: 0; }
 }
-@keyframes aurora-2 {
-  0%,100% { opacity: 0.10; transform: translate(0,   0)   scale(1); }
-  50%      { opacity: 0.14; transform: translate(-50px, 35px) scale(0.86); }
+@keyframes pdrift-medium {
+  0%   { transform: translate(0, 0);         opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translate(170px, 330px); opacity: 0; }
 }
-@keyframes aurora-3 {
-  0%,100% { opacity: 0.05; transform: translate(0,   0)   scale(1); }
-  33%     { opacity: 0.08; transform: translate(35px, 55px) scale(1.12); }
-  66%     { opacity: 0.04; transform: translate(-25px,-30px) scale(0.9); }
+@keyframes pdrift-fast {
+  0%   { transform: translate(0, 0);         opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translate(240px, 460px); opacity: 0; }
 }
-.aurora-1 { animation: aurora-1 14s ease-in-out infinite; }
-.aurora-2 { animation: aurora-2 18s ease-in-out infinite 4s; }
-.aurora-3 { animation: aurora-3 11s ease-in-out infinite 7s; }
+.pdrift-slow   { animation-name: pdrift-slow;   animation-timing-function: ease-in-out; }
+.pdrift-medium { animation-name: pdrift-medium; animation-timing-function: ease-in-out; }
+.pdrift-fast   { animation-name: pdrift-fast;   animation-timing-function: ease-in;     }
