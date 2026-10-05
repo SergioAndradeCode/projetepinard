@@ -172,7 +172,7 @@ export function LandingPricing() {
                   <div className="mt-auto">
                     {isCustom ? (
                       <a
-                        href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth"
+                        href="mailto:talenthsupport@gmail.com?subject=Offre Groupe Talenth"
                         className="flex items-center justify-center gap-2 bg-[#F8FAFC] text-[#1E4A8C] border border-[#E2E8F0] font-semibold px-5 py-3 rounded-xl hover:bg-[#EBF2FA] transition-colors text-sm w-full"
                       >
                         Nous contacter

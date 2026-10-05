@@ -69,7 +69,7 @@ export default function RegisterPage() {
     setLoading(false)
   }
 
-  const handleOAuth = async (provider: 'google' | 'azure') => {
+  const handleOAuth = async (provider: 'google') => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -106,20 +106,10 @@ export default function RegisterPage() {
             </svg>
             Continuer avec Google
           </Button>
-          <Button type="button" variant="secondary" className="w-full" onClick={() => handleOAuth('azure')}>
-            <svg className="w-4 h-4" viewBox="0 0 23 23">
-              <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
-              <path fill="#f35325" d="M1 1h10v10H1z"/>
-              <path fill="#81bc06" d="M12 1h10v10H12z"/>
-              <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-              <path fill="#ffba08" d="M12 12h10v10H12z"/>
-            </svg>
-            Continuer avec Microsoft
-          </Button>
           {/* Transparence OAuth, RGPD art. 13 */}
           <p className="text-[10px] text-[#9CA3AF] text-center leading-relaxed px-2">
-            En utilisant Google ou Microsoft, votre adresse email et votre profil de base seront partagés
-            avec ces fournisseurs conformément à leurs propres politiques de confidentialité.
+            En utilisant Google, votre adresse email et votre profil de base seront partagés
+            conformément à leur politique de confidentialité.
           </p>
         </div>
 

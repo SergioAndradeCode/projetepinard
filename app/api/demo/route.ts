@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   }
 
   const { nom, email, message } = parsed.data
-  const contactEmail = process.env.TALENTH_EMAIL_CONTACT ?? 'contact@talenth.fr'
+  const contactEmail = process.env.TALENTH_EMAIL_CONTACT ?? 'talenthsupport@gmail.com'
   const fromEmail    = process.env.TALENTH_EMAIL_FROM    ?? 'onboarding@resend.dev'
 
   try {

@@ -60,7 +60,7 @@ const FAQ = [
   },
   {
     q: 'Est-il possible de payer par bon de commande ou virement bancaire ?',
-    a: 'Oui, l\'option « Annuel en 1 fois » est spécialement conçue pour les organisations qui fonctionnent par bon de commande. Après votre essai gratuit, sélectionnez cette formule lors du paiement : Stripe accepte la carte bancaire et le virement SEPA. Pour un processus de devis/bon de commande formalisé, contactez-nous à contact@talenth.fr.',
+    a: 'Oui, l\'option « Annuel en 1 fois » est spécialement conçue pour les organisations qui fonctionnent par bon de commande. Après votre essai gratuit, sélectionnez cette formule lors du paiement : Stripe accepte la carte bancaire et le virement SEPA. Pour un processus de devis/bon de commande formalisé, contactez-nous à talenthsupport@gmail.com.',
   },
   {
     q: 'Puis-je changer de plan à tout moment ?',
@@ -72,19 +72,19 @@ const FAQ = [
   },
   {
     q: 'Quel plan choisir pour un cabinet RH gérant plusieurs entreprises clientes ?',
-    a: 'Le plan Groupe est fait pour vous. Contactez-nous à contact@talenth.fr pour une offre personnalisée adaptée à votre activité multi-clients.',
+    a: 'Le plan Groupe est fait pour vous. Contactez-nous à talenthsupport@gmail.com pour une offre personnalisée adaptée à votre activité multi-clients.',
   },
   {
     q: 'Que deviennent mes données si je résilie mon abonnement ?',
-    a: 'Vos données restent accessibles en lecture seule pendant 30 jours après la résiliation, le temps de les exporter si vous le souhaitez. Passé ce délai, vous pouvez demander leur suppression définitive par email à contact@talenth.fr. Nous traitons toute demande de suppression sous 30 jours, conformément au RGPD. Vous restez propriétaire de vos données à tout moment.',
+    a: 'Vos données restent accessibles en lecture seule pendant 30 jours après la résiliation, le temps de les exporter si vous le souhaitez. Passé ce délai, vous pouvez demander leur suppression définitive par email à talenthsupport@gmail.com. Nous traitons toute demande de suppression sous 30 jours, conformément au RGPD. Vous restez propriétaire de vos données à tout moment.',
   },
   {
     q: 'Un membre de l\'équipe peut-il supprimer des données par erreur ?',
-    a: 'Talenth distingue clairement les rôles. Un lecteur ne peut rien modifier ni supprimer. Un chargé de mission peut supprimer uniquement les salariés de son propre établissement. Seul l\'administrateur a accès à l\'ensemble des données de l\'organisation. En cas de suppression accidentelle, contactez-nous à contact@talenth.fr : nous pouvons vérifier ce qui s\'est passé et vous accompagner.',
+    a: 'Talenth distingue clairement les rôles. Un lecteur ne peut rien modifier ni supprimer. Un chargé de mission peut supprimer uniquement les salariés de son propre établissement. Seul l\'administrateur a accès à l\'ensemble des données de l\'organisation. En cas de suppression accidentelle, contactez-nous à talenthsupport@gmail.com : nous pouvons vérifier ce qui s\'est passé et vous accompagner.',
   },
   {
     q: 'Y a-t-il un support disponible si j\'ai un problème avec l\'outil ?',
-    a: 'Oui, le support est inclus dans tous les plans, sans exception. Si vous rencontrez un problème technique ou une question sur l\'utilisation, écrivez-nous à contact@talenth.fr. Nous répondons généralement sous 48h ouvrées. Pour les comptes Groupe, un accompagnement dédié est prévu dès la souscription.',
+    a: 'Oui, le support est inclus dans tous les plans, sans exception. Si vous rencontrez un problème technique ou une question sur l\'utilisation, écrivez-nous à talenthsupport@gmail.com. Nous répondons généralement sous 48h ouvrées. Pour les comptes Groupe, un accompagnement dédié est prévu dès la souscription.',
   },
 ]
 
@@ -217,8 +217,8 @@ export default function TarifsPage() {
 
         <div className="text-center mt-12">
           <p className="text-[#6B7280] text-sm mb-3">Une autre question ?</p>
-          <a href="mailto:contact@talenth.fr" className="text-[#1E4A8C] font-semibold text-sm hover:underline">
-            Écrivez-nous à contact@talenth.fr →
+          <a href="mailto:talenthsupport@gmail.com" className="text-[#1E4A8C] font-semibold text-sm hover:underline">
+            Écrivez-nous à talenthsupport@gmail.com →
           </a>
         </div>
       </section>

@@ -8,7 +8,7 @@ import { CheckCircle, ChevronDown, ArrowLeft } from 'lucide-react'
 const FAQ = [
   {
     q: 'Je n\'ai pas reçu l\'email avec la facture ?',
-    a: 'Vérifiez votre dossier spam ou courrier indésirable. Si vous ne le trouvez pas sous 10 minutes, contactez-nous à contact@talenth.fr en indiquant votre numéro de facture.',
+    a: 'Vérifiez votre dossier spam ou courrier indésirable. Si vous ne le trouvez pas sous 10 minutes, contactez-nous à talenthsupport@gmail.com en indiquant votre numéro de facture.',
   },
   {
     q: 'Puis-je payer par bon de commande ?',

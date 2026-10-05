@@ -241,8 +241,8 @@ export function TarifsGrid({ infoOnly = false }: { infoOnly?: boolean }) {
           <p className="text-sm font-bold text-green-900 mb-0.5">Un problème ? Je suis là.</p>
           <p className="text-xs text-green-800 leading-relaxed">
             Le support est inclus dans tous les plans. Écrivez-nous à{' '}
-            <a href="mailto:contact@talenth.fr" className="font-semibold underline hover:no-underline">
-              contact@talenth.fr
+            <a href="mailto:talenthsupport@gmail.com" className="font-semibold underline hover:no-underline">
+              talenthsupport@gmail.com
             </a>{' '}
             et nous répondons sous 48h ouvrées.
           </p>
@@ -296,7 +296,7 @@ export function TarifsGrid({ infoOnly = false }: { infoOnly?: boolean }) {
         </div>
         <div className="flex flex-col items-center gap-2 shrink-0">
           <a
-            href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth | demande de devis"
+            href="mailto:talenthsupport@gmail.com?subject=Offre Groupe Talenth | demande de devis"
             className="flex items-center gap-2 bg-[#1E4A8C] text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-[#163870] transition-colors text-sm whitespace-nowrap"
           >
             <Mail className="w-4 h-4" />
