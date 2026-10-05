@@ -78,3 +78,31 @@ body {
     padding: 40px 20px !important;
   }
 }
+
+/* ── Scroll-reveal animations ── */
+.ai-out {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s cubic-bezier(.4,0,.2,1), transform 0.65s cubic-bezier(.4,0,.2,1);
+}
+.ai-in {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* ── Hero background orbs ── */
+@keyframes hero-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -22px) scale(1.06); }
+  66% { transform: translate(-18px, 14px) scale(0.97); }
+}
+.hero-orb   { animation: hero-float 14s ease-in-out infinite; }
+.hero-orb-2 { animation: hero-float 18s ease-in-out infinite 5s; }
+.hero-orb-3 { animation: hero-float 11s ease-in-out infinite 9s; }
+
+/* ── Video peek scroll indicator ── */
+@keyframes bounce-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+.bounce-soft { animation: bounce-soft 1.8s ease-in-out infinite; }
