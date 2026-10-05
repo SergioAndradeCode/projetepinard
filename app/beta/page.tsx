@@ -226,7 +226,7 @@ export default function BetaPage() {
               {status === 'error' && (
                 <p style={{ color: 'rgba(255,100,100,0.8)', fontSize: '13px', margin: '12px 0 0' }}>
                   Une erreur est survenue. Écrivez-nous à{' '}
-                  <a href="mailto:contact@talenth.fr" style={{ color: '#5DCAA5' }}>contact@talenth.fr</a>
+                  <a href="mailto:talenthsupport@gmail.com" style={{ color: '#5DCAA5' }}>talenthsupport@gmail.com</a>
                 </p>
               )}
 
@@ -234,8 +234,8 @@ export default function BetaPage() {
                 <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }} />
                 <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '12px', margin: 0 }}>
                   ou directement sur{' '}
-                  <a href="mailto:contact@talenth.fr" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>
-                    contact@talenth.fr
+                  <a href="mailto:talenthsupport@gmail.com" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>
+                    talenthsupport@gmail.com
                   </a>
                 </p>
                 <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }} />

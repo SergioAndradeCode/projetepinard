@@ -31,7 +31,7 @@ const ldJson = {
       "name": "Talenth",
       "url": "https://talenth.fr",
       "logo": { "@type": "ImageObject", "url": "https://talenth.fr/logo.png" },
-      "contactPoint": { "@type": "ContactPoint", "email": "contact@talenth.fr", "contactType": "customer service" },
+      "contactPoint": { "@type": "ContactPoint", "email": "talenthsupport@gmail.com", "contactType": "customer service" },
     },
     {
       "@type": "SoftwareApplication",
@@ -67,7 +67,7 @@ export default function LandingPage() {
         {/* Cercles animés dérivant en diagonale */}
         <HeroParticles />
 
-        <div className="max-w-[1600px] mx-auto px-10 w-full py-16 xl:py-24 min-h-[88vh] flex items-center relative z-10">
+        <div className="max-w-[1600px] mx-auto px-10 w-full py-16 xl:py-24 min-h-[80vh] flex items-center relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-[54%_46%] gap-12 xl:gap-20 items-center">
 
             <div>
@@ -164,9 +164,9 @@ export default function LandingPage() {
             <video
               className="w-full"
               autoPlay
-              loop
               muted
               playsInline
+              controls
               poster="/video/talenth-demo-poster.jpg"
             >
               <source src="/video/talenth-demo.mp4" type="video/mp4" />
@@ -631,7 +631,7 @@ export default function LandingPage() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a
-                  href="mailto:contact@talenth.fr"
+                  href="mailto:talenthsupport@gmail.com"
                   className="inline-flex items-center justify-center border border-white/20 text-white/75 font-medium px-8 py-4 rounded-xl hover:bg-white/10 transition-colors text-sm"
                 >
                   Demander une démonstration

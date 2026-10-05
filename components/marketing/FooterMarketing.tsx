@@ -59,9 +59,9 @@ export function FooterMarketing() {
                 </li>
               ))}
               <li>
-                <a href="mailto:contact@talenth.fr" className="text-sm text-white/60 hover:text-white transition-colors flex items-center gap-1.5">
+                <a href="mailto:talenthsupport@gmail.com" className="text-sm text-white/60 hover:text-white transition-colors flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5" />
-                  contact@talenth.fr
+                  talenthsupport@gmail.com
                 </a>
               </li>
             </ul>

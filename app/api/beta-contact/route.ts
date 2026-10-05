@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   const { email } = parsed.data
   const fromEmail    = process.env.TALENTH_EMAIL_FROM    ?? 'onboarding@resend.dev'
-  const contactEmail = process.env.TALENTH_EMAIL_CONTACT ?? 'contact@talenth.fr'
+  const contactEmail = process.env.TALENTH_EMAIL_CONTACT ?? 'talenthsupport@gmail.com'
 
   const resend = getResend()
   await resend.emails.send({
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
             </p>
             <p style="margin:0;font-size:14px;color:#1A1A2E;">
               Sergio<br/>
-              <a href="mailto:contact@talenth.fr" style="color:#085041;">contact@talenth.fr</a>
+              <a href="mailto:talenthsupport@gmail.com" style="color:#085041;">talenthsupport@gmail.com</a>
             </p>
           </td>
         </tr>

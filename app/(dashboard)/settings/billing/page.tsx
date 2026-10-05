@@ -344,7 +344,7 @@ export default function BillingPage() {
           </div>
         </div>
         <a
-          href="mailto:contact@talenth.fr?subject=Offre Groupe Talenth | demande de devis"
+          href="mailto:talenthsupport@gmail.com?subject=Offre Groupe Talenth | demande de devis"
           className="flex items-center gap-2 bg-[#1E4A8C] text-white font-semibold px-4 py-2 rounded-lg hover:bg-[#163870] transition-colors text-sm whitespace-nowrap shrink-0"
         >
           Demander un devis
