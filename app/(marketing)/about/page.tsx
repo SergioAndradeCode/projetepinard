@@ -84,8 +84,12 @@ export default function AboutPage() {
             {/* Zippytal */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-8 flex flex-col hover:bg-white/8 transition-colors">
               <div className="flex items-start gap-5 mb-6">
-                <div className="w-16 h-16 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/15">
-                  <span className="text-white font-black text-lg tracking-tight">Z</span>
+                <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <img
+                    src="/zippytal-logo.jpg"
+                    alt="Zippytal"
+                    className="w-full h-full object-contain p-1"
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-xl mb-0.5">Zippytal</h3>
@@ -93,7 +97,7 @@ export default function AboutPage() {
                 </div>
               </div>
               <p className="text-white/60 text-base leading-relaxed flex-1 mb-7">
-                Zippytal connecte et automatise les outils de gestion pour les PME de service : les clients entrent, les relances partent, les fichiers sont livrés, l&apos;équipe est informée, sans ressaisie. Ensemble, nous formons l&apos;équipe qui développe et maintient Talenth.fr.
+                Zippytal connecte les outils existants pour créer des flux de travail automatisés : acquisition clients, relances commerciales, suivi de dossiers, coordination d&apos;équipe, sans ressaisie. Ensemble, nous formons l&apos;équipe qui conçoit et maintient Talenth.fr.
               </p>
               <a
                 href="https://zippytal.com/en"
